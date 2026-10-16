@@ -102,3 +102,9 @@
 4. **차등 시험 현황**(통과 기준 100% 미달, 원인은 alloc·오라클 쪽 규약 차이): 53건(표준 50 + 프리셋 3)을 `out/oracle_input/`에 내보내 `python -I oracle/run.py`가 모두 실행됨을 확인했다. TS RULE 출력과 비교하면 order는 거의 모든 건에서 다르다(B1 미해결 3). O2 호환을 오라클과 맞춘 시험용 DB(`O2_DB`)로 돌리면 53건 중 40건이 lane·resourceId·M1·M2 일치. 남은 13건은 첫 결정 시점의 검토 예약 자원 선택(TS는 커넥터·인버터 호환 자원만, 오라클은 필터 없음)과 HOLD 재확인 시한의 A_min 풀(TS는 예약 전 전체 풀, 오라클은 예약 뒤 자유 자원)에서 갈린다. 결정 시점 목록은 확인한 건에서 같았다(사건 루프 규약 일치). `ENGINE_SPEC.md`에서 두 규약을 하나로 정할 것.
 5. **ESLint 규칙 미적용**: 2장의 `sim/reentry.ts` WorldTruth import 금지와 3장 Math.random·Date 금지는 `eslint.config.mjs`(이 작업 소유 아님)에 아직 없다. 대신 `run.test.ts`가 소스를 읽어(주석 제거 뒤) `reentry.ts`의 진실 참조 0, `sim/` 본 코드의 Math.random·Date 0을 확인한다.
 6. **npm 스크립트 없음**: `package.json`은 이 작업 소유가 아니라 스크립트 등록을 하지 않았다. 실행은 `app/`에서 `npx tsx scripts/<이름>.ts`.
+
+### TASK D — 차등 시험 (10/17)
+- `npx tsx app/scripts/diff-oracle.ts`: 시나리오 553건(표준 50 + 프리셋 3 + 경계 퍼즈 500, 가구 2,993) TS ↔ Python 오라클 **불일치 0건**(L·RULE 배정·M1/M2·보조 필드). 결과 `out/diff_report.{json,md}`.
+- 산소 호환은 기기 등급 이름이 아니라 커넥터 교집합(`O2_FLOW`)으로 통일(I5).
+- 결정: `unservedSelfCall`(끝까지 미배정인 등록 가구도 KR-07 시각에 스스로 119 호출)을 **켠다**. 근거: 도구가 배정하지 못한 가구가 아무 행동도 하지 않는다고 두면 RULE이 KR_BASELINE보다 불리하게 보이는 인위적 결과가 나온다(서산형 156.4h vs 115.5h). 현실의 미배정 가구는 119를 부른다. S4 봉인 전 확정값.
+- 서브에이전트 주간 한도(10/19 21:00 KST 재개)로 적대적 검증 3라운드는 이월. 그동안 메인 세션이 직접 진행.
