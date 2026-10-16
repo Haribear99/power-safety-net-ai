@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "title": "독립 오라클 손계산 사례 (명세 기반, 에이전트 작성)",
+    "author": "Claude Opus 서브에이전트(TASK B3). 명세 텍스트만 보고 계산했고 app/src는 읽지 않았다. 사람 검산 전.",
+    "units": "시간은 정수 초(S), 에너지는 정수 mWh. qT(h) = floor(h*3600 + 0.5).",
+    "conventions": [
+      "household 생략 필드는 run_tests.py 기본값: floor 1, mobilityNeed false, caregiver true, ext [], cylinder null, lEndPrev null, device.specBy db_exact, batteryAgeY null, charge unknown, cell (0,0)",
+      "resource 생략 필드: available true, inverterSafe true, mock true",
+      "qSLinearStep k → qS[i] = k*i (i=0..1000), qSCapS c → min(k*i, c). 손계산이 쉽도록 실제 감마 표 대신 쓴다",
+      "sim.travel prepMult [1,1], congest [1,1], speedKmh 30 이면 A = qT(prepH.hi) + floor(dist_m*3600/30000)"
+    ]
+  },
+  "cases": [
+    {
+      "id": "HC01", "kind": "lower_bound", "title": "Trilogy 100, 연식·충전 모름 (명세 3.2 예시 1)",
+      "input": { "device": { "specId": "TRILOGY100", "charge": { "value": null, "source": "unknown" } } },
+      "arithmetic": "T=qT(3)=10800, f_age=7/10(null), c=1/2 → floor(10800*7*1/(10*2)) = floor(75600/20) = 3780s (=1.05h). L_cap = floor(10800*9/10) = 9720",
+      "expected": { "status": "AUTO", "hoursS": 3780, "capS": 9720, "flags": ["CHARGE_UNKNOWN", "AGE_UNKNOWN"] }
+    },
+    {
+      "id": "HC02", "kind": "lower_bound", "title": "Trilogy 100, 기기 화면 충전 90% (명세 3.2 예시 2)",
+      "input": { "device": { "specId": "TRILOGY100", "charge": { "value": 90, "source": "device_screen" } } },
+      "arithmetic": "c = 90*9/(100*10) = 810/1000 → floor(10800*7*810/(10*1000)) = floor(61236000/10000) = floor(6123.6) = 6123s (≈1.701h)",
+      "expected": { "status": "AUTO", "hoursS": 6123, "capS": 9720, "flags": ["AGE_UNKNOWN", "USER_INPUT_DISCOUNTED"] }
+    },
+    {
+      "id": "HC03", "kind": "lower_bound", "title": "INOGEN G5, 이용자 '설정 1' → min(runtimeH) (명세 3.2 예시 3), 연식 0.5년, 이용자 충전 100%",
+      "input": { "device": { "specId": "INOGEN_G5", "setting": 1, "settingSource": "user", "batteryAgeY": 0.5, "charge": { "value": 100, "source": "user" } } },
+      "arithmetic": "T = min(qT(6.5)=23400, qT(3.75)=13500) = 13500, f_age=9/10, c=900/1000 → floor(13500*9*900/(10*1000)) = floor(109350000/10000) = 10935s. L_cap = floor(max 23400 *9/10) = 21060",
+      "expected": { "status": "AUTO", "hoursS": 10935, "capS": 21060, "flags": ["USER_INPUT_DISCOUNTED", "SETTING_USER_MIN"] }
+    },
+    {
+      "id": "HC04", "kind": "lower_bound", "title": "INOGEN G5, 운영자 확인 설정 3 → 선형 보간, 연식 1.5년, 충전 모름",
+      "input": { "device": { "specId": "INOGEN_G5", "setting": 3, "settingSource": "operator", "batteryAgeY": 1.5, "charge": { "value": null, "source": "unknown" } } },
+      "arithmetic": "보간 (1,23400)-(5,13500): floor((23400*4 + (13500-23400)*2)/4) = floor(73800/4) = 18450s (5.125h). f_age=8/10, c=1/2 → floor(18450*8*1/(10*2)) = floor(147600/20) = 7380s. L_cap 21060",
+      "expected": { "status": "AUTO", "hoursS": 7380, "capS": 21060, "flags": ["CHARGE_UNKNOWN"] }
+    },
+    {
+      "id": "HC05", "kind": "lower_bound", "title": "Astral 150 + 운영자 확인 외장 2개(충전 확인, 외장 연식 0.5년) + 신고만 된 외장 1개, 이용자 입력 연식 무시",
+      "input": { "device": { "specId": "ASTRAL150", "batteryAgeY": 3, "userAgeY": 0.2, "charge": { "value": 50, "source": "user" } },
+                 "ext": [ { "extSpecId": "ASTRAL_EXT", "declaredCount": 3, "opVerified": { "count": 2, "chargeConfirmed": "device_screen", "extAgeY": 0.5, "auditId": "a1" } },
+                          { "extSpecId": "ASTRAL_EXT", "declaredCount": 1, "opVerified": null } ] },
+      "arithmetic": "L_dev: T=28800, f_age(3y)=7/10, c=50*9/1000=450/1000 → floor(28800*7*450/10000) = floor(90720000/10000) = 9072. L_ext: floor(2*28800*9*9/(10*10)) = floor(4665600/100) = 46656. 신고만 된 외장 0. L = 55728. L_cap = floor(28800*9/10)=25920 + floor(2*28800*9*9/(10*10))=46656 → 72576",
+      "expected": { "status": "AUTO", "hoursS": 55728, "capS": 72576, "flags": ["EXT_UNVERIFIED_ZERO", "USER_INPUT_DISCOUNTED", "USER_AGE_IGNORED"] }
+    },
+    {
+      "id": "HC06", "kind": "lower_bound", "title": "Trilogy 100, 화면 남은 시간 상한 + 충전 미확인 외장 1개(c_ext 1/2, f_age_ext 7/10) + forSpecIds 불일치 외장 무시",
+      "input": { "device": { "specId": "TRILOGY100", "batteryAgeY": 0.5, "charge": { "value": 100, "source": "device_screen" }, "screenRemainingH": 1.5 },
+                 "ext": [ { "extSpecId": "TRILOGY100_DETACH", "declaredCount": 1, "opVerified": { "count": 1, "chargeConfirmed": null, "extAgeY": null, "auditId": "a2" } },
+                          { "extSpecId": "ASTRAL_EXT", "declaredCount": 1, "opVerified": { "count": 1, "chargeConfirmed": "device_screen", "extAgeY": 0.5, "auditId": "a3" } } ] },
+      "arithmetic": "L_dev = floor(10800*9*900/(10*1000)) = 8748 → min(8748, qT(1.5)=5400) = 5400. L_ext = floor(1*10800*7*1/(10*2)) = floor(75600/20) = 3780 (본체 연식 0.5년을 빌리지 않음). ASTRAL_EXT는 forSpecIds에 TRILOGY100 없음 → 0. L = 9180. L_cap = 9720 + floor(1*10800*9*1/(10*2)) = 9720 + 4860 = 14580",
+      "expected": { "status": "AUTO", "hoursS": 9180, "capS": 14580, "flags": ["EXT_UNVERIFIED_ZERO", "SCREEN_CAPPED", "USER_INPUT_DISCOUNTED", "EXT_CHARGE_UNKNOWN"] }
+    },
+    {
+      "id": "HC07a", "kind": "lower_bound", "title": "DB 밖 기종(specId null), 운영자 하한 없음 → MANUAL_REVIEW (I4)",
+      "input": { "device": { "specId": null, "specBy": null } },
+      "arithmetic": "operatorLowerH == null ∧ specId == null → L = null, status MANUAL_REVIEW",
+      "expected": { "status": "MANUAL_REVIEW", "hoursS": null, "capS": null, "flags": [] }
+    },
+    {
+      "id": "HC07b", "kind": "lower_bound", "title": "COUGH_E70(continuous=false), 수동검토 완료 운영자 하한 2.0h",
+      "input": { "device": { "specId": "COUGH_E70", "operatorLowerH": { "hours": 2.0, "basis": "다음 사용까지", "auditId": "a4" } } },
+      "arithmetic": "비연속 기기 + operatorLowerH → L = qT(2.0) = 7200 (+OPERATOR_LOWER)",
+      "expected": { "status": "AUTO", "hoursS": 7200, "capS": 7200, "flags": ["OPERATOR_LOWER"] }
+    },
+    {
+      "id": "HC08", "kind": "lower_bound", "title": "Perfecto2(배터리 0h) + 운영자 확인 실린더 1개 hoursLo 10h",
+      "input": { "device": { "specId": "PERFECTO2" }, "cylinder": { "declared": true, "opVerified": { "count": 1, "hoursLo": 10, "auditId": "a5" } } },
+      "arithmetic": "L_dev = floor(0*7*1/20) = 0. L_cyl = qT(10) = 36000 (≤ 10h×1). L = 36000. L_cap = floor(0*9/10) + 0 + 36000 = 36000",
+      "expected": { "status": "AUTO", "hoursS": 36000, "capS": 36000, "flags": ["CHARGE_UNKNOWN", "AGE_UNKNOWN"] }
+    },
+    {
+      "id": "HC09", "kind": "cond_quantile", "title": "조건부 분위, 선형 표 Q(u) = 36000u (0~10h 균등)",
+      "qSLinearStep": 36,
+      "checks": [
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 0, "q": [4, 5], "qKey": "p80", "expectedEndS": 28800, "arithmetic": "e=0 → F=0, u=0.8 → Q=28800" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 0, "q": [9, 10], "qKey": "p90", "expectedEndS": 32400, "arithmetic": "u=0.9 → 32400" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 9000, "q": [4, 5], "qKey": "p80", "expectedEndS": 30600, "arithmetic": "F(9000)=9000/36000=1/4, u=1/4+4/5*3/4=17/20 → 36000*17/20=30600" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 9000, "q": [9, 10], "qKey": "p90", "expectedEndS": 33300, "arithmetic": "u=1/4+9/10*3/4=37/40 → 33300" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 600, "nowS": 9600, "q": [9, 10], "qKey": "p90", "expectedEndS": 33900, "arithmetic": "tOutage 600: e=9000 → Q=33300 → 600+33300=33900" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 36000, "q": [4, 5], "qKey": "p80", "expectedEndS": 36000, "arithmetic": "F(36000)=1 (Q(1)=36000 ≤ e) → R_end = now" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 1, "q": [4, 5], "qKey": "p80", "expectedEndS": 28800, "arithmetic": "F(1)=1/36000, u=1/36000+4/5*35999/36000=(1+28799.2)/36000 → Q=28800.2 → floor 28800" }
+      ]
+    },
+    {
+      "id": "HC10", "kind": "cond_quantile", "title": "평탄 구간 동점 규칙 F(e)=max{u: Q(u) ≤ e} (3.1절 규칙 5). qS[i] = min(36i, 18000)",
+      "qSLinearStep": 36, "qSCapS": 18000,
+      "checks": [
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 18000, "q": [4, 5], "qKey": "p80", "expectedEndS": 18000, "arithmetic": "Q(u)=18000 for u≥0.5 → F(18000)=1 (최댓값) → now" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 17999, "q": [4, 5], "qKey": "p80", "expectedEndS": 18000, "arithmetic": "i=499 (17964 ≤ 17999 < 18000), F=(499+35/36)/1000=17999/36000, u80 ≥ 0.8 → 평탄 18000" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 5000, "q": [1, 10], "qKey": "p10", "expectedEndS": 8100, "arithmetic": "F=5000/36000=5/36, u=5/36+1/10*31/36=81/360=0.225 → 36000*0.225=8100" }
+      ]
+    },
+    {
+      "id": "HC10b", "kind": "cond_quantile", "title": "내부 평탄 구간의 동점 규칙: Q가 u∈[0.5, 0.6]에서 18000으로 평탄 → F(18000) = 0.6 (최댓값)",
+      "qSKnots": [[0, 0], [500, 18000], [600, 18000], [1000, 32400]],
+      "checks": [
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 18000, "q": [4, 5], "qKey": "p80", "expectedEndS": 29520, "arithmetic": "F = 0.6 (0.5가 아님). u = 0.6 + 4/5*0.4 = 0.92 → i=920: 18000 + 36*(920-600) = 29520. min 규칙이면 u=0.9 → 28800" },
+        { "status": "ASSUMED_RANGE", "tOutageS": 0, "nowS": 18001, "q": [1, 10], "qKey": "p10", "expectedEndS": 19440, "arithmetic": "i=600, F = (600 + 1/36)/1000. u = F + 0.1(1-F) = 0.9F + 0.1 = 0.64 + 0.9/36000 → Q = 18000 + 36*(40 + 0.025) = 19440.9 → floor 19440" }
+      ]
+    },
+    {
+      "id": "HC11", "kind": "cond_quantile", "title": "NEAR_CERTAIN(ROTATING)과 CONFIRMED(materialize된 배수 ppm)",
+      "qSLinearStep": 36,
+      "checks": [
+        { "status": "NEAR_CERTAIN", "tOutageS": 0, "nowS": 5000, "q": [4, 5], "qKey": "p80", "expectedEndS": 3600, "arithmetic": "tOutage + qT(1.0) = 3600 (now가 지나도 고정)" },
+        { "status": "CONFIRMED", "tOutageS": 0, "nowS": 2000, "q": [4, 5], "qKey": "p80", "confirmed": { "rEstEndS": 10000, "multPpm": { "p10": 500000, "p80": 1500000, "p90": 2000000 } }, "expectedEndS": 14000, "arithmetic": "남은 8000 × 1.5 = 12000 → 2000 + 12000 = 14000" },
+        { "status": "CONFIRMED", "tOutageS": 0, "nowS": 12000, "q": [9, 10], "qKey": "p90", "confirmed": { "rEstEndS": 10000, "multPpm": { "p10": 500000, "p80": 1500000, "p90": 2000000 } }, "expectedEndS": 12000, "arithmetic": "남은 시간 max(0, 10000-12000)=0 → now" }
+      ]
+    },
+    {
+      "id": "HC12", "kind": "scenario", "title": "가구 1·자원 1: PROPOSE_ASSIGN, 자원 고장(backupFails)이면 run=0 → 공백",
+      "qSLinearStep": 36,
+      "scenario": {
+        "scenarioId": "HC12",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "KEPCO_DIST", "tOutage": 0, "status": "ASSUMED_RANGE", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [ { "id": "H1", "tReport": 0, "device": { "specId": "TRILOGY100" } } ],
+          "resources": [ { "id": "RL", "kind": "ESS_L", "cell": { "x": 3, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } } ]
+        },
+        "truth": { "restorationS": 18000, "hh": { "H1": { "LTrueS": 3000, "backupFails": true, "shelterRefuses": false, "mrDelayS": 0 } },
+                   "unregistered": [], "arrivalTrueS": { "H1|RL": 2500 }, "a119TrueS": {}, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "t0 = max tReport = 0. L = 3780 (HC01), L_end = 3780. e=0: R80_end = 28800, R90_end = 32400",
+        "A(H1,RL) = qT(0.5)=1800 + floor(3000m*3600/30000)=360 → 2160. 출력 1800*4=7200 ≥ 60*5=300",
+        "H_need = clamp(28800-2160, 3600, 86400) = 26640. 에너지 floor(2000000*17/20)=1700000 ≥ floor(60000*26640/3600)=444000",
+        "slack = floor(3780*4/5)=3024 - 2160 = 864, tier 0 (3780 < 32400). A 2160 ≤ 3024 → PROPOSE_ASSIGN RL, order 1",
+        "진실: 도착 0+2500=2500 < R 18000 → 자원 공급. backupFails → run 0. G = max(0,2500-3000) + max(0, 18000-(2500+0+max(0,3000-2500))) = 0 + 15000",
+        "명세 원문 식이면 18000-2500 = 15500. DEVLOG 수정식(남은 배터리 500s 포함)으로 15000. M1 = 1 (18000>3000, G>0), M2 = 15000"
+      ],
+      "expected": {
+        "households": { "H1": { "lane": "PROPOSE_ASSIGN", "resourceId": "RL", "order": 1, "decidedAtS": 0 } },
+        "metrics": { "M1": 1, "M2S": 15000, "highRisk": 1, "gapS": { "H1": 15000 } }
+      }
+    },
+    {
+      "id": "HC13", "kind": "scenario", "title": "least-slack 순서, 119(①), 쉼터(6d), 이동지원·보호자 없음 → UNSERVED_VISIBLE, 미등록 가구 119 공유 대기열",
+      "qSLinearStep": 36,
+      "scenario": {
+        "scenarioId": "HC13",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "KEPCO_DIST", "tOutage": 0, "status": "ASSUMED_RANGE", "sigmaE": null },
+          "lanes": { "k119PerH": 1, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 1, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [
+            { "id": "H1", "tReport": 0, "device": { "specId": "TRILOGY100" } },
+            { "id": "H2", "tReport": 0.18, "device": { "specId": "LTV1150", "batteryAgeY": 0.5, "charge": { "value": 100, "source": "device_screen" } } },
+            { "id": "H3", "tReport": 0, "device": { "specId": "TRILOGY100" } },
+            { "id": "H4", "tReport": 0, "mobilityNeed": true, "caregiver": false, "device": { "specId": "TRILOGY100" } }
+          ],
+          "resources": [ { "id": "RL", "kind": "ESS_L", "cell": { "x": 3, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } } ]
+        },
+        "truth": { "restorationS": 18000,
+                   "hh": { "H1": { "LTrueS": 3000 }, "H2": { "LTrueS": 2500 }, "H3": { "LTrueS": 3000 }, "H4": { "LTrueS": 3000 } },
+                   "unregistered": [ { "id": "U1", "LTrueS": 4000, "callS": 4000 } ],
+                   "arrivalTrueS": { "H2|RL": 2000 }, "a119TrueS": { "H1": 1500, "U1": 600 }, "shelterTrueS": { "H3": 2400 } }
+      },
+      "arithmetic": [
+        "H2 L = floor(3600*9*900/(10*1000)) = 2916, tReport qT(0.18)=648 → L_end 3564. H1·H3·H4 L_end 3780. t0 = 648",
+        "e=648: F=648/36000=9/500. R80: u=9/500+4/5*491/500=2009/2500 → floor(28929.6)=28929. R90: u=4509/5000 → floor(32464.8)=32464",
+        "A = 2160 for all. slack H2 = floor(2916*4/5)=2332-2160 = 172; H1/H3/H4 = floor(3132*4/5)=2505-2160 = 345. 모두 tier 0",
+        "1) H2 (slack 172): 2160 ≤ 2332 → PROPOSE RL (order 1). H_need=28929-(648+2160)=26121 → 435350 mWh ≤ 1700000",
+        "2) H1·H3·H4: phys 빔 → slack -inf, 동점 L_end 3780 → id순. H1: 119 대기열 비어 s=648, 648+1800+1188=3636 ≤ 3780 → FALLBACK_119 (order 2)",
+        "3) H3: s = 648+3600(1/k h, k=1) = 4248; 4248+2988 > 3780, phys 빔 → 6단계. H4 동일 → 6단계",
+        "6단계(L_end 3780 동점, id순): H3 (a)✗ (b)phys 빔 (c) 4248 < 3780 ✗ (d) 이동지원 아님, 좌석 1 → FALLBACK_SHELTER (order 3). H4 (d) 이동지원+보호자 없음 → (e) UNSERVED_VISIBLE (order 4)",
+        "진실 R_end 18000. H2: L_true_end 648+2500=3148, 도착 648+2000=2648 → G = 0 + max(0, 18000-(2648+102000+500)) = 0 (run=floor(2000000*17*3600/(20*60000))=102000)",
+        "진실 119 대기열(호출 시각순): H1(648) 시작 648 끝 4248, U1(4000) 시작 max(4000,4248)=4248. H1 도착 648+1500=2148 +1188 = 3336 → G=336. U1 4248+600+1188=6036 → G = 6036-4000 = 2036",
+        "H3 쉼터 648+2400=3048 → G=48. H4 T=R=18000 → G=15000. M1 = 4 (H1,H3,H4,U1), M2 = 336+0+48+15000+2036 = 17420"
+      ],
+      "expected": {
+        "households": {
+          "H1": { "lane": "FALLBACK_119", "resourceId": null, "order": 2, "decidedAtS": 648 },
+          "H2": { "lane": "PROPOSE_ASSIGN", "resourceId": "RL", "order": 1, "decidedAtS": 648 },
+          "H3": { "lane": "FALLBACK_SHELTER", "resourceId": null, "order": 3, "decidedAtS": 648 },
+          "H4": { "lane": "UNSERVED_VISIBLE", "resourceId": null, "order": 4, "decidedAtS": 648 }
+        },
+        "decisions": [ { "tS": 648, "r80EndS": 28929, "r90EndS": 32464 } ],
+        "metrics": { "M1": 4, "M2S": 17420, "highRisk": 5, "gapS": { "H1": 336, "H2": 0, "H3": 48, "H4": 15000, "U1": 2036 } }
+      }
+    },
+    {
+      "id": "HC14", "kind": "scenario", "title": "NEAR_CERTAIN → HOLD, holdRecheckBy 결정 시점에 재배정(A = 0.8L 정확히), tier 1",
+      "qSLinearStep": 36,
+      "scenario": {
+        "scenarioId": "HC14",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "ROTATING", "tOutage": 0, "status": "NEAR_CERTAIN", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [ { "id": "H1", "tReport": 0, "device": { "specId": "ASTRAL150" } } ],
+          "resources": [ { "id": "RL", "kind": "ESS_L", "cell": { "x": 3, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } } ]
+        },
+        "truth": { "restorationS": 9000, "hh": { "H1": { "LTrueS": 8000 } }, "unregistered": [],
+                   "arrivalTrueS": { "H1|RL": 2000 }, "a119TrueS": {}, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "L = floor(28800*7*1/(10*2)) = 10080, L_end 10080. NEAR_CERTAIN: R80_end = R90_end = 0 + qT(1.0) = 3600",
+        "t0 = 0: HOLD 조건 status ✓, σ null ✓, R80_rem 3600 ≤ min(floor(10080*4/5)=8064, 10080-1800=8280)=8064 ✓",
+        "A_min = 2160 (RL 물리 통과: H_need = clamp(3600-2160,3600,…)=3600 → 60000 mWh ≤ 1700000). holdRecheckBy = 10080 - floor(2160*5/4)=2700 → 7380 > now 0 → HOLD",
+        "결정 시점 7380: 만료 HOLD → 필요. L_rem = 2700, 0.8L = floor(2700*4/5)=2160, slack = 0, A = 2160 ≤ 2160 (경계) → PROPOSE RL order 1. tier 1 (10080 ≥ 3600)",
+        "진실: 도착 7380+2000 = 9380 > R 9000 → 복구가 먼저. G = max(0, 9000-8000) = 1000. M1 = 1, M2 = 1000"
+      ],
+      "expected": {
+        "households": { "H1": { "lane": "PROPOSE_ASSIGN", "resourceId": "RL", "order": 1, "decidedAtS": 7380, "everHold": true, "holdRecheckByS": 7380 } },
+        "metrics": { "M1": 1, "M2S": 1000, "highRisk": 1, "gapS": { "H1": 1000 } }
+      }
+    },
+    {
+      "id": "HC14b", "kind": "scenario", "title": "HOLD 세 조건은 맞지만 now ≥ holdRecheckBy → HOLD로 두지 않고 필요 판정(→ 119 ①)",
+      "qSLinearStep": 36,
+      "scenario": {
+        "scenarioId": "HC14b",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "ROTATING", "tOutage": 0, "status": "NEAR_CERTAIN", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [ { "id": "H1", "tReport": 0, "device": { "specId": "ASTRAL150" } } ],
+          "resources": [ { "id": "RF", "kind": "MOBILE_GEN", "cell": { "x": 9, "y": 0 }, "outputW": 5000, "energyWh": 60000, "connectors": ["AC220"], "prepH": { "lo": 1, "hi": 2 } } ]
+        },
+        "truth": { "restorationS": 3600, "hh": { "H1": { "LTrueS": 5000 } }, "unregistered": [],
+                   "arrivalTrueS": {}, "a119TrueS": { "H1": 1000 }, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "L_end 10080, R80_end 3600 ≤ min(8064, 8280) → HOLD 세 조건 충족",
+        "A(RF) = qT(2)=7200 + floor(9000*3600/30000)=1080 → 8280. holdRecheckBy = 10080 - floor(8280*5/4)=10350 → -270 ≤ now 0 → HOLD 아님(3.9절: now ≥ holdRecheckBy이면 '필요')",
+        "slack = 8064 - 8280 = -216 → 가능 자원 없음. ① 119 s=0, 0+1800+1188 = 2988 ≤ 10080 → FALLBACK_119 (order 1)",
+        "진실 R_end 3600 < L_true 5000 → 고위험 아님. 119 도착 0+1000+1188 = 2188 → G 0. M1 0, M2 0"
+      ],
+      "expected": {
+        "households": { "H1": { "lane": "FALLBACK_119", "resourceId": null, "order": 1, "decidedAtS": 0, "everHold": false } },
+        "metrics": { "M1": 0, "M2S": 0, "highRisk": 0, "gapS": { "H1": 0 } }
+      }
+    },
+    {
+      "id": "HC15", "kind": "scenario", "title": "수동검토 검토 예약(상한 floor(5×0.2)=1), 119 예약 상한 0, 재진입(tReport+mrDelay) 뒤 GAP_REDUCE(②, Δ 최대)",
+      "qSLinearStep": 36,
+      "scenario": {
+        "scenarioId": "HC15",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "KEPCO_DIST", "tOutage": 0, "status": "ASSUMED_RANGE", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [
+            { "id": "H1", "tReport": 0, "device": { "specId": null, "specBy": null }, "reentry": { "specId": "TRILOGY100" } },
+            { "id": "H2", "tReport": 0, "device": { "specId": "TRILOGY100" } }
+          ],
+          "resources": [
+            { "id": "R1", "kind": "ESS_L", "cell": { "x": 1, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } },
+            { "id": "R2", "kind": "ESS_L", "cell": { "x": 2, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } },
+            { "id": "R3", "kind": "ESS_L", "cell": { "x": 0, "y": 1 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } },
+            { "id": "R4", "kind": "ESS_L", "cell": { "x": 5, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } },
+            { "id": "R5", "kind": "ESS_L", "cell": { "x": 9, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } }
+          ]
+        },
+        "truth": { "restorationS": 18000,
+                   "hh": { "H1": { "LTrueS": 3000, "mrDelayS": 1800 }, "H2": { "LTrueS": 3500 } },
+                   "unregistered": [], "arrivalTrueS": { "H2|R3": 2000, "H1|R1": 2100 }, "a119TrueS": {}, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "t0 = 0. H1 specId null → MANUAL_REVIEW. 예약 상한 floor(5*1/5) = 1. H2의 phys는 5개라 '유일 자원' 보호 없음",
+        "H1 셀(0,0) A: R1 1800+120=1920, R3 1920(동점), R2 2040, R4 2400, R5 2880. 동점 R1·R3: 커넥터 폭 2=2, 출력 1800=1800 → id R1 예약",
+        "119 예약: 서비스 qT(1/2)=1800, 창 [0, 3600)의 슬롯 2개 → 상한 floor(2*1/5)=0 → 예약 없음",
+        "H2 (L_end 3780, 0.8L=3024): 가용 R2,R3,R4,R5 모두 A ≤ 3024. 낭비 = 1700000 - floor(60000*(28800-A)/3600): R3 1252000 < R2 1254000 < R4 1260000 < R5 1268000 → PROPOSE R3 (order 1)",
+        "결정 시점 tReport+mrDelay = 1800: H1 검토 완료 → R1 예약 해제, TRILOGY100 사양 L = 3780, L_end 3780",
+        "e=1800: F=1/20. R80 u=1/20+4/5*19/20=81/100 → 29160. R90 u=181/200 → 32580",
+        "L_rem 1980, 0.8L = floor(1980*4/5)=1584. A: R1 1920, R2 2040, R4 2400, R5 2880 → slack 1584-1920 = -336, 가능 자원 없음",
+        "① 119: s=1800, 1800+1800+1188=4788 > 3780 ✗. ② Δ = min(29160, A_end+102000) - max(A_end, 3780): R1 A_end 3720 → 29160-3780 = 25380; R2 3840 → 25320; R4 4200 → 24960; R5 4680 → 24480. 최대 R1, 25380 ≥ 3600 → GAP_REDUCE R1 (order 2)",
+        "진실: H2 도착 0+2000 → G = 0 + max(0, 18000-(2000+102000+1500)) = 0. H1 도착 1800+2100=3900 > L_true 3000 → G = 900 + max(0, 18000-(3900+102000+0)) = 900. M1 = 1, M2 = 900"
+      ],
+      "expected": {
+        "households": {
+          "H1": { "lane": "GAP_REDUCE", "resourceId": "R1", "order": 2, "decidedAtS": 1800, "reservedResourceId": "R1", "reserved119": false },
+          "H2": { "lane": "PROPOSE_ASSIGN", "resourceId": "R3", "order": 1, "decidedAtS": 0 }
+        },
+        "metrics": { "M1": 1, "M2S": 900, "highRisk": 2, "gapS": { "H1": 900, "H2": 0 } }
+      }
+    },
+    {
+      "id": "HC15b", "kind": "scenario", "title": "5단계 ② GAP_REDUCE는 Δ 최대 자원(최소 A 아님). 24h 상한에 걸린 근거리 ESS는 run이 짧아 Δ가 작다",
+      "qSLinearStep": 360,
+      "scenario": {
+        "scenarioId": "HC15b",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 2 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "APT_FIRE", "tOutage": 0, "status": "ASSUMED_RANGE", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [ { "id": "H1", "tReport": 0, "device": { "specId": "TRILOGY100" } } ],
+          "resources": [
+            { "id": "RL", "kind": "ESS_L", "cell": { "x": 0, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 1.0 } },
+            { "id": "RG", "kind": "MOBILE_GEN", "cell": { "x": 0, "y": 0 }, "outputW": 5000, "energyWh": 60000, "connectors": ["AC220"], "prepH": { "lo": 1, "hi": 3 } }
+          ]
+        },
+        "truth": { "restorationS": 20000, "hh": { "H1": { "LTrueS": 3000 } }, "unregistered": [],
+                   "arrivalTrueS": { "H1|RG": 9000, "H1|RL": 3000 }, "a119TrueS": {}, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "표 Q(u) = 360000u → e=0: R80_end 288000, R90_end 324000. L_end 3780, 0.8L = 3024, tier 0",
+        "A(RL) = qT(1.0) = 3600, A(RG) = qT(3) = 10800 (같은 셀). H_need = clamp(288000-A, 3600, 86400) = 86400 → 60000*86400/3600 = 1440000 mWh. RL 1700000 ✓, RG 51000000 ✓",
+        "slack = 3024 - 3600 = -576 → 가능 자원 없음. ① 119: 계획 A_119 = qT(0.5*2) = 3600, 0+3600+1188 = 4788 > 3780 ✗",
+        "② run(RL) = floor(2000000*17*3600/(20*60000)) = 102000, Δ(RL) = min(288000, 3600+102000) - max(3600, 3780) = 105600-3780 = 101820",
+        "run(RG) = floor(60000000*17*3600/(20*60000)) = 3060000, Δ(RG) = min(288000, 10800+3060000) - max(10800, 3780) = 277200 → 최대 Δ = RG → GAP_REDUCE RG (order 1). 6단계 (b)라면 최소 A인 RL",
+        "진실: 도착 9000 < R 20000 → G = (9000-3000) + max(0, 20000-(9000+3060000+0)) = 6000. M1 1, M2 6000"
+      ],
+      "expected": {
+        "households": { "H1": { "lane": "GAP_REDUCE", "resourceId": "RG", "order": 1, "decidedAtS": 0 } },
+        "metrics": { "M1": 1, "M2S": 6000, "highRisk": 1, "gapS": { "H1": 6000 } }
+      }
+    },
+    {
+      "id": "HC16", "kind": "scenario", "title": "순서 키 (tier, slack): tier 0 가구가 slack이 더 커도 먼저 (I1 tier 경로)",
+      "qSLinearStep": 4,
+      "scenario": {
+        "scenarioId": "HC16",
+        "sim": { "travel": { "prepMult": [1, 1], "speedKmh": 30, "congest": [1, 1] }, "stress119": 1 },
+        "planner": {
+          "tOutage": 0,
+          "restoration": { "cause": "KEPCO_DIST", "tOutage": 0, "status": "ASSUMED_RANGE", "sigmaE": null },
+          "lanes": { "k119PerH": 2, "a119H": { "lo": 0.16666666666666666, "hi": 0.5 }, "shelter": { "seats": 0, "prepH": { "lo": 0.5, "hi": 2 } } },
+          "households": [
+            { "id": "HA", "tReport": 0, "cell": { "x": 6, "y": 0 }, "device": { "specId": "TRILOGY100" } },
+            { "id": "HB", "tReport": 0, "cell": { "x": 0, "y": 0 }, "device": { "specId": "LTV1150", "batteryAgeY": 0.5, "charge": { "value": 100, "source": "device_screen" } } }
+          ],
+          "resources": [ { "id": "RL", "kind": "ESS_L", "cell": { "x": 0, "y": 0 }, "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "prepH": { "lo": 0.3, "hi": 0.5 } } ]
+        },
+        "truth": { "restorationS": 3000, "hh": { "HA": { "LTrueS": 3500 }, "HB": { "LTrueS": 2000 } }, "unregistered": [],
+                   "arrivalTrueS": { "HB|RL": 1700 }, "a119TrueS": { "HA": 900 }, "shelterTrueS": {} }
+      },
+      "arithmetic": [
+        "표 Q(u) = 4000u → e=0: R80_end = 3200, R90_end = 3600",
+        "HA: L 3780 (L_end 3780 ≥ 3600 → tier 1), A = 1800 + floor(6000*3600/30000)=720 → 2520, slack = 3024-2520 = 504",
+        "HB: L = floor(3600*9*900/10000) = 2916 (< 3600 → tier 0), A = 1800 + 0 = 1800, slack = floor(2916*4/5)=2332-1800 = 532",
+        "키 (tier, slack): HB (0, 532) < HA (1, 504) → HB 먼저. HB: 1800 ≤ 2332, H_need = clamp(3200-1800=1400 → 3600) → 60000 mWh 통과 → PROPOSE RL (order 1)",
+        "HA: phys 빔 → 119 s=0, 0+1800+1188 = 2988 ≤ 3780 → FALLBACK_119 (order 2). (slack만 쓰면 HA가 먼저 RL을 받는다)",
+        "진실 R_end 3000: HB 도착 1700 → G = max(0,1700-2000) + max(0, 3000-(1700+102000+300)) = 0. HA 119 0+900+1188 = 2088 → G = 0 (L_true 3500). 고위험은 HB뿐(3000>2000). M1 0, M2 0"
+      ],
+      "expected": {
+        "households": {
+          "HA": { "lane": "FALLBACK_119", "resourceId": null, "order": 2, "decidedAtS": 0 },
+          "HB": { "lane": "PROPOSE_ASSIGN", "resourceId": "RL", "order": 1, "decidedAtS": 0 }
+        },
+        "metrics": { "M1": 0, "M2S": 0, "highRisk": 1, "gapS": { "HA": 0, "HB": 0 } }
+      }
+    }
+  ]
+}

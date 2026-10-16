@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "title": "기기 사양 DB 시드 (spec.md 3.3절)",
+    "note": "석션기는 넣지 않는다(미등록 모델 → 수동검토 시연). CYL_LARGE는 가구 기기가 아니라 실린더 사양이므로 devices가 아닌 cylinders에 둔다(DEVLOG 구현 중 결정).",
+    "sourceVault": "AI 라이프 솔루션 챌린지/research/notes/<sourceId>.md"
+  },
+  "devices": [
+    {
+      "specId": "LTV1150", "manufacturer": "Vyaire(CareFusion)", "model": "LTV 1150",
+      "matchKeys": ["LTV1150"], "cls": "VENT_1H", "continuous": true,
+      "internalH": { "value": 1, "condition": "내장 배터리", "prov": { "type": "spec", "sourceIds": ["astho-advancing-preparedness-for-life-support-users-during-power-outages-aug-202"] } },
+      "drawW": { "value": { "lo": 30, "hi": 60 }, "prov": { "type": "assumed", "sourceIds": [], "note": "인공호흡기 소비전력 가정 (3.3절)" } },
+      "connectors": ["AC220", "DC12"], "inverterSensitive": true
+    },
+    {
+      "specId": "TRILOGY100", "manufacturer": "Philips Respironics", "model": "Trilogy 100",
+      "matchKeys": ["TRILOGY100"], "cls": "VENT_3H", "continuous": true,
+      "internalH": { "value": 3, "condition": "내장 배터리", "prov": { "type": "spec", "sourceIds": ["astho-advancing-preparedness-for-life-support-users-during-power-outages-aug-202", "interim-report-korean-restoration-tail-vs-device-runtime-hook"] } },
+      "drawW": { "value": { "lo": 30, "hi": 60 }, "prov": { "type": "assumed", "sourceIds": [], "note": "인공호흡기 소비전력 가정 (3.3절)" } },
+      "connectors": ["AC220", "DC12"], "inverterSensitive": true
+    },
+    {
+      "specId": "TRILOGY_EVO", "manufacturer": "Philips Respironics", "model": "Trilogy Evo",
+      "matchKeys": ["TRILOGYEVO"], "cls": "VENT_8H", "continuous": true,
+      "internalH": { "value": 7.5, "condition": "시험법 조건, 배터리당", "prov": { "type": "spec", "sourceIds": ["philips-trilogy-evo-home-ventilation-workshop-deck-battery-runtime-method"] } },
+      "drawW": { "value": { "lo": 30, "hi": 60 }, "prov": { "type": "assumed", "sourceIds": [], "note": "인공호흡기 소비전력 가정 (3.3절)" } },
+      "connectors": ["AC220", "DC12"], "inverterSensitive": true
+    },
+    {
+      "specId": "ASTRAL150", "manufacturer": "ResMed", "model": "Astral 150",
+      "matchKeys": ["ASTRAL150"], "cls": "VENT_8H", "continuous": true,
+      "internalH": { "value": 8, "condition": "내장 배터리", "prov": { "type": "spec", "sourceIds": ["astral-100-and-astral-150-ventilators-therapeutic-goods-administration-tga"] } },
+      "drawW": { "value": { "lo": 30, "hi": 60 }, "prov": { "type": "assumed", "sourceIds": [], "note": "인공호흡기 소비전력 가정 (3.3절)" } },
+      "connectors": ["AC220", "DC12"], "inverterSensitive": true
+    },
+    {
+      "specId": "PERFECTO2", "manufacturer": "Invacare", "model": "Perfecto2",
+      "matchKeys": ["PERFECTO2", "IRC5PO2"], "cls": "O2_STAT", "continuous": true,
+      "internalH": { "value": 0, "condition": "배터리 없음", "prov": { "type": "spec", "sourceIds": ["invacare-perfecto2-oxygen-concentrator-user-manual-1143482-h-00"] } },
+      "drawW": { "value": { "lo": 280, "hi": 280 }, "prov": { "type": "spec", "sourceIds": ["invacare-perfecto2-oxygen-concentrator-user-manual-1143482-h-00"], "note": "280 W @3 L/min" } },
+      "connectors": ["AC220", "O2_FLOW"], "inverterSensitive": false,
+      "connectorsProv": { "type": "assumed", "sourceIds": [], "note": "O2_FLOW = 환자 쪽 산소 유량 연결(캐뉼라를 실린더에 바꿔 연결). spec.md 4.1절 4단계 '산소는 O2_FLOW 또는 AC'를 등급(cls)이 아니라 커넥터 교집합으로 표현(I5). DEVLOG TASK D" }
+    },
+    {
+      "specId": "INOGEN_G5", "manufacturer": "Inogen", "model": "Inogen One G5",
+      "matchKeys": ["INOGENONEG5", "INOGENG5"], "cls": "O2_PORT", "continuous": true,
+      "internalH": { "value": 6.5, "condition": "설정 1, 단일 배터리", "prov": { "type": "spec", "sourceIds": ["inogen-one-g5-portable-oxygen-concentrator-spec-sheet"] } },
+      "settingTable": [ { "setting": 1, "runtimeH": 6.5 }, { "setting": 5, "runtimeH": 3.75 } ],
+      "drawW": { "value": { "lo": 40, "hi": 90 }, "prov": { "type": "assumed", "sourceIds": [], "note": "휴대형 산소발생기 소비전력 가정 (3.3절)" } },
+      "connectors": ["AC220", "DC12", "O2_FLOW"], "inverterSensitive": false,
+      "connectorsProv": { "type": "assumed", "sourceIds": [], "note": "O2_FLOW = 환자 쪽 산소 유량 연결(캐뉼라를 실린더에 바꿔 연결). spec.md 4.1절 4단계 '산소는 O2_FLOW 또는 AC'를 등급(cls)이 아니라 커넥터 교집합으로 표현(I5). DEVLOG TASK D" }
+    },
+    {
+      "specId": "COUGH_E70", "manufacturer": "Philips Respironics", "model": "CoughAssist E70",
+      "matchKeys": ["COUGHASSISTE70", "E70"], "cls": "INTERMITTENT", "continuous": false,
+      "internalH": { "value": 0, "condition": "자동 계산 없음(continuous=false). 수동검토 완료의 operatorLowerH로만 L을 갖는다", "prov": { "type": "spec", "sourceIds": ["philips-coughassist-e70-brochure"], "note": "브로슈어는 하루 치료분만 밝히고 시간 수치가 없다. 0은 계산에 쓰지 않는 자리값" } },
+      "drawW": { "value": { "lo": 30, "hi": 60 }, "prov": { "type": "assumed", "sourceIds": ["philips-coughassist-e70-brochure"], "note": "출처에 W 미공개. 수동검토 재진입 후 물리 필터용으로 인공호흡기 가정값을 빌려 씀(DEVLOG 미해결)" } },
+      "connectors": ["AC220", "DC12"], "inverterSensitive": true
+    }
+  ],
+  "cylinders": [
+    {
+      "specId": "CYL_LARGE", "cls": "O2_STAT_CYL",
+      "hoursLoPerUnit": { "value": 10, "range": { "lo": 10, "hi": 20 }, "condition": "대형 실린더 1개, 하한(범위 10~20h)", "prov": { "type": "spec", "sourceIds": ["nhs-highland-contingency-planning-for-power-outages-home-oxygen-2022"] } },
+      "drawW": { "value": { "lo": 0, "hi": 0 }, "prov": { "type": "spec", "sourceIds": ["nhs-highland-contingency-planning-for-power-outages-home-oxygen-2022"], "note": "전기 불필요" } },
+      "connectors": ["O2_FLOW"]
+    }
+  ]
+}

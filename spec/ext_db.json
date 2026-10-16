@@ -1,0 +1,9 @@
+{
+  "meta": { "title": "외장·탈착 배터리 사양 (spec.md 3.3절 외장·탈착 열)", "rule": "운영자 VERIFY_EXT는 extSpecId 정확 일치 ∧ forSpecIds ∋ specId일 때만 (3.2절)" },
+  "ext": [
+    { "extSpecId": "TRILOGY100_DETACH", "forSpecIds": ["TRILOGY100"], "runtimeH": 3, "prov": { "type": "spec", "sourceIds": ["astho-advancing-preparedness-for-life-support-users-during-power-outages-aug-202", "interim-report-korean-restoration-tail-vs-device-runtime-hook"], "note": "탈착 3h" } },
+    { "extSpecId": "TRILOGY_EVO_DETACH", "forSpecIds": ["TRILOGY_EVO"], "runtimeH": 7.5, "prov": { "type": "spec", "sourceIds": ["philips-trilogy-evo-home-ventilation-workshop-deck-battery-runtime-method"], "note": "탈착 7.5h, 시험법 조건" } },
+    { "extSpecId": "ASTRAL_EXT", "forSpecIds": ["ASTRAL150"], "runtimeH": 8, "prov": { "type": "spec", "sourceIds": ["astral-100-and-astral-150-ventilators-therapeutic-goods-administration-tga", "resmed-astral-external-battery-user-guide-chinese"], "note": "외장 8h/개" } },
+    { "extSpecId": "INOGEN_G5_DOUBLE", "forSpecIds": ["INOGEN_G5"], "runtimeH": 6.5, "prov": { "type": "spec", "sourceIds": ["inogen-one-g5-portable-oxygen-concentrator-spec-sheet"], "note": "이중 배터리 6.5h(설정 1 기준, 단일 대비 추가분)" } }
+  ]
+}

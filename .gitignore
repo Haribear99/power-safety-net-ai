@@ -10,3 +10,6 @@ next-env.d.ts
 coverage/
 __pycache__/
 .playwright-mcp/
+
+.vercel
+.env*

@@ -1,0 +1,11 @@
+{
+  "meta": { "title": "자원 종류 목록 (spec.md 3.6절, 모두 mock)", "schemaRef": "data.go.kr/15151542", "note": "RENTAL_EXT 에너지는 외장 h × 기기 W로 가구별 계산, O2_CYL_DELIVERY는 산소 10h 상당(alloc.o2CylDeliveryH)으로 에너지 Wh 대신 시간으로 판정" },
+  "kinds": [
+    { "kind": "ESS_S", "outputW": 600, "energyWh": 500, "connectors": ["AC220", "DC12"], "inverterSafe": true, "prepH": { "lo": 0.3, "hi": 1.0 }, "prov": { "type": "assumed", "sourceIds": ["interim-report-allocation-and-korean-resource-supply"], "note": "inverterSafe=true(정현파 ESS 가정)도 assumed" } },
+    { "kind": "ESS_L", "outputW": 1800, "energyWh": 2000, "connectors": ["AC220", "DC12"], "inverterSafe": true, "prepH": { "lo": 0.3, "hi": 1.0 }, "prov": { "type": "assumed", "sourceIds": ["interim-report-allocation-and-korean-resource-supply"], "note": "inverterSafe=true assumed" } },
+    { "kind": "MOBILE_GEN", "outputW": 5000, "energyWh": 60000, "connectors": ["AC220"], "inverterSafe": true, "prepH": { "lo": 1, "hi": 3 }, "prov": { "type": "assumed", "sourceIds": ["15151542do"], "note": "스키마는 공공데이터 15151542, 값(12h 상당)과 inverterSafe=true는 assumed" } },
+    { "kind": "RENTAL_EXT", "outputW": 0, "energyWh": 0, "connectors": ["VENDOR_EXT"], "inverterSafe": true, "prepH": { "lo": 0.5, "hi": 2 }, "prov": { "type": "assumed", "sourceIds": ["keit-1차자료-07_사전질의_답변서__12-전력안심망-ai_답변서2"], "note": "기기 전용. outputW·energyWh는 rentalExtResource()가 외장 h × 기기 W로 채운다" } },
+    { "kind": "O2_CYL_DELIVERY", "outputW": 0, "energyWh": 0, "connectors": ["O2_FLOW"], "inverterSafe": true, "prepH": { "lo": 1, "hi": 3 }, "prov": { "type": "assumed", "sourceIds": [], "note": "산소 10h 상당(alloc.o2CylDeliveryH), 전기 출력 없음" } },
+    { "kind": "EV_V2L", "outputW": 3600, "energyWh": 8000, "connectors": ["AC220"], "inverterSafe": "unknown", "prepH": { "lo": 0.2, "hi": 1.0 }, "prov": { "type": "spec", "sourceIds": ["아이오닉-5-차량-전용-아이템과-v2l-완벽-활용법-인포그래픽스-현대자동차그룹"], "note": "3.6kW V2L. 가용 8kWh는 assumed, inverterSafe unknown(인버터 민감 기기에는 제외)" } }
+  ]
+}

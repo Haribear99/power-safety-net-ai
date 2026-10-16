@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "시뮬레이션 생성기 보조 장부 (spec.md 5.2절의 빈칸을 메운 값)",
+    "rowShape": "{key, value|range, unit, type, sourceIds, note} — spec/params.json과 같은 행 모양",
+    "status": "spec/params.json은 TASK A 소유라 이 작업(TASK C)이 고치지 않았다. 아래 행은 spec/params.json에 병합할 후보다(DEVLOG TASK C 미해결 1).",
+    "rule": "엔진·배정기 상수가 아니라 합성 가구·자원 생성 규칙의 값이다. 명세에 값이 없는 것은 모두 assumed다."
+  },
+  "rows": [
+    { "key": "gen.o2Mix", "value": { "O2_STAT": 0.5, "O2_STAT_CYL": 0.2, "O2_PORT": 0.3 }, "unit": "share", "type": "assumed", "sourceIds": [], "note": "산소 하위 구성(거치형 단독 / 거치형+실린더 / 휴대형). 5.2절은 '스윕'이라고만 적어 기본점을 가정했다" },
+    { "key": "gen.caregiverRate", "value": 0.5, "unit": "prob", "type": "assumed", "sourceIds": [], "note": "보호자 있음 비율. 5.2절에 없음(6단계 (d) 쉼터 판정 입력)" },
+    { "key": "gen.floorRange", "range": { "lo": 1, "hi": 20 }, "unit": "floor", "type": "assumed", "sourceIds": [], "note": "공동주택 층 U{1..20}" },
+    { "key": "gen.detachedShare", "value": 0.5, "unit": "share", "type": "assumed", "sourceIds": [], "note": "APT_* 이외 원인에서 단독주택(1층) 비율. APT_* 원인은 모두 공동주택" },
+    { "key": "gen.aptClusterKm", "value": 0.3, "unit": "km", "type": "assumed", "sourceIds": [], "note": "APT_* 원인 가구는 단지 중심 ±0.3km 안(한 단지 정전)" },
+    { "key": "gen.cellStepKm", "value": 0.1, "unit": "km", "type": "assumed", "sourceIds": [], "note": "합성 격자 좌표 해상도(10×10km 격자는 params gen.gridKm)" },
+    { "key": "gen.resourceKindMix", "value": { "ESS_S": 0.35, "ESS_L": 0.2, "EV_V2L": 0.2, "MOBILE_GEN": 0.1, "O2_CYL_DELIVERY": 0.15 }, "unit": "share", "type": "assumed", "sourceIds": [], "note": "자원 종류 구성. 3.6절 표에 구성비가 없다. RENTAL_EXT는 VENDOR_EXT 기기가 DB에 없어 넣지 않았다(TASK B1 미해결 4)" },
+    { "key": "gen.extCount", "value": { "ASTRAL150": 2, "default": 1 }, "unit": "count", "type": "assumed", "sourceIds": [], "note": "외장 보유 시 개수. Astral 2개는 3.3절 VENT_8H_EXT2 정의('Astral에 확인된 외장 2개')를 따름" },
+    { "key": "gen.cylinderCount", "value": 1, "unit": "count", "type": "assumed", "sourceIds": [], "note": "O2_STAT_CYL 가구의 대형 실린더 개수" },
+    { "key": "gen.chargeUserShareOfRest", "value": 0.5, "unit": "share", "type": "assumed", "sourceIds": [], "note": "충전량 출처 중 기기 화면이 아닌 나머지의 자가입력 비율(나머지는 모름). 5.2절 '나머지는 자가입력·모름'" },
+    { "key": "gen.overInputPct", "value": 100, "unit": "percent", "type": "assumed", "sourceIds": [], "note": "충전량 과대입력이 주입되면 입력값 100%" },
+    { "key": "gen.forecastCauses", "value": ["ROTATING", "TYPHOON_WEAK", "TYPHOON_STRONG"], "unit": "cause", "type": "assumed", "sourceIds": ["산업통상자원부-보도설명자료-2013-06-10-순환단전-제외대상순위-motie-pdf-추출"], "note": "5.2절 '예보·통지 사건'(시작 충전 1.0)의 해석: 순환단전 사전통지(KR-01), 태풍 예보" },
+    { "key": "gen.o2PortTrueSetting", "range": { "lo": 1, "hi": 5 }, "unit": "setting", "type": "assumed", "sourceIds": [], "note": "휴대형 산소 진실 설정 U{1..5}, 가동시간은 device_db 설정표 선형 보간(3.3절 보간 assumed와 같은 규칙)" },
+    { "key": "gen.extWorksProb", "value": "1 - sweep.backupFailProb", "unit": "prob", "type": "assumed", "sourceIds": [], "note": "외장 배터리 진실 작동 확률. 5.3절 '예비전원 고장 확률'을 외장에도 독립 적용(확인 여부와 무관, 3.2절)" },
+    { "key": "gen.unregisteredCount", "value": "round(N × r / (1 − r))", "unit": "count", "type": "assumed", "sourceIds": [], "note": "명단 밖 가구 수. r = 미등록 비율(θ), N = 등록 가구 수. 미등록 비율을 전체 모집단 기준으로 읽었다" },
+    { "key": "sim.shelterSeatsPerHH", "value": 0.1, "unit": "seats/household", "type": "assumed", "sourceIds": [], "note": "쉼터 좌석 = max(1, floor(등록 가구 × 0.1))" },
+    { "key": "sim.shelterArrival", "value": "U(shelter.prepH)", "unit": "h", "type": "assumed", "sourceIds": ["오산시-폭염-속-아파트-정전에-시청-냉방버스-긴급-지원"], "note": "쉼터(냉방버스) 진실 도착 = 결정 시각 + U(params shelter.prepH)" },
+    { "key": "sim.restorationNoticeAtT0", "value": true, "unit": "flag", "type": "assumed", "sourceIds": [], "note": "CONFIRMED(확률 p_confirm) 통보는 첫 결정 시점 전에 도착한 것으로 둔다" },
+    { "key": "sim.tOutageH", "value": 0, "unit": "h", "type": "assumed", "sourceIds": [], "note": "모의 시각 0 = 정전 시작(2장 PlannerView)" }
+  ]
+}
