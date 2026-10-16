@@ -9,7 +9,7 @@ import heapq
 import math
 from fractions import Fraction
 
-from common import NEG_SENT, SENT, qE, qT, chk, mul_div, seconds
+from common import SENT, qE, qT, chk, mul_div, seconds
 from lower_bound import lower_bound
 from restoration import quantile_end
 
@@ -228,7 +228,8 @@ class Sim:
             L_end = Ls[hid]["endS"]
             L_rem = L_end - now
             lim = mul_div([L_rem, self.af[0]], [self.af[1]])
-            slack = NEG_SENT if not plist else lim - min(p[0] for p in plist)
+            # 물리 자원이 없으면 119 레인 계획 도착(A_119 계획 + 이송)으로 잰다(spec 4.1절 5단계 1항, 라운드 4)
+            slack = lim - (min(p[0] for p in plist) if plist else self.a119_plan + self.transport)
             tier = 0 if L_end < r90 else 1
             return slack, tier, lim
 

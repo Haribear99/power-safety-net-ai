@@ -1,5 +1,5 @@
 // 119 화면 투영 (spec.md 1.5절, I7). 비AI.
-// 싣는 행: APPROVED이면서 레인이 FALLBACK_119인 행만. View119는 정확히 3키(strict): 위치·기기·예상 안전시간(절대 시각 ISO).
+// 싣는 행: 운영자가 결정한(APPROVED, 또는 수정으로 '119 연계'를 고른 MODIFIED) FALLBACK_119 행만. View119는 정확히 3키(strict): 위치·기기·예상 안전시간(절대 시각 ISO).
 // 가명·승인 시각 같은 다른 키는 타입과 zod .strict()로 막는다. Date 금지(3장)라 ISO 시각은 정수 달력 연산으로 만든다.
 import type { DecisionStatus, DeviceClass, HouseholdView, Lane } from "../domain/types";
 import { View119 } from "../domain/types";
@@ -17,6 +17,8 @@ export const DEVICE_CLASS_LABEL: Record<DeviceClass, string> = {
   INTERMITTENT: "간헐 사용 기기",
   UNKNOWN: "미등록 기기",
 };
+
+export const UNKNOWN_SAFE_UNTIL = "하한 미확인(수동검토 중)";
 
 export interface Row119Input {
   householdId: string;
@@ -64,20 +66,21 @@ export function mockIso(baseIso: string, offsetS: number): string {
 }
 
 /**
- * APPROVED ∧ FALLBACK_119 행만 View119(3키)로 투영한다. 승인 전이면 빈 배열. 파기는 화면 상태가 비운다.
+ * 운영자 결정(APPROVED·MODIFIED) ∧ FALLBACK_119 행만 View119(3키)로 투영한다(1.5절 「수정에서 '119 연계'로 바꾼 행 포함」). 승인 전이면 빈 배열. 파기는 화면 상태가 비운다.
  * baseIso는 모의 시각 0의 벽시계(시나리오 데이터).
  */
 export function project119(rows: readonly Row119Input[], households: readonly HouseholdView[], baseIso: string, db: EngineDb = DEFAULT_DB): View119[] {
   const out: View119[] = [];
   for (const r of rows) {
-    if (r.status !== "APPROVED" || r.lane !== "FALLBACK_119" || r.lEndH == null) continue;
+    if (r.status === "PROPOSED" || r.lane !== "FALLBACK_119") continue;
     const hh = households.find((h) => h.id === r.householdId);
     if (!hh) continue;
     const dev = hh.device.specId != null ? db.devices.get(hh.device.specId) : undefined;
     out.push(View119.parse({
       location: `격자 (${hh.cell.x}, ${hh.cell.y}) km`,
       device: DEVICE_CLASS_LABEL[dev?.cls ?? "UNKNOWN"],
-      expectedSafeUntil: mockIso(baseIso, qT(r.lEndH)),
+      // 수동검토 중(하한 미계산)인 가구를 수정으로 119 연계했으면 시각 대신 미확인을 그대로 보낸다(숨기지 않음)
+      expectedSafeUntil: r.lEndH == null ? UNKNOWN_SAFE_UNTIL : mockIso(baseIso, qT(r.lEndH)),
     }));
   }
   return out;

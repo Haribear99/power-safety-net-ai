@@ -20,6 +20,14 @@ describe("project119 (I7)", () => {
     expect(out[0]).toEqual({ location: "격자 (3, 7) km", device: "인공호흡기(내장 약 3시간급)", expectedSafeUntil: "2026-10-17T23:36:00+09:00" });
     expect(View119.safeParse({ ...out[0], pseudonym: "H-1" }).success).toBe(false);
   });
+  it("수정으로 119 연계를 고른 MODIFIED 행도 싣는다(1.5절)", () => {
+    const out = project119([{ householdId: "H-2", lane: "FALLBACK_119", status: "MODIFIED", lEndH: 2 }], hh, base);
+    expect(out).toHaveLength(1);
+  });
+  it("수동검토 중 119 연계(하한 미계산)는 시각 대신 미확인으로 3필드 유지", () => {
+    const out = project119([{ householdId: "H-2", lane: "FALLBACK_119", status: "MODIFIED", lEndH: null }], hh, base);
+    expect(out[0].expectedSafeUntil).toBe("하한 미확인(수동검토 중)");
+  });
   it("승인 전에는 빈 값", () => {
     expect(project119([{ householdId: "H-1", lane: "FALLBACK_119", status: "PROPOSED", lEndH: 1 }], hh, base)).toEqual([]);
   });

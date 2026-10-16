@@ -5,6 +5,7 @@
 import type { AuditEntry, Lane, PlannerView, Recommendation, ResourceView } from "../domain/types";
 import { aStarEndS, arrivalLimitS, marginH, slackS, tierOf } from "../engine/margin";
 import { pNum } from "../engine/params";
+import { plan119S, transport119S } from "../engine/arrival";
 import { NEG_INF_S, qT, sToH } from "../engine/quantize";
 import {
   bestGapReduce, bookSlot, makePlanner119, nextSlotStartS, onTime119, plan119DoneS, remainingSlotsBefore, reserveCap,
@@ -256,10 +257,14 @@ export function allocate(view: PlannerView, cfg: PolicyCfg, opts: AllocOptions =
   };
   const deferred: { info: HHInfo; k: Keyed; order: number }[] = [];
 
+  // 5단계 1항: slack = 0.8·L − min A. 물리 자원이 없는 가구는 −∞가 아니라 119 레인 계획 도착(A_119 계획 + 이송 0.33h)으로 잰다.
+  // −∞로 두면 하한이 10시간 남은 가구도 맨 앞에서 119 첫 슬롯을 가져간다(Phase 2 화면 점검에서 발견, DEVLOG·spec 라운드 4)
+  const a119PlanS = plan119S(view.lanes.a119H, ctx.stress119) + transport119S();
+  const slackOf = (lEnd: number, phys: readonly Candidate[]) => slackS(lEnd, now, phys.length > 0 ? phys[0].f.aS : a119PlanS);
   const keyed = (info: HHInfo): Keyed => {
     const phys = physOf(info);
     const lEnd = info.lEndS as number;
-    return { info, phys, slack: slackS(lEnd, now, phys.length > 0 ? phys[0].f.aS : null), tier: tierOf(lEnd, ctx.r.p90S) };
+    return { info, phys, slack: slackOf(lEnd, phys), tier: tierOf(lEnd, ctx.r.p90S) };
   };
 
   const r90Rem = ctx.r.p90S - now;
@@ -433,7 +438,7 @@ export function allocate(view: PlannerView, cfg: PolicyCfg, opts: AllocOptions =
     const need = p.need!;
     const by = need.holdRecheckByS as number;
     const lEnd = info.lEndS as number;
-    const sl = slackS(lEnd, now, p.phys.length > 0 ? p.phys[0].f.aS : null);
+    const sl = slackOf(lEnd, p.phys);
     rows.push({
       rec: {
         ...base(info, "HOLD", { templateId: "R-HOLD", params: { R80: fmtH(need.r80RemS), th: fmtH(need.thresholdS), t: fmtH(by - now) } }),

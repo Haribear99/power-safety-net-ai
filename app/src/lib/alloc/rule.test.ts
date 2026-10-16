@@ -1,4 +1,5 @@
 // RULE·기준선 단위 시험(4.1·4.2·4.3절, 1.4절 재계산). 숫자는 명세 식으로 손계산하거나 엔진 기본 함수로만 다시 계산한다.
+import { arrivalLimitS } from "../engine/margin";
 import { describe, expect, it } from "vitest";
 import { auditEntryRuleSchema } from "../domain/audit";
 import type { HouseholdView, PlannerView } from "../domain/types";
@@ -144,7 +145,8 @@ describe("RULE 5단계 ①·② 와 6단계 대체 레인", () => {
     const v = view({ now: 0.5, households: [hhLong("H-1")], resources: [] });
     const r = rule(v, opts).rows[0];
     expect(r.rec.lane).toBe("FALLBACK_119");
-    expect(r.slackS).toBe(-2147483647);
+    // 물리 자원이 없으면 slack은 −∞가 아니라 119 계획 도착(A_119 계획 1800 + 이송 1188)으로 잰다(4.1절 5단계 1항, 라운드 4)
+    expect(r.slackS).toBe(arrivalLimitS(r.lEndS as number, 1800) - (1800 + 1188));
     // 1800 + qT(0.5) + floor(3600·33/100) = 1800 + 1800 + 1188
     expect(r.rec.etaH).toBe(sToH(4788));
     expect(r.rec.reason.templateId).toBe("R-119");

@@ -1,0 +1,330 @@
+// /ops 운영자 화면의 세션 상태와 재계산 (spec.md 1.4절). 비AI, 순수 함수. 화면(React)은 이 모듈만 부른다.
+// 상태는 탭 세션 메모리에만 둔다(서버 DB 없음, 새로고침하면 초기화).
+// 승인 행은 고정하고(AllocState), 나머지 가구만 RULE로 다시 돈다(4.3절 ②와 같은 방식). 승인 행은 매 재계산마다 recheckApproved로 다시 본다.
+// APPROVED 상태는 ApproveDrawer의 승인 핸들러 한 곳에서만 만든다(I6, 관문 1 '승인 우회 0'). 이 모듈은 결정을 받아 저장만 한다.
+import type { AuditEntry, DeviceClass, HouseholdView, Lane, PlannerView } from "../domain/types";
+import { auditEntryRuleSchema, verifyAgePayloadSchema, verifyCylPayloadSchema, verifyExtPayloadSchema, type VerifyContext } from "../domain/audit";
+import { computeLowerBoundDetail, DEFAULT_DB } from "../engine/lowerBound";
+import { computeRestoration, type RestorationDetail } from "../engine/restoration";
+import { pNum } from "../engine/params";
+import { qT, sToH } from "../engine/quantize";
+import type { TravelProfile } from "../engine/arrival";
+import { holdExpiredEntries } from "../alloc/need";
+import { arrivalS, buildCtx, physCandidates, type AllocOptions } from "../alloc/feasible";
+import { recheckApproved, rule, type AllocResult, type AllocRow, type AllocState, type ApprovedRow } from "../alloc/rule";
+import { mockIso } from "../alloc/project119";
+import type { Slot119 } from "../alloc/fallback";
+
+export interface UiPreset {
+  format: "pl26-ui-preset/1";
+  meta: { scenarioId: string; name: string; description: string; seed: string; scenarioSha256: string; baseIso: string };
+  allocOpts: { travel: TravelProfile; stress119: number };
+  planner: Omit<PlannerView, "households"> & { households: (HouseholdView & { reentry?: { specId?: string; operatorLowerH?: number } })[] };
+}
+
+/** 운영자 결정(승인·수정). status는 ApproveDrawer가 정한다 */
+export interface Decision {
+  householdId: string;
+  status: "APPROVED" | "MODIFIED";
+  lane: Lane;
+  resourceId?: string;
+  /** 자원 레인: 도착 절대 시각 h. 119: 이송 완료 예상 절대 시각 h */
+  etaH?: number;
+  slot119?: Slot119;
+  late119?: boolean;
+  decidedAtS: number;
+}
+
+export interface Notice { confirmedEndH: number; sigmaE: number }
+
+export interface Session {
+  preset: UiPreset;
+  households: HouseholdView[];
+  /** 수동검토 '현장 확인' 시연 힌트(시나리오 데이터, PlannerView 쪽 BEHAVIOR 표본. WorldTruth 아님) */
+  reviewHints: Record<string, { specId?: string; operatorLowerH?: number }>;
+  started: boolean;
+  nowS: number;
+  notice: Notice | null;
+  decisions: Record<string, Decision>;
+  /** 재확인 시한이 지나 '필요'로 되돌린 HOLD 가구(1.4절 HOLD_EXPIRED) */
+  forceNeedIds: string[];
+  /** 재검토 필요 배지(RECHECK_FLAG) */
+  flagged: Record<string, string>;
+  /** 재검토 대안(새 PROPOSED, 승인 필요) */
+  alternatives: Record<string, AllocRow>;
+  result: AllocResult | null;
+  restoration: RestorationDetail | null;
+  audit: AuditEntry[];
+  /** /ops/119 파기 여부(재난안전법 제74조의3⑤) */
+  purged119: boolean;
+  auditSeq: number;
+}
+
+export const DB = DEFAULT_DB;
+
+export function newSession(preset: UiPreset): Session {
+  const reviewHints: Session["reviewHints"] = {};
+  const households = preset.planner.households.map((h) => {
+    const { reentry, ...hv } = h;
+    if (reentry) reviewHints[h.id] = reentry;
+    return hv as HouseholdView;
+  });
+  return {
+    preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: {},
+    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119: false, auditSeq: 0,
+  };
+}
+
+export function allocOpts(s: Session): AllocOptions {
+  return { db: DB, travel: s.preset.allocOpts.travel, stress119: s.preset.allocOpts.stress119 };
+}
+
+export function nowIso(s: Session): string {
+  return mockIso(s.preset.meta.baseIso, s.nowS);
+}
+
+export function restorationAt(s: Session, nowS: number): RestorationDetail {
+  const pl = s.preset.planner;
+  const base = { cause: pl.restoration.cause, tOutageH: pl.tOutage, nowH: sToH(nowS) };
+  if (s.notice) return computeRestoration({ ...base, status: "CONFIRMED", confirmedEndH: s.notice.confirmedEndH, sigmaE: s.notice.sigmaE });
+  return computeRestoration(base);
+}
+
+/** 현재 시각의 PlannerView(가구 전원) */
+export function viewAt(s: Session, nowS: number, households: HouseholdView[] = s.households): PlannerView {
+  const pl = s.preset.planner;
+  return {
+    scenarioId: pl.scenarioId, now: sToH(nowS), tOutage: pl.tOutage, households, resources: pl.resources,
+    restoration: restorationAt(s, nowS).view, lanes: pl.lanes,
+  };
+}
+
+function approvedRows(s: Session): ApprovedRow[] {
+  return Object.values(s.decisions).map((d) => ({
+    householdId: d.householdId, lane: d.lane, resourceId: d.resourceId, etaH: d.etaH, slot119: d.slot119, late119: d.late119,
+  }));
+}
+
+function stateFromDecisions(s: Session): AllocState {
+  const ds = Object.values(s.decisions);
+  return {
+    usedResourceIds: ds.filter((d) => d.resourceId && (d.lane === "PROPOSE_ASSIGN" || d.lane === "GAP_REDUCE")).map((d) => d.resourceId!),
+    slots119: ds.filter((d) => d.lane === "FALLBACK_119" && d.slot119).map((d) => ({ ...d.slot119!, kind: "CALL" as const })),
+    shelterSeatsUsed: ds.filter((d) => d.lane === "FALLBACK_SHELTER").length,
+  };
+}
+
+function pushAudit(s: Session, entries: AuditEntry[]): Session {
+  for (const e of entries) {
+    const v = auditEntryRuleSchema.safeParse(e);
+    if (!v.success) throw new Error(`감사 행 규칙 위반: ${v.error.issues[0]?.message}`);
+  }
+  return { ...s, audit: [...s.audit, ...entries], auditSeq: s.auditSeq + entries.length };
+}
+
+/** 재계산(1.4절 '재계산'): 승인 행 고정, 나머지 RULE, 승인 행 재검토, HOLD 시한 경과 처리 */
+export function recompute(s0: Session, nowS: number = s0.nowS): Session {
+  if (!s0.started) return { ...s0, nowS };
+  let s: Session = { ...s0, nowS };
+  const at = nowIso(s);
+  const opts = allocOpts(s);
+  const restoration = restorationAt(s, nowS);
+
+  // HOLD 시한 경과 → forceNeed (직전 결과 기준)
+  const prevRows = s0.result?.rows.map((r) => ({ householdId: r.rec.householdId, lane: r.rec.lane, holdRecheckBy: r.rec.holdRecheckBy })) ?? [];
+  const expired = prevRows.filter((p) => p.lane === "HOLD" && p.holdRecheckBy != null && nowS >= qT(p.holdRecheckBy) && !s.decisions[p.householdId]);
+  const forceNeedIds = [...new Set([...s.forceNeedIds, ...expired.map((e) => e.householdId)])];
+
+  const free = s.households.filter((h) => !s.decisions[h.id]);
+  const result = rule(viewAt(s, nowS, free), opts, { ...stateFromDecisions(s), forceNeedIds });
+  if (expired.length > 0) {
+    const next = result.rows.map((r) => ({ householdId: r.rec.householdId, lane: r.rec.lane, resourceId: r.rec.resourceId }));
+    s = pushAudit(s, holdExpiredEntries(prevRows.filter((p) => expired.some((e) => e.householdId === p.householdId)), sToH(nowS), at, next));
+  }
+
+  // 승인 행 재검토(재신고·자원 불가·시계 경과)
+  const rc = recheckApproved(viewAt(s, nowS), approvedRows(s), at, opts);
+  const flagged: Record<string, string> = {};
+  const alternatives: Record<string, AllocRow> = {};
+  const fresh: AuditEntry[] = [];
+  for (const f of rc.flagged) {
+    flagged[f.householdId] = String(f.reason.params.why);
+    if (!s.flagged[f.householdId]) fresh.push(...rc.audit.filter((a) => a.householdId === f.householdId));
+  }
+  for (const a of rc.alternatives) alternatives[a.rec.householdId] = a;
+  s = pushAudit(s, fresh);
+  return { ...s, result, restoration, forceNeedIds, flagged, alternatives };
+}
+
+export function start(s: Session): Session {
+  return recompute({ ...s, started: true, purged119: false });
+}
+
+// ---------- 승인 서랍이 쓰는 결정 저장 ----------
+
+/** 추천 행을 결정으로 바꿀 때 필요한 값(ETA·119 슬롯) */
+export function decisionFromRow(row: AllocRow): Omit<Decision, "status" | "decidedAtS"> {
+  const r = row.rec;
+  // 자원 레인은 도착 절대 시각, 119는 이송 완료 예상 절대 시각(Recommendation.etaH 그대로)
+  return { householdId: r.householdId, lane: r.lane, resourceId: r.resourceId, etaH: r.etaH, slot119: row.slot119, late119: row.late119 };
+}
+
+/** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다 */
+export function commitDecision(s: Session, d: Decision, audit: AuditEntry): Session {
+  const s1 = pushAudit(s, [audit]);
+  const { [d.householdId]: _drop, ...alts } = s1.alternatives;
+  void _drop;
+  return recompute({ ...s1, decisions: { ...s1.decisions, [d.householdId]: d }, alternatives: alts });
+}
+
+export const MODIFY_REASON_CODES = [
+  { code: "FIELD_INFO", label: "현장 정보(가구 연락·방문)" },
+  { code: "RESOURCE_STATE", label: "자원 상태 변경" },
+  { code: "ROUTE", label: "도로·이동 여건" },
+  { code: "LINK_119", label: "119 연계 판단" },
+  { code: "OTHER", label: "기타" },
+] as const;
+
+export interface ModifyOption { lane: Lane; resourceId?: string; aS?: number; feasible?: boolean; label: string }
+
+/** 「수정」에서 고를 수 있는 레인·자원(1.4절). 수동검토 완료 전에는 PROPOSE_ASSIGN 불가 */
+export function modifyOptions(s: Session, householdId: string): ModifyOption[] {
+  const hh = s.households.find((h) => h.id === householdId);
+  if (!hh) return [];
+  const usedIds = new Set(stateFromDecisions(s).usedResourceIds);
+  const pool = s.preset.planner.resources.filter((r) => r.available && !usedIds.has(r.id));
+  const ctx = buildCtx(viewAt(s, s.nowS, [hh]), allocOpts(s));
+  const info = ctx.byId.get(householdId)!;
+  const out: ModifyOption[] = [];
+  if (!info.manual) {
+    for (const c of physCandidates(ctx, info, pool)) {
+      if (c.f.feasible) out.push({ lane: "PROPOSE_ASSIGN", resourceId: c.res.id, aS: c.f.aS, feasible: true, label: `자원 ${c.res.id}(${c.res.kind}) 배정 · 도착 ${fmtHours(c.f.aS)}` });
+      out.push({ lane: "GAP_REDUCE", resourceId: c.res.id, aS: c.f.aS, feasible: c.f.feasible, label: `자원 ${c.res.id}(${c.res.kind}) 공백 단축 · 도착 ${fmtHours(c.f.aS)}` });
+    }
+  } else {
+    // 하한을 모르므로 물리 필터를 다 볼 수 없다: 가용 자원 중 호환 자원을 GAP_REDUCE로만 허용(1.4절)
+    for (const r of pool) out.push({ lane: "GAP_REDUCE", resourceId: r.id, label: `자원 ${r.id}(${r.kind}) 공백 단축(수동검토 중)` });
+  }
+  out.push({ lane: "FALLBACK_119", label: "119 연계" });
+  out.push({ lane: "FALLBACK_SHELTER", label: "쉼터 이동" });
+  return out;
+}
+
+/** 수정 결정에 쓸 ETA(자원 레인만, 계획 도착 절대 시각 h) */
+export function etaForResource(s: Session, householdId: string, resourceId: string): number | undefined {
+  const hh = s.households.find((h) => h.id === householdId);
+  const res = s.preset.planner.resources.find((r) => r.id === resourceId);
+  if (!hh || !res) return undefined;
+  const ctx = buildCtx(viewAt(s, s.nowS, [hh]), allocOpts(s));
+  return sToH(s.nowS + arrivalS(ctx, ctx.byId.get(householdId)!, res));
+}
+
+// ---------- 확인 조작 (1.4절, 사유 필수) ----------
+export const VERIFY_CTX: VerifyContext = {
+  cylHoursLoPerUnitH: pNum("lb.cyl.hoursLoPerUnitH"),
+  extForSpecIds: new Map([...DB.ext.values()].map((e) => [e.extSpecId, e.forSpecIds] as const)),
+};
+
+export type VerifyInput =
+  | { action: "VERIFY_EXT"; householdId: string; extIndex: number; count: number; chargeConfirmed: boolean; reasonText: string }
+  | { action: "VERIFY_CYL"; householdId: string; count: number; hoursLo: number; reasonText: string }
+  | { action: "VERIFY_AGE"; householdId: string; batteryAgeY: number; reasonText: string }
+  | { action: "VERIFY_MODEL"; householdId: string; reasonText: string }
+  | { action: "MANUAL_REVIEW_DONE"; householdId: string; specId?: string; operatorLowerH?: number; reasonText: string };
+
+export type VerifyOutcome = { ok: true; session: Session } | { ok: false; error: string };
+
+export function applyVerify(s: Session, v: VerifyInput): VerifyOutcome {
+  const idx = s.households.findIndex((h) => h.id === v.householdId);
+  if (idx < 0) return { ok: false, error: "가구 없음" };
+  const hh = s.households[idx];
+  if (v.reasonText.trim().length === 0) return { ok: false, error: "사유를 입력하세요" };
+  const auditId = `A${s.auditSeq + 1}`;
+  const laneNow = laneOf(s, hh.id);
+  let next: HouseholdView;
+  let payload: AuditEntry["payload"] = {};
+  if (v.action === "VERIFY_EXT") {
+    const decl = hh.ext[v.extIndex];
+    const p = { extSpecId: decl?.extSpecId ?? "", count: v.count, ...(v.chargeConfirmed ? { chargeConfirmed: "device_screen" as const } : {}) };
+    const r = verifyExtPayloadSchema(hh, v.extIndex, VERIFY_CTX).safeParse(p);
+    if (!r.success) return { ok: false, error: r.error.issues[0]?.message ?? "저장 불가" };
+    next = { ...hh, ext: hh.ext.map((e, i) => i === v.extIndex ? { ...e, opVerified: { count: v.count, chargeConfirmed: v.chargeConfirmed ? "device_screen" : null, extAgeY: null, auditId } } : e) };
+    payload = p;
+  } else if (v.action === "VERIFY_CYL") {
+    const p = { count: v.count, hoursLo: v.hoursLo };
+    const r = verifyCylPayloadSchema(hh, VERIFY_CTX).safeParse(p);
+    if (!r.success) return { ok: false, error: r.error.issues[0]?.message ?? "저장 불가" };
+    next = { ...hh, cylinder: { declared: true, opVerified: { ...p, auditId } } };
+    payload = p;
+  } else if (v.action === "VERIFY_AGE") {
+    const p = { batteryAgeY: v.batteryAgeY, basis: v.reasonText };
+    const r = verifyAgePayloadSchema.safeParse(p);
+    if (!r.success) return { ok: false, error: r.error.issues[0]?.message ?? "저장 불가" };
+    next = { ...hh, device: { ...hh.device, batteryAgeY: v.batteryAgeY } };
+    payload = p;
+  } else if (v.action === "VERIFY_MODEL") {
+    if (hh.device.specBy !== "ai_label_user_confirmed") return { ok: false, error: "AI 판독 정확 일치 + 가구 확인 행에만 쓸 수 있습니다" };
+    next = { ...hh, device: { ...hh.device, specBy: "db_exact" } };
+    payload = { specId: hh.device.specId ?? undefined };
+  } else {
+    if (computeLowerBoundDetail(hh, DB).lb.status !== "MANUAL_REVIEW") return { ok: false, error: "수동검토 행이 아닙니다" };
+    if (v.specId) {
+      if (!DB.devices.has(v.specId)) return { ok: false, error: "DB에 없는 기종" };
+      next = { ...hh, device: { ...hh.device, specId: v.specId, specBy: "operator" } };
+      payload = { specId: v.specId };
+    } else if (v.operatorLowerH != null && v.operatorLowerH > 0) {
+      next = { ...hh, device: { ...hh.device, operatorLowerH: { hours: v.operatorLowerH, basis: v.reasonText, auditId } } };
+      payload = { operatorLowerH: v.operatorLowerH, basis: v.reasonText };
+    } else {
+      return { ok: false, error: "DB 기종 선택 또는 보수 하한(시간) 중 하나가 필요합니다" };
+    }
+    if (computeLowerBoundDetail(next, DB).lb.status === "MANUAL_REVIEW") return { ok: false, error: "입력 뒤에도 자동 계산이 안 됩니다(연속 기기가 아님). 보수 하한을 입력하세요" };
+  }
+  const entry: AuditEntry = {
+    at: nowIso(s), actor: "demo-operator", householdId: hh.id, action: v.action,
+    from: { lane: laneNow }, to: { lane: laneNow }, reasonText: v.reasonText, payload,
+  };
+  const households = s.households.map((h, i) => (i === idx ? next : h));
+  return { ok: true, session: recompute(pushAudit({ ...s, households }, [entry])) };
+}
+
+/** 가구 재신고(시연, 3.9절): 정전 중에는 L_end 비증가 */
+export function reReport(s: Session, householdId: string, chargePct: number): Session {
+  const idx = s.households.findIndex((h) => h.id === householdId);
+  if (idx < 0) return s;
+  const hh = s.households[idx];
+  const prevEnd = computeLowerBoundDetail(hh, DB).endS;
+  const next: HouseholdView = {
+    ...hh, tReport: sToH(s.nowS), lEndPrev: prevEnd != null ? sToH(prevEnd) : null,
+    device: { ...hh.device, charge: { value: Math.max(0, Math.min(100, Math.round(chargePct))), source: "user" } },
+  };
+  return recompute({ ...s, households: s.households.map((h, i) => (i === idx ? next : h)) });
+}
+
+export function setNotice(s: Session, n: Notice | null): Session {
+  return recompute({ ...s, notice: n });
+}
+
+export function purge119(s: Session): Session {
+  return { ...s, purged119: true };
+}
+
+// ---------- 표시 보조 ----------
+export function laneOf(s: Session, householdId: string): Lane {
+  return s.decisions[householdId]?.lane ?? s.result?.rows.find((r) => r.rec.householdId === householdId)?.rec.lane ?? "UNSERVED_VISIBLE";
+}
+
+export function deviceClass(hh: HouseholdView): DeviceClass {
+  const cls = (hh.device.specId != null ? DB.devices.get(hh.device.specId)?.cls : undefined) ?? "UNKNOWN";
+  // 표시용 등급(배정 입력 아님, I5): 실린더를 신고한 거치형은 하위 등급으로 보인다
+  return cls === "O2_STAT" && hh.cylinder?.declared ? "O2_STAT_CYL" : cls;
+}
+
+export function fmtHours(s: number): string {
+  return `${(Math.round((s / 3600) * 100) / 100).toFixed(2)}h`;
+}
+
+export function lEndH(hh: HouseholdView): number | null {
+  const e = computeLowerBoundDetail(hh, DB).endS;
+  return e == null ? null : sToH(e);
+}

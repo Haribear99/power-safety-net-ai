@@ -1,18 +1,76 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --color-ink: #16202a;
+  --color-muted: #4b5866;
+  --color-line: #d5dbe1;
+  --color-paper: #f7f8f9;
+  --color-gap: #b42318;
+  --color-gap-soft: #fde4e1;
+  --color-restore: #1d5fa8;
+  --color-restore-soft: #dbe9f8;
+  --color-batt: #1f7a4d;
+  --color-batt-soft: #dcf1e5;
+  --color-warn: #8a5a00;
+  --color-warn-soft: #fff1cc;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* ---- 두 시계 (1.3절: CSS만, prefers-reduced-motion이면 정지 그림) ---- */
+@property --clock-s {
+  syntax: "<integer>";
+  initial-value: 10800;
+  inherits: false;
+}
+.clock-digits {
+  --clock-s: 0;
+  counter-reset: h round(down, calc(var(--clock-s) / 3600), 1) m round(down, calc(mod(var(--clock-s), 3600) / 60), 1) s mod(var(--clock-s), 60);
+  animation: clock-drain 3s cubic-bezier(0.4, 0, 0.9, 1) both;
+  font-variant-numeric: tabular-nums;
+}
+.clock-digits::after {
+  content: counter(h) ":" counter(m, decimal-leading-zero) ":" counter(s, decimal-leading-zero);
+}
+@keyframes clock-drain {
+  from { --clock-s: 10800; }
+  to { --clock-s: 0; }
+}
+.clock-fill {
+  transform-origin: left center;
+  animation: fill-drain 3s cubic-bezier(0.4, 0, 0.9, 1) both;
+}
+@keyframes fill-drain {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.gap-reveal {
+  transform-origin: left center;
+  animation: gap-grow 0.6s ease-out 3s both;
+}
+@keyframes gap-grow {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+.empty-reveal {
+  animation: fade-in 0.3s ease-out 3s both;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clock-digits, .clock-fill, .gap-reveal, .empty-reveal {
+    animation: none;
+  }
+  .clock-fill { transform: scaleX(0); }
 }
