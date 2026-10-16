@@ -4,8 +4,13 @@
   G = max(0, T_serve − L_true) + (자원 공급이면 max(0, R_true − (T_serve + run + max(0, L_true − T_serve))))
   둘째 항의 `+ max(0, L_true − T_serve)`는 DEVLOG(TASK A) 수정: 자원이 배터리 소진 전에 오면 남은 배터리도
   쓴다. T_serve ≥ L_true이면 명세 원문 식과 같다.
+
+호출 규약(TS sim/run.ts 기본값과 같음, DEVLOG TASK D·Phase 2.5):
+  - 끝까지 UNSERVED_VISIBLE·MANUAL_REVIEW인 등록 가구는 KR-07 시각(truth.hh[id].kr07CallS)에 스스로 119를 부른다.
+  - 자원 가구는 자원이 멈춘 시각(실제 도착 + run, 고장이면 run 0)이 R_true 전이면 그 시각에 119를 부르고,
+    둘째 항의 R_true 자리에 min(R_true, 그 119의 이송 완료)를 쓴다.
 """
-from common import qT, seconds
+from common import SENT, qT, seconds
 
 
 def evaluate(scen, sim, P):
@@ -24,11 +29,26 @@ def evaluate(scen, sim, P):
             return qT(tH[key])
         raise KeyError("truth.%s[S|H] missing key %r" % (table_base, key))
 
+    def has_a119(key):
+        return any(key in (truth.get(b) or {}) for b in ("a119TrueS", "a119TrueH"))
+
     # 진실 119 대기열: RULE의 FALLBACK_119(결정 시각) + 미등록 가구 KR-07 호출
     calls = []
+    recall = set()
     for hid, st in sim.state.items():
         if st["lane"] == "FALLBACK_119":
             calls.append((st["decidedAtS"], hid))
+        elif st["lane"] in ("UNSERVED_VISIBLE", "MANUAL_REVIEW"):
+            if "kr07CallS" in th[hid]:  # 손 사례처럼 필드가 없으면 자가 호출 없음(FORMAT.md)
+                calls.append((int(th[hid]["kr07CallS"]), hid))
+        elif st["lane"] in ("PROPOSE_ASSIGN", "GAP_REDUCE") and st["resourceId"] and has_a119(hid):
+            rid = st["resourceId"]
+            arr = st["decidedAtS"] + arr_dur("arrivalTrue", hid + "|" + rid)
+            run = 0 if th[hid].get("backupFails") else sim.run_s(sim.res[rid], sim.physical(hid))
+            stop = min(SENT, arr + run)
+            if stop < R_end:
+                calls.append((stop, hid))
+                recall.add(hid)
     L_true_end = {}
     for hid in sim.hh:
         L_true_end[hid] = sim.t_report(hid) + seconds(th[hid], "LTrue")
@@ -74,9 +94,14 @@ def evaluate(scen, sim, P):
                 arr = st["decidedAtS"] + arr_dur("shelterTrue", hid)
                 if arr < T:
                     T, source = arr, "SHELTER"
+        elif lane in ("UNSERVED_VISIBLE", "MANUAL_REVIEW") and hid in arrive119:
+            t119 = arrive119[hid] + transport
+            if t119 < T:
+                T, source = t119, "119"
         G = max(0, T - L)
         if resource_run is not None:
-            G += max(0, R_end - (T + resource_run + max(0, L - T)))
+            end2 = min(R_end, arrive119[hid] + transport) if hid in recall else R_end
+            G += max(0, end2 - (T + resource_run + max(0, L - T)))
         gap[hid] = G
         src[hid] = source
 

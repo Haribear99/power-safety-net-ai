@@ -43,3 +43,8 @@ python -I oracle/run_tests.py                                            # 손�
 ```
 
 `diff.py` 통과 기준(8절): 가구별 `lane`·`resourceId`·`order`와 `M1`·`M2S`가 정확히 같다. `order`는 결정 시점을 가로지르는 전역 처리 순번이며 MANUAL_REVIEW·HOLD는 `null`이다.
+
+## 호출 규약 필드 (Phase 2.5)
+
+- `truth.hh[id].kr07CallS`: 끝까지 UNSERVED_VISIBLE·MANUAL_REVIEW인 등록 가구의 자가 119 호출 시각. 없으면 그 가구는 자가 호출하지 않는다(손 사례용).
+- 자원 가구의 '자원 멈춤 → 119 호출'은 `truth.a119True{S,H}[id]`가 있을 때만 한다. TS materialize는 두 필드를 늘 싣는다.

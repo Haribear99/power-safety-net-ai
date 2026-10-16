@@ -80,7 +80,7 @@ describe("ops 세션", () => {
   });
 
   it("승인 뒤 재신고로 하한이 줄면 재검토 배지 + RECHECK_FLAG + 대안 PROPOSED", () => {
-    const row = s0.result!.rows.find((r) => r.rec.lane === "FALLBACK_119" && !r.late119 && !s0.households.find((h) => h.id === r.rec.householdId)!.cylinder)!;
+    const row = s0.result!.rows.find((r) => r.rec.lane === "FALLBACK_119" && !s0.households.find((h) => h.id === r.rec.householdId)!.cylinder)!;
     const id = row.rec.householdId;
     const s1 = approve(s0, id);
     const s2 = reReport(s1, id, 0);

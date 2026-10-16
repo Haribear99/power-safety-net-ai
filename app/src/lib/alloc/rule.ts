@@ -8,7 +8,7 @@ import { pNum } from "../engine/params";
 import { plan119S, transport119S } from "../engine/arrival";
 import { NEG_INF_S, qT, sToH } from "../engine/quantize";
 import {
-  bestGapReduce, bookSlot, makePlanner119, nextSlotStartS, onTime119, plan119DoneS, remainingSlotsBefore, reserveCap,
+  bestGapReduce, bookSlot, late119Possible, makePlanner119, nextSlotStartS, onTime119, plan119DoneS, remainingSlotsBefore, reserveCap,
   step6Lane, type Planner119, type Slot119, type Step6State,
 } from "./fallback";
 import {
@@ -397,6 +397,13 @@ export function allocate(view: PlannerView, cfg: PolicyCfg, opts: AllocOptions =
             s: fmtH(best.slack), d: fmtH(g.deltaS), res: g.c.res.id,
           },
         }, g.deltaS);
+        continue;
+      }
+      // ③ L_end 전에 시작 가능한 119(지연 플래그)를 루프 안에서 처리 순서대로 준다. 6단계로 미루면 하한이 긴 가구가
+      // 루프에서 '제때 119'로 이른 슬롯을 먼저 가져간다(spec 4.1절 5단계 ③, 라운드 4)
+      if (late119Possible(ctx, queue, lEnd)) {
+        const slot = bookSlot(queue, best.info.hh.id, now, "CALL");
+        push119(best, ord, slot, plan119DoneS(ctx, slot.startS), true);
         continue;
       }
       deferred.push({ info: best.info, k: best, order: ord });

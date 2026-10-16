@@ -327,6 +327,10 @@ class Sim:
             if bestd is not None and -bestd[0] >= self.delta_min:
                 self.assign(hid, "GAP_REDUCE", now, ordn, bestd[2], log=log)
                 continue
+            # ③ L_end 전에 시작 가능한 119(지연 플래그)를 루프 안에서 처리 순서대로 준다(spec 4.1절 5단계 ③, 라운드 4)
+            if s < L_end:
+                self.assign(hid, "FALLBACK_119", now, ordn, delayed=True, log=log)
+                continue
             fallback.append((hid, ordn))
 
         # 6단계: 대체 레인 (마감 L_end 오름차순, id)

@@ -163,10 +163,17 @@ describe("RULE 5단계 ①·② 와 6단계 대체 레인", () => {
     expect(r.deltaS).toBe(Math.min(r80, 3600 + 102000) - Math.max(3600, 3780));
     expect(r.rec.reason.params.d).toBe(fmtH(r.deltaS as number));
   });
-  it("Δ < 1h면 6단계로 넘어가 (b) 물리 가능 자원 GAP_REDUCE(공백 단축 목적)", () => {
+  it("Δ < 1h이고 L_end 전 119 슬롯이 있으면 루프 안 ③ 지연 119(라운드 4)", () => {
     // KEPCO_DIST: R80이 L_end(1.05h) 근처라 Δ < 1h
     const v = view({ now: 0, cause: "KEPCO_DIST", households: [hhShort("H-1")], resources: [makeResource("ESS_L", "R-L", { x: 0, y: 0 })] });
     const r = rule(v, { ...opts, stress119: 20 }).rows[0];
+    expect(r.rec.lane).toBe("FALLBACK_119");
+    expect(r.late119).toBe(true);
+  });
+  it("Δ < 1h이고 119 슬롯도 L_end 뒤면 6단계 (b) 물리 가능 자원 GAP_REDUCE(공백 단축 목적)", () => {
+    const v = view({ now: 0, cause: "KEPCO_DIST", households: [hhShort("H-1")], resources: [makeResource("ESS_L", "R-L", { x: 0, y: 0 })] });
+    const busy = { slots119: [{ householdId: "X", callS: 0, startS: 0, endS: 5 * 3600, kind: "CALL" as const }] };
+    const r = rule(v, { ...opts, stress119: 20 }, busy).rows[0];
     expect(r.rec.lane).toBe("GAP_REDUCE");
     expect(r.rec.reason.templateId).toBe("R-GAP-FB");
   });

@@ -17,9 +17,9 @@ import { cmpStr, deviceEnvelope, type AllocOptions, type OracleInput } from "../
 import { makePlanner119 } from "../alloc/fallback";
 import { nextState, type AllocState, type PolicyId } from "../alloc/rule";
 import { computeLowerBoundDetail, DEFAULT_DB, type EngineDb } from "../engine/lowerBound";
-import { qT, sToH } from "../engine/quantize";
+import { INF_S, qT, sToH } from "../engine/quantize";
 import { restorationAtS, toWorldTruth, type MaterializedScenario } from "./materialize";
-import { judgeScenario, type HouseholdOutcome, type Metrics, type ServicePlan } from "./outcome";
+import { judgeScenario, resourceRunS, type HouseholdOutcome, type Metrics, type ServicePlan } from "./outcome";
 import { applyReentry } from "./reentry";
 
 export type SimPolicy = PolicyId | "KR_BASELINE";
@@ -80,10 +80,15 @@ export interface RunResult {
 export interface RunOptions {
   db?: EngineDb;
   /**
-   * 미해결(DEVLOG TASK C 미해결 2): 도구 정책에서 끝까지 UNSERVED_VISIBLE·MANUAL_REVIEW로 남은 등록 가구도
-   * KR-07처럼 스스로 119를 부르는가. 명세는 미등록 가구만 KR-07을 따른다고 적어 기본값은 false(명세 문자 그대로).
+   * 도구 정책에서 끝까지 UNSERVED_VISIBLE·MANUAL_REVIEW로 남은 등록 가구도 KR-07처럼 스스로 119를 부르는가.
+   * 기본값 true(DEVLOG TASK D 결정, 오라클도 같은 규약). false는 비교용.
    */
   unservedSelfCall?: boolean;
+  /**
+   * 배정 자원이 고장 나거나(backupFails) 복구 전에 바닥나면, 전원이 끊긴 그 시각에 가구가 119를 부른다(KR-07 행동).
+   * 기본값 true(DEVLOG Phase 2.5, 오라클도 같은 규약). 끄면 자원 가구는 자원이 멈춘 뒤 복구까지 아무 수단이 없다(Phase 1 판).
+   */
+  recallOnResourceStop?: boolean;
 }
 
 function stripReentry(h: MaterializedScenario["planner"]["households"][number]): HouseholdView {
@@ -128,8 +133,22 @@ export function runScenario(m: MaterializedScenario, policy: SimPolicy, opts: Ru
     const tr = traces.get(id)!;
     if (tr.lane === "FALLBACK_119") calls.push({ id, callS: tr.decidedAtS as number });
     if (tr.lane === "KR07_SELF_CALL") calls.push({ id, callS: m.truth.hh[id].kr07CallS });
-    if (opts.unservedSelfCall && (tr.lane === "UNSERVED_VISIBLE" || tr.lane === "MANUAL_REVIEW")) {
+    if ((opts.unservedSelfCall ?? true) && (tr.lane === "UNSERVED_VISIBLE" || tr.lane === "MANUAL_REVIEW")) {
       calls.push({ id, callS: m.truth.hh[id].kr07CallS });
+    }
+  }
+  const recallIds = new Set<string>();
+  if (opts.recallOnResourceStop ?? true) {
+    const rTrueS = qT(pl.tOutage) + m.truth.restorationS;
+    const resById0 = new Map(pl.resources.map((r) => [r.id, r] as const));
+    for (const id of ids) {
+      const tr = traces.get(id)!;
+      if (!((tr.lane === "PROPOSE_ASSIGN" || tr.lane === "GAP_REDUCE") && tr.resourceId)) continue;
+      const r = resById0.get(tr.resourceId)!;
+      const arrS = (tr.decidedAtS as number) + m.truth.arrivalTrueS[`${id}|${r.id}`];
+      const run = resourceRunS(r.kind, r.energyWh, deviceEnvelope(views.get(id)!, db).drawHiW, m.truth.hh[id].backupFails);
+      const stopS = Math.min(INF_S, arrS + run);
+      if (stopS < rTrueS) { calls.push({ id, callS: stopS }); recallIds.add(id); }
     }
   }
   if (policy !== "NONE") for (const u of m.truth.unregistered) calls.push({ id: u.id, callS: u.callS });
@@ -159,6 +178,7 @@ export function runScenario(m: MaterializedScenario, policy: SimPolicy, opts: Ru
         resourceId: r.id, dispatchH: sToH(tr.decidedAtS as number), kind: r.kind, energyWh: r.energyWh,
         deviceDrawWHi: deviceEnvelope(views.get(id)!, db).drawHiW,
       };
+      if (recallIds.has(id)) sp.recall119 = { slotStartH: sToH(startById.get(id)!) };
     } else if (startById.has(id)) {
       sp.lane119 = { slotStartH: sToH(startById.get(id)!) };
     } else if (tr.lane === "FALLBACK_SHELTER") {

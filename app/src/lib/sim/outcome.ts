@@ -20,6 +20,8 @@ export interface GapInput {
   lane119DoneS?: number | null;
   /** 쉼터 실제 도착 절대 시각(거부면 null/∞) */
   shelterArrivalS?: number | null;
+  /** 자원이 멈춘 뒤 부른 119의 이송 완료 절대 시각(recallOnResourceStop) */
+  recall119DoneS?: number | null;
 }
 
 export interface GapResult { tServeS: number; servedBy: ServedBy; gapS: number }
@@ -45,7 +47,8 @@ export function judgeGap(g: GapInput): GapResult {
     const run = g.resourceRunS ?? 0;
     const reserve = Math.max(0, g.lTrueEndS - tServeS);
     const offS = Math.min(INF_S, tServeS + run + reserve);
-    gapS += Math.max(0, g.rTrueS - offS);
+    const endS = g.recall119DoneS != null ? Math.min(g.rTrueS, g.recall119DoneS) : g.rTrueS;
+    gapS += Math.max(0, endS - offS);
   }
   return { tServeS, servedBy, gapS };
 }
@@ -68,6 +71,8 @@ export interface ServicePlan {
   resource?: { resourceId: string; dispatchH: number; kind: ResourceKind; energyWh: number; deviceDrawWHi: number };
   /** 119: 진실 대기열 슬롯 시작 h. 실제 도착 = 슬롯 시작 + a119TrueH[hh], 완료 = +0.33h */
   lane119?: { slotStartH: number };
+  /** 자원이 멈춘 뒤 부른 119: 진실 대기열 슬롯 시작 h */
+  recall119?: { slotStartH: number };
   /** 쉼터: 출발 시각 h. 실제 도착 = dispatchH + shelterTrueH[hh], 거부면 ∞ */
   shelter?: { dispatchH: number };
   /** 시뮬레이션 동안 한 번이라도 HOLD였는가(M3) */
@@ -125,6 +130,9 @@ export function judgeScenario(
       const a = need(truth.arrivalTrueH[`${id}|${s.resource.resourceId}`], `arrivalTrueH[${id}|${s.resource.resourceId}]`);
       g.resourceArrivalS = qT(s.resource.dispatchH) + qT(a);
       g.resourceRunS = resourceRunS(s.resource.kind, s.resource.energyWh, s.resource.deviceDrawWHi, backupFails);
+    }
+    if (s?.recall119) {
+      g.recall119DoneS = qT(s.recall119.slotStartH) + qT(need(truth.a119TrueH[id], `a119TrueH[${id}]`)) + done119;
     }
     if (s?.lane119) {
       g.lane119DoneS = qT(s.lane119.slotStartH) + qT(need(truth.a119TrueH[id], `a119TrueH[${id}]`)) + done119;
