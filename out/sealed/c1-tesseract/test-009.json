@@ -1,0 +1,35 @@
+{
+ "id": "test-009",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "model": {
+   "verbatim": "CO             151 670",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

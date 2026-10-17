@@ -1,0 +1,35 @@
+{
+ "id": "test-115",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respironi",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "TRILOGY 100",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60H:",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 3 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

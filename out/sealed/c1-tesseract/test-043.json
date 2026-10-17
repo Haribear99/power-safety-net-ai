@@ -1,0 +1,35 @@
+{
+ "id": "test-043",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "Invacare",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "model": {
+   "verbatim": "~~ PERFECTO2",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "~~ 280W 000.",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "id": "test-092",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "model": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 2IE0I2 약 3시간",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

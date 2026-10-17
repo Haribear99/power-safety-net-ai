@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-013",
+ "ok": true,
+ "meta": {
+  "requestId": "fa1b9753-a9c2-4dbf-b831-f228f3446658",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2218,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg7544tpU2TgywcJecRq7",
+  "usage": {
+   "input": 702,
+   "output": 244,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004142399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Astral I50",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 리튬이온 약 6시간",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": [
+   "SPECIFICATIONS",
+   "품목명: 인공호흡기"
+  ]
+ }
+}

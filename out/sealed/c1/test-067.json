@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-067",
+ "ok": true,
+ "meta": {
+  "requestId": "cf807407-dc4d-4ca4-a87f-5559b2714bff",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2540,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75GqyYrq2MeZcdXr8YC",
+  "usage": {
+   "input": 702,
+   "output": 231,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0040124
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respironics",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "CoughAssist E70",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": [
+   "SPECIFICATIONS",
+   "기침유발기"
+  ]
+ }
+}

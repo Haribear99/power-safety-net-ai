@@ -5,6 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
+import { wilson } from "../src/lib/sim/analyze";
 
 const repo = path.resolve(__dirname, "..", "..");
 const out: Record<string, unknown> = { format: "pl26-evidence/1" };
@@ -108,6 +109,40 @@ if (labDoc?.e2 && labDoc.e1) {
   };
   writeFileSync(path.join(__dirname, "..", "src", "data", "lab.json"), canonicalJson(detail) + "\n", "utf-8");
   console.log(`lab.json(${labTag}) 갱신`);
+}
+
+// ---- C1 라벨 판독 봉인 측정(S3, 1회) + tesseract 기준선 + dev 회차 간 일치 ----
+type Rate = { k: number; n: number };
+type C1Sum = { n: number; costPerImage?: number; latencyP50?: number; latencyP95?: number; metrics: Record<string, unknown> & {
+  degradedModelConfidentWrong: Rate; degradedAllFieldsConfidentWrong: Rate; unflaggedMismatch: Rate; dbMatchRate: Rate; unregisteredToReview: Rate;
+  supplementViolations: number; personalInfo: Rate; fieldExact: Record<string, Rate>; byTemplateGroup: { testOnly: Rate; shared: Rate } };
+  items: { fields: Record<string, { verdict: string; confident: boolean }> }[] };
+const c1 = take("out/sealed/c1/summary.json") as C1Sum | null;
+const tess = take("out/sealed/c1-tesseract/summary.json") as C1Sum | null;
+const devCons = take("out/sealed/c1-dev/v1-r2-vs-r1.json") as { consistency: { n: number; modelSame: number } } | null;
+const withCi = (r: Rate) => ({ ...r, ciHi: r4(wilson(r.k, r.n).hi), ciLo: r4(wilson(r.k, r.n).lo) });
+const slimC1 = (s: C1Sum) => ({
+  n: s.n,
+  degradedModelConfidentWrong: withCi(s.metrics.degradedModelConfidentWrong),
+  degradedAllFieldsConfidentWrong: withCi(s.metrics.degradedAllFieldsConfidentWrong),
+  unflaggedMismatch: withCi(s.metrics.unflaggedMismatch),
+  dbMatchRate: withCi(s.metrics.dbMatchRate),
+  unregisteredToReview: withCi(s.metrics.unregisteredToReview),
+  modelExact: withCi(s.metrics.fieldExact.model),
+  fieldExact: s.metrics.fieldExact,
+  supplementViolations: s.metrics.supplementViolations,
+  supplementConfident: s.items.reduce((a, it) => a + Object.values(it.fields).filter((f) => f.verdict === "SUPPLEMENT" && f.confident).length, 0),
+  personalInfo: s.metrics.personalInfo,
+  byTemplateGroup: s.metrics.byTemplateGroup,
+  ...(s.costPerImage != null ? { costPerImage: r4(s.costPerImage), latencyP50: s.latencyP50, latencyP95: s.latencyP95 } : {}),
+});
+if (c1) {
+  const h = c1.metrics.degradedModelConfidentWrong;
+  out.c1 = {
+    sonnet: slimC1(c1), ...(tess ? { tesseract: slimC1(tess) } : {}),
+    gate3: { pointEstimate: r4(h.k / h.n), threshold: 0.1, pass: h.k / h.n <= 0.1 },
+    ...(devCons ? { devRunConsistency: { n: devCons.consistency.n, modelSame: devCons.consistency.modelSame } } : {}),
+  };
 }
 
 out.sources = sources;

@@ -1,0 +1,35 @@
+{
+ "id": "test-040",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "model": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

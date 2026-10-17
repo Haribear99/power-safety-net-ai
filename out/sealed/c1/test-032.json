@@ -1,0 +1,55 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-032",
+ "ok": true,
+ "meta": {
+  "requestId": "fc5a5314-b1f4-4bdf-bf80-1ff222064c0b",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2516,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg758bwEBzk6q7hhBBK9h",
+  "usage": {
+   "input": 702,
+   "output": 238,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0040824
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respironics",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "TRILOGY 100",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 3 h",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": [
+   "SPECIFICATIONS"
+  ]
+ }
+}

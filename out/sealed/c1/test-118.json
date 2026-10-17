@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-118",
+ "ok": true,
+ "meta": {
+  "requestId": "1ac5599f-778c-40c3-b853-8c94db21cb99",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2143,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75UEnokBNSdBBFwxzDg",
+  "usage": {
+   "input": 702,
+   "output": 247,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0041724
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Inogen",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Inogen One G4",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "300 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 3 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": [
+   "MEDICAL DEVICE",
+   "품목명: 산소발생기"
+  ]
+ }
+}

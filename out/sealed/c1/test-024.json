@@ -1,0 +1,55 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-024",
+ "ok": true,
+ "meta": {
+  "requestId": "85682d9a-8a15-4986-ab48-88020fd2eab6",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2516,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg756grqnUcnRQD3vVSV5",
+  "usage": {
+   "input": 735,
+   "output": 219,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0039584
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Astral 100",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "en",
+  "otherText": [
+   "SPECIFICATIONS"
+  ]
+ }
+}

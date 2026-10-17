@@ -1,0 +1,35 @@
+{
+ "id": "test-050",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Astral 150",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 8 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": []
+ }
+}

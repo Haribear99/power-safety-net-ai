@@ -52,3 +52,15 @@ export function evidenceSources(): Record<string, string> {
 export function labHeadline(): LabHeadline | null {
   return doc.lab ?? null;
 }
+
+/** C1 라벨 판독 봉인 측정(S3, 1회)과 tesseract 기준선 */
+export interface C1Rate { k: number; n: number; ciLo: number; ciHi: number }
+export interface C1Side {
+  n: number; degradedModelConfidentWrong: C1Rate; degradedAllFieldsConfidentWrong: C1Rate; unflaggedMismatch: C1Rate; dbMatchRate: C1Rate;
+  unregisteredToReview: C1Rate; modelExact: C1Rate; supplementViolations: number; supplementConfident: number; personalInfo: { k: number; n: number };
+  byTemplateGroup: { testOnly: { k: number; n: number }; shared: { k: number; n: number } }; costPerImage?: number; latencyP50?: number; latencyP95?: number;
+}
+export interface C1Evidence { sonnet: C1Side; tesseract?: C1Side; gate3: { pointEstimate: number; threshold: number; pass: boolean }; devRunConsistency?: { n: number; modelSame: number } }
+export function c1Evidence(): C1Evidence | null {
+  return (doc as unknown as { c1?: C1Evidence }).c1 ?? null;
+}

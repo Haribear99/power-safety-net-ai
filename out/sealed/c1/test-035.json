@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-035",
+ "ok": true,
+ "meta": {
+  "requestId": "7e4bae03-efcd-4904-9825-3353c68fb512",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2839,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg759J5i7bvCvHiZM1cpL",
+  "usage": {
+   "input": 702,
+   "output": 246,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004162399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Invacare",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Perfecto3",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "300W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 리튬이온 약 3시간",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": [
+   "의료기기 표시사항",
+   "품목명: 산소발생기"
+  ]
+ }
+}

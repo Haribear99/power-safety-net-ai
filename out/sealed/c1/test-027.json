@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-027",
+ "ok": true,
+ "meta": {
+  "requestId": "c5ab2c24-342b-4eaf-aed0-021bae745930",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 3669,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg757NTLd9MerpRAX21F5",
+  "usage": {
+   "input": 790,
+   "output": 249,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0043684
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Vyaire(CareFusion)",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "LT 1150",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 220V ~ 60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 1 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "en",
+  "otherText": [
+   "MEDICAL DEVICE",
+   "Device: Home ventilator"
+  ]
+ }
+}

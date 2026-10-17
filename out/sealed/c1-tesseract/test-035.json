@@ -1,0 +1,35 @@
+{
+ "id": "test-035",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "Invacare",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Perfecto3",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "300W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 리륨이온 약 3시간",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": []
+ }
+}

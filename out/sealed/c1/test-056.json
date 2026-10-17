@@ -1,0 +1,55 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-056",
+ "ok": true,
+ "meta": {
+  "requestId": "9d6d6706-89e2-41c3-9f20-69ea771c1bbf",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2608,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75ECE8NuoDZ1cUVVJgg",
+  "usage": {
+   "input": 702,
+   "output": 241,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0041123999999999996
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respironics",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "TRILOGY EVO",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 7.5",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "en",
+  "otherText": [
+   "SPECIFICATIONS"
+  ]
+ }
+}

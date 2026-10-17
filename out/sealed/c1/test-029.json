@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-029",
+ "ok": true,
+ "meta": {
+  "requestId": "f847ed73-95fe-4ae8-8790-4dc24b99cf4b",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2713,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg757w1uvvdtqTZFf6F1Q",
+  "usage": {
+   "input": 702,
+   "output": 250,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004202399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Vyaire(CareFusion)",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "LTV-1150",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 1 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "en",
+  "otherText": [
+   "RATING LABEL",
+   "Device: Home ventilator"
+  ]
+ }
+}

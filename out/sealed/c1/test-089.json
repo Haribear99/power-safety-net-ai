@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-089",
+ "ok": true,
+ "meta": {
+  "requestId": "aa641369-fc0d-459a-be63-76956a2a9eed",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 3298,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75MwkD72paKSR1Z466e",
+  "usage": {
+   "input": 702,
+   "output": 252,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004222399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respironics",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Trilogy 10O",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 리튬이온 약 6시간",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": [
+   "SPECIFICATIONS",
+   "품목명: 인공호흡기"
+  ]
+ }
+}

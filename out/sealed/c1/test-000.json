@@ -1,0 +1,55 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-000",
+ "ok": true,
+ "meta": {
+  "requestId": "e9b38973-70a7-4c88-b68b-7fa7ad22511f",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2351,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg751ARd8rq3LWFSSzLwg",
+  "usage": {
+   "input": 702,
+   "output": 235,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0040524
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Astral I50",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 1 h",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "personalInfoVisible": false,
+  "language": "en",
+  "otherText": [
+   "SPECIFICATIONS"
+  ]
+ }
+}

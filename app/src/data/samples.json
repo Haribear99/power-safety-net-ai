@@ -1,0 +1,262 @@
+{
+ "format": "pl26-c1-samples/1",
+ "note": "봉인 시험셋 1회 실행(out/sealed/c1)에서 받은 실제 출력. 샘플은 API를 부르지 않는다(1.6절)",
+ "samples": [
+  {
+   "key": "s1",
+   "title": "인공호흡기 · 깨끗한 라벨",
+   "src": "/samples/s1.jpg",
+   "sourceId": "test-007",
+   "label": {
+    "manufacturer": {
+     "verbatim": "Philips Respironics",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "TRILOGY 100",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "ratedPower": {
+     "verbatim": "60 W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "AC 100-240V ~ 50/60Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": "Internal Li-ion approx. 3 h",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "personalInfoVisible": true,
+    "language": "en",
+    "otherText": [
+     "RATING LABEL",
+     "Device: Home ventilator"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2889
+  },
+  {
+   "key": "s2",
+   "title": "산소발생기 · 국문 표시사항",
+   "src": "/samples/s2.jpg",
+   "sourceId": "test-005",
+   "label": {
+    "manufacturer": {
+     "verbatim": "Invacare",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "PERFECTO2",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "ratedPower": {
+     "verbatim": "280W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "AC 220V ~ 60Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": null,
+     "legibility": "illegible",
+     "confidence": "high"
+    },
+    "personalInfoVisible": true,
+    "language": "mixed",
+    "otherText": [
+     "SPECIFICATIONS",
+     "품목명: 산소발생기"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2546
+  },
+  {
+   "key": "s3",
+   "title": "인공호흡기 · 흐림·반사",
+   "src": "/samples/s3.jpg",
+   "sourceId": "test-050",
+   "label": {
+    "manufacturer": {
+     "verbatim": "ResMed",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "Astral 150",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "ratedPower": {
+     "verbatim": "60W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "AC 220V ~ 60Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": "Internal Li-ion approx. 8 h",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "personalInfoVisible": false,
+    "language": "en",
+    "otherText": [
+     "MEDICAL DEVICE",
+     "Device: Home ventilator"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2639
+  },
+  {
+   "key": "s4",
+   "title": "인공호흡기 · 일부 가려짐",
+   "src": "/samples/s4.jpg",
+   "sourceId": "test-016",
+   "label": {
+    "manufacturer": {
+     "verbatim": "ResMed",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "ASTRA 50",
+     "legibility": "partial",
+     "confidence": "low"
+    },
+    "ratedPower": {
+     "verbatim": "60W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "AC 100-240V ~ 50/60Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": "Internal Li-ion approx. 8 h",
+     "legibility": "partial",
+     "confidence": "low"
+    },
+    "personalInfoVisible": false,
+    "language": "en",
+    "otherText": [
+     "SPECIFICATIONS"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2335
+  },
+  {
+   "key": "s5",
+   "title": "혼동 미끼 · 비슷한 모델명",
+   "src": "/samples/s5.jpg",
+   "sourceId": "test-024",
+   "label": {
+    "manufacturer": {
+     "verbatim": "ResMed",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "Astral 100",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "ratedPower": {
+     "verbatim": "60W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "100-240 V~, 50/60 Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": null,
+     "legibility": "illegible",
+     "confidence": "high"
+    },
+    "personalInfoVisible": false,
+    "language": "en",
+    "otherText": [
+     "SPECIFICATIONS"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2516
+  },
+  {
+   "key": "s6",
+   "title": "DB에 없는 기종",
+   "src": "/samples/s6.jpg",
+   "sourceId": "test-046",
+   "label": {
+    "manufacturer": {
+     "verbatim": "MediBreath",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "model": {
+     "verbatim": "VentiCare X3",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "ratedPower": {
+     "verbatim": "60 W",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "voltage": {
+     "verbatim": "100-240 V~, 50/60 Hz",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "batteryText": {
+     "verbatim": "Internal Li-ion approx. 1 h",
+     "legibility": "clear",
+     "confidence": "high"
+    },
+    "personalInfoVisible": true,
+    "language": "mixed",
+    "otherText": [
+     "MEDICAL DEVICE",
+     "품목명: 인공호흡기"
+    ]
+   },
+   "promptVersion": "c1-v1",
+   "recorded": "봉인 측정(2026-10-17) 실제 AI 출력",
+   "model": "claude-sonnet-5-5",
+   "latencyMs": 2576
+  }
+ ]
+}

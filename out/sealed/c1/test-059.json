@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-059",
+ "ok": true,
+ "meta": {
+  "requestId": "c630c26a-2407-48c3-8f2b-3ce2664344b0",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2235,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75EvWquq5snTQFH5Tje",
+  "usage": {
+   "input": 702,
+   "output": 246,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004162399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Inogen",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Inogen On",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "300W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 1 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": [
+   "MEDICAL DEVICE",
+   "품목명: 산소발생기"
+  ]
+ }
+}

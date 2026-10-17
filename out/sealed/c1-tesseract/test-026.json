@@ -1,0 +1,35 @@
+{
+ "id": "test-026",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "Philips Respirc",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "TRILOGY EVO",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60W",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": "내장 2[&0[= 약 7.5시간",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": []
+ }
+}

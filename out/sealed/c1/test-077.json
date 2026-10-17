@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-077",
+ "ok": true,
+ "meta": {
+  "requestId": "691906d7-6903-42fb-9a0b-08ae36ba05f1",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2685,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75K4ds1Leer1MXzChr9",
+  "usage": {
+   "input": 917,
+   "output": 252,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004652399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Inogen",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Inogen G5",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "90 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 6.5 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": [
+   "MEDICAL DEVICE",
+   "품목명: 산소발생기"
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-119",
+ "ok": true,
+ "meta": {
+  "requestId": "a84d0275-fbec-4bad-9b79-3e100de3acd0",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2008,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75USaizAHB18BcjoWGe",
+  "usage": {
+   "input": 702,
+   "output": 248,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004182399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Inogen",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Inogen One G3",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "300W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "100-240 V~, 50/60 Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 1 h",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": true,
+  "language": "en",
+  "otherText": [
+   "MEDICAL DEVICE",
+   "Device: Oxygen concentrator"
+  ]
+ }
+}

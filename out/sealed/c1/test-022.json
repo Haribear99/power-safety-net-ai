@@ -1,0 +1,56 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-022",
+ "ok": true,
+ "meta": {
+  "requestId": "2dffe200-b131-4995-9bec-d485169c492d",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 3213,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg7569qnNmjCM8cR8V9dW",
+  "usage": {
+   "input": 702,
+   "output": 249,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.0041924
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Stellar 150",
+   "legibility": "partial",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "partial",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "내장 리튬이온 약 6시간",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "personalInfoVisible": false,
+  "language": "mixed",
+  "otherText": [
+   "SPECIFICATIONS",
+   "품목명: 인공호흡기"
+  ]
+ }
+}

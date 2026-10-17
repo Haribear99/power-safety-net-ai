@@ -1,0 +1,4276 @@
+{
+ "promptVersion": "c1-v1",
+ "split": "test",
+ "tag": "sealed",
+ "n": 120,
+ "fails": [],
+ "stopReasons": {
+  "end_turn": 120
+ },
+ "costUsd": 0.5033239999999999,
+ "costPerImage": 0.004194366666666666,
+ "latencyP50": 2532,
+ "latencyP95": 3298,
+ "metrics": {
+  "n": 120,
+  "degradedModelConfidentWrong": {
+   "k": 0,
+   "n": 60
+  },
+  "degradedAllFieldsConfidentWrong": {
+   "k": 0,
+   "n": 300
+  },
+  "fieldExact": {
+   "manufacturer": {
+    "k": 120,
+    "n": 120
+   },
+   "model": {
+    "k": 118,
+    "n": 120
+   },
+   "ratedPower": {
+    "k": 120,
+    "n": 120
+   },
+   "voltage": {
+    "k": 119,
+    "n": 120
+   },
+   "batteryText": {
+    "k": 114,
+    "n": 120
+   }
+  },
+  "unflaggedMismatch": {
+   "k": 0,
+   "n": 120
+  },
+  "dbMatchRate": {
+   "k": 66,
+   "n": 90
+  },
+  "unregisteredToReview": {
+   "k": 30,
+   "n": 30
+  },
+  "supplementViolations": 7,
+  "personalInfo": {
+   "k": 116,
+   "n": 120
+  },
+  "byTemplateGroup": {
+   "testOnly": {
+    "k": 0,
+    "n": 16
+   },
+   "shared": {
+    "k": 0,
+    "n": 44
+   }
+  }
+ },
+ "items": [
+  {
+   "id": "test-000",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-001",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-002",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-003",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-004",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-005",
+   "kind": "real",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-006",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-007",
+   "kind": "real",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-008",
+   "kind": "real",
+   "strength": "none",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-009",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-010",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-011",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-012",
+   "kind": "real",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-013",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-014",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-015",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-016",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-017",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-018",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-019",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-020",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-021",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-022",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-023",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-024",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-025",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-026",
+   "kind": "real",
+   "strength": "full",
+   "template": "T2",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-027",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-028",
+   "kind": "real",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-029",
+   "kind": "real",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-030",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-031",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-032",
+   "kind": "real",
+   "strength": "none",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-033",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-034",
+   "kind": "real",
+   "strength": "none",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-035",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T2",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-036",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-037",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-038",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-039",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-040",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": false
+  },
+  {
+   "id": "test-041",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-042",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-043",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-044",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-045",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-046",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-047",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-048",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-049",
+   "kind": "real",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-050",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-051",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-052",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-053",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T2",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-054",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-055",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-056",
+   "kind": "real",
+   "strength": "none",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": false
+  },
+  {
+   "id": "test-057",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-058",
+   "kind": "real",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-059",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-060",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": false
+  },
+  {
+   "id": "test-061",
+   "kind": "real",
+   "strength": "none",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-062",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-063",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-064",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-065",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-066",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-067",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-068",
+   "kind": "real",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-069",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-070",
+   "kind": "real",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-071",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-072",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_CONFIDENT"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-073",
+   "kind": "real",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-074",
+   "kind": "real",
+   "strength": "full",
+   "template": "T2",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-075",
+   "kind": "real",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-076",
+   "kind": "real",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-077",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-078",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-079",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-080",
+   "kind": "real",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-081",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-082",
+   "kind": "real",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-083",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-084",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-085",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-086",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-087",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T2",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-088",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-089",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-090",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-091",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-092",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-093",
+   "kind": "real",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-094",
+   "kind": "real",
+   "strength": "full",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-095",
+   "kind": "real",
+   "strength": "none",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-096",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-097",
+   "kind": "real",
+   "strength": "full",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-098",
+   "kind": "real",
+   "strength": "none",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "ASTRAL150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-099",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-100",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "COUGH_E70",
+   "match": {
+    "status": "MATCHED",
+    "specId": "COUGH_E70"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-101",
+   "kind": "real",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-102",
+   "kind": "real",
+   "strength": "none",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "PERFECTO2",
+   "match": {
+    "status": "MATCHED",
+    "specId": "PERFECTO2"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-103",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-104",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "SUPPLEMENT",
+     "confident": false
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-105",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "ASTRAL150",
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-106",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-107",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-108",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-109",
+   "kind": "real",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY_EVO",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY_EVO"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-110",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-111",
+   "kind": "decoy",
+   "strength": "none",
+   "template": "T5",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-112",
+   "kind": "real",
+   "strength": "full",
+   "template": "T7",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "WRONG",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-113",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-114",
+   "kind": "real",
+   "strength": "full",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "WRONG",
+     "confident": false
+    }
+   },
+   "truthSpecId": "LTV1150",
+   "match": {
+    "status": "MATCHED",
+    "specId": "LTV1150"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-115",
+   "kind": "real",
+   "strength": "full",
+   "template": "T4",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-116",
+   "kind": "real",
+   "strength": "full",
+   "template": "T8",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "INOGEN_G5",
+   "match": {
+    "status": "MATCHED",
+    "specId": "INOGEN_G5"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": false
+  },
+  {
+   "id": "test-117",
+   "kind": "real",
+   "strength": "full",
+   "template": "T6",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": false
+    }
+   },
+   "truthSpecId": "TRILOGY100",
+   "match": {
+    "status": "MATCHED",
+    "specId": "TRILOGY100"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-118",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T3",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": false
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  },
+  {
+   "id": "test-119",
+   "kind": "decoy",
+   "strength": "light",
+   "template": "T1",
+   "fields": {
+    "manufacturer": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "model": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "ratedPower": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "voltage": {
+     "verdict": "CORRECT",
+     "confident": true
+    },
+    "batteryText": {
+     "verdict": "CORRECT",
+     "confident": true
+    }
+   },
+   "truthSpecId": null,
+   "match": {
+    "status": "MANUAL_REVIEW",
+    "reason": "NOT_IN_DB"
+   },
+   "unflaggedMismatch": false,
+   "personalOk": true
+  }
+ ]
+}

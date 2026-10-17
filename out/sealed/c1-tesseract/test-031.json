@@ -1,0 +1,35 @@
+{
+ "id": "test-031",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": "ResMed",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Prat 50",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "60 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx 8h",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": []
+ }
+}

@@ -1,0 +1,55 @@
+{
+ "promptVersion": "c1-v1",
+ "id": "test-104",
+ "ok": true,
+ "meta": {
+  "requestId": "92e88676-99cb-45d5-b52f-c6628b882ba5",
+  "stage": "PW_C1_label",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2606,
+  "attempt": 1,
+  "maxTokens": 1500,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg75RGf5r7KAdnY3r1e1m",
+  "usage": {
+   "input": 824,
+   "output": 236,
+   "cacheRead": 1492,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004306399999999999
+ },
+ "data": {
+  "manufacturer": {
+   "verbatim": "Invacare",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "model": {
+   "verbatim": "Perfecto3",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "ratedPower": {
+   "verbatim": "300 W",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240V ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "high"
+  },
+  "batteryText": {
+   "verbatim": "Internal Li-ion approx. 6 h",
+   "legibility": "partial",
+   "confidence": "low"
+  },
+  "personalInfoVisible": true,
+  "language": "en",
+  "otherText": [
+   "SPECIFICATIONS"
+  ]
+ }
+}

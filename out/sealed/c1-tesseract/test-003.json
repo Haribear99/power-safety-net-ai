@@ -1,0 +1,35 @@
+{
+ "id": "test-003",
+ "ok": true,
+ "engine": "tesseract.js 5 kor+eng",
+ "data": {
+  "manufacturer": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "model": {
+   "verbatim": "COUGHASEST E79",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "ratedPower": {
+   "verbatim": "60 Ww",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "voltage": {
+   "verbatim": "AC 100-240\\/ ~ 50/60Hz",
+   "legibility": "clear",
+   "confidence": "low"
+  },
+  "batteryText": {
+   "verbatim": null,
+   "legibility": "illegible",
+   "confidence": "low"
+  },
+  "personalInfoVisible": true,
+  "language": "mixed",
+  "otherText": []
+ }
+}
