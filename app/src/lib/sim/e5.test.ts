@@ -1,4 +1,6 @@
 // E5 시험: 갈래끼리 공통 난수(미확인 가구의 포함 관계), 측정 미확인률, 표적 배치의 양·순서
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { computeLowerBoundDetail, DEFAULT_DB } from "../engine/lowerBound";
 import { materialize } from "./materialize";
@@ -9,6 +11,11 @@ import { e3Def } from "./sweep";
 const SEED_LO = 990_001; // 시험 전용(봉인 범위 밖)
 
 describe("E5", () => {
+  it("측정 미확인률은 봉인 C1 원본(out/sealed/c1/summary.json)과 같다", () => {
+    const raw = JSON.parse(readFileSync(path.resolve(__dirname, "../../../../out/sealed/c1/summary.json"), "utf-8")) as { metrics: { dbMatchRate: { k: number; n: number } } };
+    expect(measuredUnknownRate()).toBeCloseTo(1 - raw.metrics.dbMatchRate.k / raw.metrics.dbMatchRate.n, 6);
+  });
+
   it("측정 미확인률 = 1 − 66/90", () => {
     expect(measuredUnknownRate()).toBeCloseTo(24 / 90, 6);
     expect(E5_ARMS).toEqual({ AI: measuredUnknownRate(), NOAI: 1, PERF: 0 });

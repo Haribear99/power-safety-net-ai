@@ -209,6 +209,25 @@ if (e5) {
   };
 }
 
+// ---- E6: 평시 정보 표적 사전 배치(S8 봉인 실행, scripts/e6-analyze.ts) ----
+const e6 = take("out/e6_sealed.json") as {
+  source: { n: number };
+  compares: Record<"preVsRand" | "outVsRand" | "preVsOut" | "randVsRule" | "preVsRule", Cmp5>;
+  hhRates: Record<string, Record<string, HhRate>>;
+  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
+} | null;
+if (e6) {
+  const c = (x: Cmp5) => ({ rel: x.rel, lo: x.lo, hi: x.hi });
+  const rand = "AI@RULE+P7", pre = "AI@RULE+P7P";
+  const rows = Object.entries(e6.hhRates).map(([cls, r]) => ({ cls, rand: r[rand]?.rate ?? null, pre: r[pre]?.rate ?? null }));
+  out.e6 = {
+    n: e6.source.n, preVsRand: c(e6.compares.preVsRand), outVsRand: c(e6.compares.outVsRand),
+    hhGap: Object.fromEntries(rows.map((x) => [x.cls, { rand: x.rand, pre: x.pre }])),
+    worse: rows.filter((x) => x.rand != null && x.pre != null && x.pre > x.rand).map((x) => x.cls),
+    prereg: { hit: e6.prereg.hit, total: e6.prereg.total, missed: e6.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
+  };
+}
+
 // ---- 사전등록 나눔(레드팀 10/18): 결과 전 예측(1.x·H*·4.x)과 예비 실행 뒤 재현 확인(2.x·3.x·5.x)을 따로 센다 ----
 {
   const items = [
@@ -216,6 +235,7 @@ if (e5) {
     ...(((scoreE3?.items ?? []) as { id: string; hit: boolean | null }[])),
     ...(e4?.prereg.items ?? []),
     ...(e5?.prereg.items ?? []),
+    ...(e6?.prereg.items ?? []),
   ];
   const pre = items.filter((x) => /^(1\.|H|4\.|6\.|7\.)/.test(x.id) && x.hit != null);
   const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);

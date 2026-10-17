@@ -99,3 +99,14 @@ export interface E5Evidence {
 export function e5Evidence(): E5Evidence | null {
   return (doc as unknown as { e5?: E5Evidence }).e5 ?? null;
 }
+
+/** E6: 평시 정보 표적 사전 배치(S8 봉인 실행) */
+export interface E6Evidence {
+  n: number; preVsRand: Rel; outVsRand: Rel;
+  hhGap: Record<string, { rand: number | null; pre: number | null }>;
+  worse: string[];
+  prereg: { hit: number; total: number; missed: { id: string; text: string; value: string }[] };
+}
+export function e6Evidence(): E6Evidence | null {
+  return (doc as unknown as { e6?: E6Evidence }).e6 ?? null;
+}

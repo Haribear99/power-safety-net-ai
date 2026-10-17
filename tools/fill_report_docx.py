@@ -21,6 +21,20 @@ def part1(md: str) -> dict:
         out[f] = re.sub(r"\*\*(.+?)\*\*", r"\1", seg).replace("`", "")  # 마크다운 굵게·백틱 제거(양식은 일반 글)
     return out
 
+URL_RE = re.compile(r"https?://\S+")
+
+def add_hyperlink(para, url: str, rpr):
+    """문단에 외부 링크 run을 붙인다(PDF에서도 링크 주석이 생기게)."""
+    from docx.opc.constants import RELATIONSHIP_TYPE as RT
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    rid = para.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    h = OxmlElement("w:hyperlink"); h.set(qn("r:id"), rid)
+    r = OxmlElement("w:r")
+    if rpr is not None: r.append(copy.deepcopy(rpr))
+    t = OxmlElement("w:t"); t.text = url; t.set(qn("xml:space"), "preserve"); r.append(t)
+    h.append(r); para._p.append(h)
+
 def set_cell(cell, text: str):
     first = cell.paragraphs[0]
     run0 = first.runs[0] if first.runs else None
@@ -36,9 +50,16 @@ def set_cell(cell, text: str):
         if i > 0:
             para = cell.add_paragraph()
             if ppr is not None: para._p.insert(0, copy.deepcopy(ppr))
-        run = para.add_run(line)
+        m = URL_RE.search(line)
+        head = line[: m.start()] if m else line
+        run = para.add_run(head)
         if rpr is not None: run._r.insert(0, copy.deepcopy(rpr))
         run.font.bold = False
+        if m:
+            add_hyperlink(para, m.group(0), rpr)
+            if line[m.end():]:
+                tail = para.add_run(line[m.end():])
+                if rpr is not None: tail._r.insert(0, copy.deepcopy(rpr))
 
 def main(form, md_path, out):
     md = open(md_path, encoding="utf-8").read()

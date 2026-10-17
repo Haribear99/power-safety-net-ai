@@ -21,7 +21,7 @@ export default function AboutPage() {
         <thead><tr className="border-b border-line text-left"><th className="py-1 pr-2">가져온 것</th><th className="py-1">이 작품에서 새로 한 것</th></tr></thead>
         <tbody>
           <tr className="border-b border-line align-top"><td className="py-1 pr-2">같은 조건의 가상 상황을 여러 번 만들어 현행 절차와 개선 절차를 비교하고 빈틈을 찾는 실험 틀</td><td className="py-1">주제를 정전·전력의존 가구로 옮기고, 원안(12번) 판단식 「배터리 하한 − min(복구, 전원 도착)」을 실행하는 운영자 도구와 같은 엔진으로 비교</td></tr>
-          <tr className="border-b border-line align-top"><td className="py-1 pr-2">—</td><td className="py-1">제조사 사양 DB·정부 정전 집계(382건)에 맞춘 정량 시뮬레이션, 공통 난수 쌍비교와 부트스트랩·Wilson 구간 같은 통계 판정</td></tr>
+          <tr className="border-b border-line align-top"><td className="py-1 pr-2">—</td><td className="py-1">제조사 사양 DB·정부 정전 집계(382건)에 맞춘 정량 시뮬레이션, 부트스트랩·Wilson 구간 같은 통계 판정</td></tr>
           <tr className="border-b border-line align-top"><td className="py-1 pr-2">—</td><td className="py-1">해외 공개 절차(미국 PG&amp;E 등)를 근거로 한 보완안, 결과 전 사전등록·OpenTimestamps 봉인, 틀린 예측 공개</td></tr>
           <tr className="align-top"><td className="py-1 pr-2">—</td><td className="py-1">AI 라벨 판독(봉인 시험셋 실측), 담당자 승인, 119 최소정보 연계</td></tr>
         </tbody>
