@@ -1,9 +1,10 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
-// 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ⑥ 사전등록 대조. ④ 보완안·⑤ 반증 슬라이더는 Should(아직 없음, 「측정 전」).
+// 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
 import { aptCalib, BEFORE_MEASURE, e4Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
+import { pRange } from "@/lib/engine/params";
 
 export const metadata = { title: "리허설 랩 · 전력안심망 AI" };
 
@@ -38,20 +39,22 @@ function Section({ id, n, title, children }: { id: string; n: string; title: str
 
 function Hero({ d }: { d: LabDoc }) {
   const kr = d.e2!.pooled.compares.KR_BASELINE;
+  const b2 = d.e2!.pooled.compares.B2_NEAREST;
+  const hpr = pRange("sweep.hhPerResource");
   const sup = d.e2!.cells.filter((c) => c.kr.v === "SUPERIOR").length;
   const p0 = d.e2!.cells.filter((c) => c.pClass === "P0").length;
   const robustRule = d.e1!.cells.filter((c) => c.pol === "RULE" && c.label === "ROBUST" && !c.zero);
   return (
     <div className="mt-4 rounded-xl border border-line bg-paper p-4" data-testid="lab-hero">
-      <p className="text-[15px] text-muted">같은 정전을 같은 난수로 정책만 바꿔 {d.e2!.n.toLocaleString("ko-KR")}회 다시 돌린 결과(모의정전)</p>
+      <p className="text-[15px] text-muted">합성 정전 {d.e2!.n.toLocaleString("ko-KR")}건을 같은 난수로 정책만 바꿔 다시 돌린 결과(모의정전). 비상전원이 가구 {hpr.lo}~{hpr.hi}곳당 1대 있다고 가정하고, 현행 절차에는 그 전원을 가구와 잇는 단계가 없습니다.</p>
       <p className="mt-1 text-[26px] font-extrabold leading-9">
         현행 절차보다 공백 가구·시간 <span className="text-batt">{pct1(kr.rel)} 감소</span>
       </p>
       <p className="text-[15px]">
-        {d.e2!.cells.length}개 조건 중 <strong>{sup}개</strong>에서 우세 · 95% CI {pct1(kr.relLo)}~{pct1(kr.relHi)}
+        {d.e2!.cells.length}개 조건 중 <strong>{sup}개</strong>에서 우세 · 95% CI {pct1(kr.relLo)}~{pct1(kr.relHi)}(몬테카를로 추첨 오차만, 가정의 불확실성은 조건별 범위로)
       </p>
       <p className="mt-3 text-[15px] leading-6">
-        단, 배터리 짧은 순·가까운 순 같은 단순 규칙과는 {d.e2!.cells.length}개 중 <strong>{p0}개</strong> 조건에서 차이가 없습니다. 효과는 정교한 순서가 아니라
+        단, 배터리 짧은 순·가까운 순 같은 단순 규칙과는 {d.e2!.cells.length}개 중 <strong>{p0}개</strong> 조건에서 차이가 없고, 합산하면 가까운 순이 {pct1(-(b2?.rel ?? 0))} 낫습니다. 효과는 정교한 순서가 아니라
         <strong> 등록된 기기 정보로 호환 자원을 정전 즉시 잇는 것</strong>에서 나옵니다.
       </p>
       {robustRule.length > 0 ? (
@@ -279,7 +282,7 @@ function Patches({ d }: { d: LabDoc }) {
       </div>
       <p className="mt-2 text-[13px] text-muted">
         P1(개인 계획에 따른 조기 119 이송)은 공백을 줄이지 못했습니다. 계획 가구가 일찍 부르면 119 대기열이 먼저 차서 더 급한 가구의 차례가 밀립니다(붉은 행). 사전 배치(P2·P3·P7)는 모든 정전 원인에서 공백을 줄였고,
-        개인 계획을 보조금 요건으로 거는 방식(P3)은 대상이 줄어 효과도 줄었습니다. 넣지 않은 것: P4 충전 순환(외장 재충전 모형 없음), P6·P8 사전 통지·충전(모형이 예보 사건을 이미 완충으로 둠), P5(답변서가 거부한 규칙). 수치는 사람 검수 전입니다.
+        개인 계획을 보조금 요건으로 거는 방식(P3)은 대상이 줄어 효과도 줄었습니다. 넣지 않은 것: P4 충전 순환(외장 재충전 모형 없음), P6·P8 사전 통지·충전(모형이 예보 사건을 이미 완충으로 둠), P5(답변서가 거부한 규칙). 보급률·고장률 같은 보완안 매개변수는 가정값이며 사람 검수 전입니다.
       </p>
       {e.prereg ? (
         <p className="mt-2 text-[14px]">보완안 사전등록(S5) 예측 <strong>{e.prereg.hit}/{e.prereg.total}</strong> 맞힘 · 검증하지 않음: {e.prereg.notTested.join(", ")}</p>
@@ -338,7 +341,7 @@ function Empirical() {
         </table>
       </div>
       <p className="mt-2 text-[14px]">
-        도구는 공백 가구·시간을 {pct1(e.ruleVsKr.rel)} 줄였지만(95% CI {pct1(e.ruleVsKr.lo)}~{pct1(e.ruleVsKr.hi)}), 1시간급 인공호흡기 가구 중 공백이 생기는 비율은 줄이지 못했습니다. 공백을 짧게 할 뿐 막지는 못합니다.
+        도구는 공백 가구·시간을 {pct1(e.ruleVsKr.rel)} 줄였지만(95% CI {pct1(e.ruleVsKr.lo)}~{pct1(e.ruleVsKr.hi)}, 추첨 오차만. 계획자도 실측 분포를 아는 낙관 조건), 1시간급 인공호흡기 가구 중 공백이 생기는 비율은 줄이지 못했습니다. 공백을 짧게 할 뿐 막지는 못합니다.
         정전 전에 배터리를 가구에 미리 두어야 그 비율이 내려갑니다(도구 위 사전 배치: 공백 가구·시간 {pct1(e.p7.rel)} 추가 감소).
       </p>
       <p className="mt-1 text-[13px] text-muted">
@@ -418,7 +421,6 @@ export default function LabPage() {
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <Prereg d={d} />
           </Section>
-          <p className="mt-6 text-[13px] text-muted">⑤ 반증 슬라이더: {BEFORE_MEASURE}</p>
         </>
       )}
       <p className="mt-6"><Link className="underline" href="/">← 처음으로</Link> · <Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link></p>

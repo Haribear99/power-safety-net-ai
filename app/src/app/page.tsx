@@ -67,7 +67,7 @@ export default function Home() {
           </Link>
           <Link href="/lab" data-testid="cta-lab"
             className="block rounded-xl border border-ink px-4 py-3 text-center text-[16px] font-semibold">
-            {n != null ? `같은 정전 ${n.toLocaleString("ko-KR")}번 다시 돌린 결과` : "같은 정전을 다시 돌린 결과 보기"}
+            {n != null ? `합성 정전 ${n.toLocaleString("ko-KR")}건, 정책만 바꿔 돌린 결과` : "같은 정전을 다시 돌린 결과 보기"}
           </Link>
         </div>
       </section>
@@ -77,7 +77,7 @@ export default function Home() {
       <section className="mt-8" aria-labelledby="how">
         <h2 id="how" className="text-[18px] font-bold">이 도구가 하는 일</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-[16px] leading-7">
-          <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>을 계산합니다(계산은 AI 아님). <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
+          <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>을 검증된 규칙으로 계산합니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
           <li>하한을 <strong>복구 가정 범위</strong>와 <strong>비상전원 도착 시각</strong>에 비교해 처리 순서와 추천을 냅니다.</li>
           <li><strong>담당자가 승인</strong>해야 배정되고, 119에는 위치·기기·예상 안전시간 세 가지만 넘어갑니다.</li>
         </ol>

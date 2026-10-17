@@ -18,7 +18,7 @@ export interface DiffSummary {
 /** 라운드 5 끝 카드 헤드라인(봉인 실행, sync-evidence가 out/lab_sealed.json에서 채운다) */
 export interface LabHeadline {
   tag: string;
-  e2: { n: number; nCells: number; superiorVsKr: number; inferiorVsKr: number; pooledRel: number; pooledRelLo: number; pooledRelHi: number; relRange: { lo: number; hi: number }; P1: number; P0: number; P2: number };
+  e2: { n: number; nCells: number; superiorVsKr: number; inferiorVsKr: number; pooledRel: number; pooledRelLo: number; pooledRelHi: number; relRange: { lo: number; hi: number }; P1: number; P0: number; P2: number; vsB2?: { rel: number | null; v: string } };
   e1: { draws: number; scenarios: number; robustKr: { cls: string; cause: string }[]; robustRule: { cls: string; cause: string }[]; stabilityPass: boolean | null };
   gate2?: { a: boolean; b: boolean; pass: boolean };
   prereg?: { section1: { hit: number; total: number }; section2: { hit: number; total: number } };

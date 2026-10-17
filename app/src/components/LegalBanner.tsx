@@ -1,8 +1,8 @@
 // 법정 배너 (spec.md 1.1절, AI기본법 제31조①). 모든 페이지 상단 고정.
-export const LEGAL_BANNER_TEXT = "본 서비스는 AI 기반으로 운용됩니다 · 시연용 합성 데이터 · 계산·배정 규칙은 AI가 아닙니다";
+export const LEGAL_BANNER_TEXT = "본 서비스는 AI 기반으로 운용됩니다 · AI: 라벨 판독 · 계산: 검증된 규칙 · 결정: 담당자 · 시연용 합성 데이터";
 
 /** 좁은 화면(< 640px)용 짧은 문안: 한 줄에 들어가게(1.3절 '배너 한 줄') */
-export const LEGAL_BANNER_SHORT = "AI 기반 운용 · 시연용 합성 데이터 · 계산은 AI 아님";
+export const LEGAL_BANNER_SHORT = "AI 기반 운용(라벨 판독) · 계산은 규칙 · 합성 데이터";
 
 export function LegalBanner() {
   return (

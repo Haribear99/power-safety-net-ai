@@ -58,6 +58,8 @@ if (labDoc?.e2 && labDoc.e1) {
       n: e2.source.n, nCells: e2.source.nCells, superiorVsKr: e2.headline.superiorVsKr, inferiorVsKr: e2.headline.inferiorVsKr,
       pooledRel: r4(kr.relReduction), pooledRelLo: r4(kr.relCi?.lo), pooledRelHi: r4(kr.relCi?.hi),
       relRange: e2.headline.krRelReductionRange, P1: e2.headline.P1, P0: e2.headline.P0, P2: e2.headline.P2,
+      // 합산 비교에서 원안 규칙 대 가까운 순(B2). 레드팀 10/18: '차이 없음'만 쓰지 말고 합산 열등도 밝힌다
+      vsB2: slimCmp(e2.pooled.compares.B2_NEAREST),
     },
     e1: {
       draws: e1.source.draws, scenarios: e1.source.draws * 8,
@@ -182,6 +184,23 @@ if (e4) {
     hhGap: { VENT_1H: pick("VENT_1H"), VENT_3H: pick("VENT_3H") },
     prereg: { hit: e4.prereg.hit, total: e4.prereg.total, missed: e4.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
+}
+
+// ---- 사전등록 나눔(레드팀 10/18): 결과 전 예측(1.x·H*·4.x)과 예비 실행 뒤 재현 확인(2.x·3.x·5.x)을 따로 센다 ----
+{
+  const items = [
+    ...(((score?.items ?? []) as { id: string; hit: boolean | null }[])),
+    ...(((scoreE3?.items ?? []) as { id: string; hit: boolean | null }[])),
+    ...(e4?.prereg.items ?? []),
+  ];
+  const pre = items.filter((x) => /^(1\.|H|4\.)/.test(x.id) && x.hit != null);
+  const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);
+  if (items.length) {
+    out.preregSplit = {
+      before: { hit: pre.filter((x) => x.hit).length, total: pre.length },
+      afterPilot: { hit: post.filter((x) => x.hit).length, total: post.length },
+    };
+  }
 }
 
 out.sources = sources;

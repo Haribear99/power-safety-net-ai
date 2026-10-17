@@ -1,8 +1,13 @@
 """성과보고서 1부의 숫자를 evidence.json(봉인 실행 집계)에서 다시 만들어 보고서에 그대로 있는지 대조한다.
-실행: python -I tools/check_report_numbers.py   (저장소 루트에서). 하나라도 없으면 종료 코드 1.
+실행: python -I tools/check_report_numbers.py [--final]   (저장소 루트에서). 하나라도 없으면 종료 코드 1.
+--final: 제출 직전 검사. [사용자 기입 …]·[KEIT 확인 …] 같은 작성 표기가 1부에 남아 있으면 실패.
 """
+import csv
+import io
 import json
+import re
 import sys
+import zipfile
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -22,25 +27,27 @@ rate = lambda r: f"{r['k']}/{r['n']}"
 expected = {
     "E2 시나리오 수": f"{e2['n']:,}",
     "E2 합산 감소율": pct(e2["pooledRel"]),
-    "E2 CI": f"{pc(e2['pooledRelLo'])}~{pct(e2['pooledRelHi'])}",
+    "E2 가까운 순 합산 우위": f"가까운 순이 {abs(e2['vsB2']['rel']) * 100:.1f}% 나음" if e2["vsB2"]["rel"] < 0 else "가까운 순보다",
     "E2 조건별 범위": f"{pc(e2['relRange']['lo'])}~{pct(e2['relRange']['hi'])}",
-    "E2 칸 수·우세": f"{e2['nCells']}개 모두 우세" if e2["superiorVsKr"] == e2["nCells"] else f"{e2['superiorVsKr']}개",
+    "E2 칸 수·우세": f"{e2['nCells']}개 조건 모두 우세" if e2["superiorVsKr"] == e2["nCells"] else f"{e2['superiorVsKr']}개",
     "E2 단순 규칙 차이 없음": f"{e2['P0']}개 조건에서 차이 없음",
     "E2 단순 규칙이 나음": f"{e2['P2']}개는 단순 규칙이 나음",
     "E1 시나리오 수": f"{e1['scenarios']:,}회",
     "E1 ROBUST 현행": f"현행 {len(e1['robustKr'])}곳",
-    "E1 ROBUST 도구": f"도구를 써도 {len(e1['robustRule'])}곳",
+    "E1 ROBUST 도구": f"도구 {len(e1['robustRule'])}곳",
     "E3 시나리오 수": f"{e3['n']:,}회",
     "E3 실효 보급 범위": f"{pc(e3['effLo'])}~{pct(e3['effHi'])}",
     "E3 빈틈 해소": f"{e3['robustBefore']}곳 중 {e3['closed']}곳",
     "C1 헤드라인": rate(s["degradedModelConfidentWrong"]),
+    "C1 모델명 정확": rate(s["modelExact"]),
+    "C1 DB 자동 확정": rate(s["dbMatchRate"]),
     "C1 무플래그 오매칭": rate(s["unflaggedMismatch"]),
     "C1 미등록 수동검토": rate(s["unregisteredToReview"]),
     "C1 기준선 모델명": rate(t["modelExact"]),
     "C1 기준선 오매칭": f"오매칭 {t['unflaggedMismatch']['k']}건",
-    "사전등록 1절": f"{lab['prereg']['section1']['hit']}/{lab['prereg']['section1']['total']}",
-    "사전등록 2절": f"{lab['prereg']['section2']['hit']}/{lab['prereg']['section2']['total']}",
-    "사전등록 E3": f"{e3['prereg']['hit']}/{e3['prereg']['total']}",
+    "사전등록 결과 전 예측": f"결과 전 예측 {ev['preregSplit']['before']['hit']}/{ev['preregSplit']['before']['total']}",
+    "사전등록 예비 뒤 재현": f"재현 확인 {ev['preregSplit']['afterPilot']['hit']}/{ev['preregSplit']['afterPilot']['total']}",
+    "사전등록 틀린 수": f"틀린 {ev['preregSplit']['before']['total'] - ev['preregSplit']['before']['hit'] + ev['preregSplit']['afterPilot']['total'] - ev['preregSplit']['afterPilot']['hit']}개",
     "오라클 차등": f"{ev['diff']['total']['pass']}/{ev['diff']['total']['scenarios']}",
     "정부 집계 건수": f"{ev['calib']['apt']['n']}건",
     "정부 집계 12h 초과": f"{ev['calib']['apt']['gt12h']}건",
@@ -48,8 +55,14 @@ expected = {
     "E4 도구 감소율": pct(ev["e4"]["ruleVsKr"]["rel"]),
     "E4 1시간급 도구": pct(ev["e4"]["hhGap"]["VENT_1H"]["RULE"]),
     "E4 1시간급 사전배치": pct(ev["e4"]["hhGap"]["VENT_1H"]["RULE+P7"]),
-    "사전등록 E4": f"{ev['e4']['prereg']['hit']}/{ev['e4']['prereg']['total']}",
+    "정부 집계 N건 중 1건": f"{round(ev['calib']['apt']['n'] / ev['calib']['apt']['gt12h'])}건 중 1건",
 }
+# 건보 요양비 CSV(datasets/external, cp949): 인공호흡기 최신 연도 지급건수 → 'N.N만 건'
+with zipfile.ZipFile(REPO / "datasets" / "external" / "nhis_yoyangbi_payments_20251231.zip") as z:
+    name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
+    rows = list(csv.reader(io.TextIOWrapper(z.open(name), encoding="cp949")))
+vent = max((r for r in rows[1:] if r[1].strip() == "인공호흡기"), key=lambda r: int(r[0]))
+expected[f"인공호흡기 요양비 {vent[0]}"] = f"연 {int(vent[2]) / 1e4:.1f}만 건(건보 {vent[0]}"
 miss = {k: v for k, v in expected.items() if v not in part1}
 for k, v in expected.items():
     print(("✓ " if k not in miss else "✗ ") + f"{k}: {v}")
@@ -59,4 +72,10 @@ if ev["e4"]["hhGap"]["VENT_1H"]["KR_BASELINE"] != ev["e4"]["hhGap"]["VENT_1H"]["
 if not c1["gate3"]["pass"] or not lab["gate2"]["pass"]:
     print("✗ 관문 2 또는 3 미통과 — 보고서 대체안 문장을 써야 한다")
     sys.exit(1)
+if "--final" in sys.argv:
+    left = re.findall(r"\[(?:사용자 기입|KEIT 확인)[^\]]*\]", part1)
+    for x in left:
+        print(f"✗ 작성 표기가 남아 있음: {x}")
+    if left:
+        miss["작성 표기"] = "남음"
 sys.exit(1 if miss else 0)
