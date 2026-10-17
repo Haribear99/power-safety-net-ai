@@ -217,11 +217,11 @@ if (e5) {
     ...(e4?.prereg.items ?? []),
     ...(e5?.prereg.items ?? []),
   ];
-  const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
+  const pre = items.filter((x) => /^(1\.|H|4\.|6\.|7\.)/.test(x.id) && x.hit != null);
   const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
-      before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
+      before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.|7\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
       afterPilot: { hit: post.filter((x) => x.hit).length, total: post.length },
     };
   }

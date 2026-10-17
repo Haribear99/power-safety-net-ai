@@ -16,6 +16,7 @@ const RANGES = [
   { name: "E3", lo: 1_000_001, hi: 1_001_000, tag: "S5" },
   { name: "E4", lo: 4_000_001, hi: 4_002_000, tag: "S6" },
   { name: "E5", lo: 5_000_001, hi: 5_002_000, tag: "S7" },
+  { name: "E6", lo: 6_000_001, hi: 6_002_000, tag: "S8" },
 ];
 const SEED_RE = /"seed":"?(\d+)"?/g;
 const git = (...a) => execFileSync("git", ["-C", repo, ...a], { encoding: "utf-8", maxBuffer: 1 << 30, stdio: ["ignore", "pipe", "pipe"] }).trim();
