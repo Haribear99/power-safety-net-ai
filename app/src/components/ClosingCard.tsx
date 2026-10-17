@@ -34,6 +34,12 @@ export function ClosingCard() {
               도구를 써도 기기×정전 조합 {h.e1.robustRule.length}곳에는 가정 범위 추첨 90% 이상(95% 신뢰하한)에서 공백이 남습니다: {robustPhrase(h.e1.robustRule)}. 정전 뒤 배정이 아니라 사전 배치가 필요한 곳입니다(모의정전).
             </p>
           ) : null}
+          {h.e3 && h.e3.effLo > 0 ? (
+            <p className="mt-3 text-[15px] leading-6" data-testid="closing-e3">
+              도구 위에 휴대용 배터리 사전 배치(미국 PG&amp;E 절차의 한국화, 보급·고장 가정 범위)를 얹으면 공백 가구·시간이 {pct(h.e3.effLo)}~{pct(h.e3.effHi)} 더 줄고,
+              보완안 시험(별도 시드 {h.e3.n.toLocaleString("ko-KR")}회)에서 도구로도 남던 빈틈 {h.e3.robustBefore}곳 중 {h.e3.closed}곳이 닫힙니다(모의정전).
+            </p>
+          ) : null}
         </div>
       ) : (
         <p className="text-[17px] leading-7" data-testid="closing-before">

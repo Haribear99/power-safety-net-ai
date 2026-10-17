@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BEFORE_MEASURE } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
+import { PATCHES, type PatchId } from "@/lib/sim/patches";
 
 export const metadata = { title: "리허설 랩 · 전력안심망 AI" };
 
@@ -59,6 +60,17 @@ function Hero({ d }: { d: LabDoc }) {
           {robustRule.length > 4 ? ` 외 ${robustRule.length - 4}곳` : ""}. 준비·이동 시간이 남은 배터리보다 길어 정전 뒤 배정으로는 닫히지 않습니다.
         </p>
       ) : null}
+      {(() => {
+        const x = d.e3?.effects.find((y) => y.variant === "RULE+P7");
+        const c = d.e3?.closure.find((y) => y.variant === "RULE+P7");
+        if (!x || !c || (x.effLo ?? 0) <= 0) return null;
+        return (
+          <p className="mt-3 text-[15px] leading-6">
+            그 빈틈에 휴대용 배터리 사전 배치(PG&amp;E 절차의 한국화)를 얹으면 공백 가구·시간이 {pct1(x.effLo)}~{pct1(x.effHi)} 더 줄고, 보완안 시험에서 도구로도 남던 빈틈 {c.robustBefore}곳 중{" "}
+            {c.robustBefore - c.robustAfter}곳이 닫힙니다. <a className="underline" href="#patches">④ 보완안</a>
+          </p>
+        );
+      })()}
     </div>
   );
 }
@@ -225,6 +237,57 @@ function Prereg({ d }: { d: LabDoc }) {
   );
 }
 
+const BASE_KO: Record<string, string> = { KR_BASELINE: "현행 절차 위", RULE: "도구 위" };
+
+function Patches({ d }: { d: LabDoc }) {
+  const e = d.e3;
+  if (!e) return <p className="mt-2">{BEFORE_MEASURE}</p>;
+  const name = (v: string) => {
+    const [b, p] = v.split("+");
+    const def = PATCHES.get(p as PatchId)!;
+    return { base: BASE_KO[b] ?? b, patch: `${p} ${def.origin}`, actor: def.actorKr };
+  };
+  return (
+    <div className="mt-2" data-testid="patches">
+      <p className="text-[14px]">
+        같은 정전(보류 시드 {e.n.toLocaleString("ko-KR")}회)에 해외 절차 4개를 한국 행위자로 옮겨 얹고 다시 돌렸습니다. 보급률·고장률·계획 작성률은 가정 범위로 흔들고,
+        &lsquo;실효 보급&rsquo;(보급 × (1 − 고장)) 하위 10%와 상위 10% 시나리오의 감소율을 함께 보입니다. 도구는 집에 둔 배터리를 모른다고 두었습니다(효과를 부풀리지 않는 쪽).
+      </p>
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+        <table className="w-full min-w-[760px] text-[12px]" data-testid="patch-table">
+          <thead className="bg-paper text-left text-muted">
+            <tr><th className="px-2 py-1">바탕</th><th className="px-2 py-1">보완안(한국 행위자)</th><th className="px-2 py-1">공백 가구·시간 감소 [95% CI]</th><th className="px-2 py-1">실효 보급 하위~상위 10%</th><th className="px-2 py-1">고위험 공백 승/무/패</th><th className="px-2 py-1">견고한 빈틈</th></tr>
+          </thead>
+          <tbody>
+            {e.effects.map((x) => {
+              const n = name(x.variant);
+              const c = e.closure.find((y) => y.variant === x.variant)!;
+              const neg = (x.rel ?? 0) <= 0;
+              return (
+                <tr key={x.variant} className={`border-t border-line ${neg ? "bg-gap-soft" : ""}`}>
+                  <td className="px-2 py-1">{n.base}</td>
+                  <td className="px-2 py-1">{n.patch} <span className="text-muted">({n.actor})</span></td>
+                  <td className={`px-2 py-1 tabular-nums ${neg ? "text-gap" : "font-bold text-batt"}`}>{pct1(x.rel)} [{pct1(x.relLo)}, {pct1(x.relHi)}]</td>
+                  <td className="px-2 py-1 tabular-nums">{pct1(x.effLo)}~{pct1(x.effHi)}</td>
+                  <td className="px-2 py-1 tabular-nums">{x.w}/{x.t}/{x.l}</td>
+                  <td className="px-2 py-1 tabular-nums" title={c.closed.map((z) => `${causeLabel(z.cause).name} × ${CLASS_KO[z.cls]}`).join("\n")}>{c.robustBefore} → {c.robustAfter}곳</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[13px] text-muted">
+        P1(개인 계획에 따른 조기 119 이송)은 공백을 줄이지 못했습니다. 계획 가구가 일찍 부르면 119 대기열이 먼저 차서 더 급한 가구의 차례가 밀립니다(붉은 행). 사전 배치(P2·P3·P7)는 모든 정전 원인에서 공백을 줄였고,
+        개인 계획을 보조금 요건으로 거는 방식(P3)은 대상이 줄어 효과도 줄었습니다. 넣지 않은 것: P4 충전 순환(외장 재충전 모형 없음), P6·P8 사전 통지·충전(모형이 예보 사건을 이미 완충으로 둠), P5(답변서가 거부한 규칙). 수치는 사람 검수 전입니다.
+      </p>
+      {e.prereg ? (
+        <p className="mt-2 text-[14px]">보완안 사전등록(S5) 예측 <strong>{e.prereg.hit}/{e.prereg.total}</strong> 맞힘 · 검증하지 않음: {e.prereg.notTested.join(", ")}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function LabPage() {
   const d = lab();
   return (
@@ -235,6 +298,7 @@ export default function LabPage() {
         <a className="rounded border border-line px-2 py-0.5" href="#map">② 빈틈 지도</a>
         <a className="rounded border border-line px-2 py-0.5" href="#compare">③ 도구 대 현행</a>
         <a className="rounded border border-line px-2 py-0.5" href="#breakeven">① 손익분기</a>
+        <a className="rounded border border-line px-2 py-0.5" href="#patches">④ 보완안</a>
         <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
@@ -282,10 +346,13 @@ export default function LabPage() {
             <p className="mt-1 text-[14px]">실제 정전 길이(모의) 구간마다 그 기기 가구 중 공백이 남은 비율. 위는 현행 절차, 아래는 도구(원안 규칙). 배터리보다 긴 정전에서 공백이 시작되는 지점이 기기마다 다릅니다.</p>
             <BreakEven d={d} />
           </Section>
+          <Section id="patches" n="④" title="보완안: 해외 절차를 얹고 다시 돌리면">
+            <Patches d={d} />
+          </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <Prereg d={d} />
           </Section>
-          <p className="mt-6 text-[13px] text-muted">④ 보완안 순위·⑤ 반증 슬라이더: {BEFORE_MEASURE}</p>
+          <p className="mt-6 text-[13px] text-muted">⑤ 반증 슬라이더: {BEFORE_MEASURE}</p>
         </>
       )}
       <p className="mt-6"><Link className="underline" href="/">← 처음으로</Link> · <Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link></p>

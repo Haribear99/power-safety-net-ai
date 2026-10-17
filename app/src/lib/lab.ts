@@ -25,6 +25,12 @@ export interface LabDoc {
     e1b: Record<string, { binLoH: number; n: number; gap: number[] }[]>;
   };
   prereg?: { section1: { hit: number; total: number }; section2: { hit: number; total: number }; items: PreregItem[]; gate2: { a: boolean; b: boolean; pass: boolean } } | null;
+  e3?: {
+    n: number; draws: number;
+    effects: { variant: string; rel: number | null; relLo: number | null; relHi: number | null; w: number; t: number; l: number; effLo: number | null; effHi: number | null; byCause: Record<string, number | null> }[];
+    closure: { variant: string; base: string; robustBefore: number; robustAfter: number; closed: { cls: GenClass; cause: Cause }[]; opened: { cls: GenClass; cause: Cause }[] }[];
+    prereg: { hit: number; total: number; notTested: string[]; items: PreregItem[] } | null;
+  };
 }
 
 const doc = raw as unknown as LabDoc;

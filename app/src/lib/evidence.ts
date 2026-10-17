@@ -22,6 +22,8 @@ export interface LabHeadline {
   e1: { draws: number; scenarios: number; robustKr: { cls: string; cause: string }[]; robustRule: { cls: string; cause: string }[]; stabilityPass: boolean | null };
   gate2?: { a: boolean; b: boolean; pass: boolean };
   prereg?: { section1: { hit: number; total: number }; section2: { hit: number; total: number } };
+  /** E3 끝 카드 문장(RULE+P7 고정, prereg/predictions_e3.md 3절) */
+  e3?: { n: number; variant: string; rel: number; effLo: number; effHi: number; robustBefore: number; closed: number; prereg?: { hit: number; total: number } };
 }
 
 interface EvidenceDoc {

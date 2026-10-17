@@ -37,8 +37,14 @@ const labDoc = take(`out/lab_${labTag}.json`) as {
     e1b: Record<string, { binLoH: number; n: number; gap: number[] }[]>;
     headline: { robustKr: { cls: string; cause: string }[]; robustRule: { cls: string; cause: string }[] };
   };
+  e3?: {
+    source: { n: number; draws: number };
+    effects: { variant: string; n: number; rel: number | null; relCi: { lo: number; hi: number } | null; win: number; tie: number; loss: number; byCause: Record<string, number | null>; byEff: { deciles: (number | null)[]; lo: number | null; hi: number | null } }[];
+    closure: { variant: string; base: string; robustBefore: number; robustAfter: number; closed: { cls: string; cause: string }[]; opened: { cls: string; cause: string }[] }[];
+  };
 } | null;
 const score = take(`out/prereg_score_${labTag}.json`) as { section1: unknown; section2: unknown; items: unknown[]; gate2: { pass: boolean; a: boolean; b: boolean } } | null;
+const scoreE3 = take(`out/prereg_e3_score_${labTag}.json`) as { hit: number; total: number; notTested: string[]; items: unknown[] } | null;
 const r4 = (x: number | null | undefined) => (x == null ? null : Math.round(x * 1e4) / 1e4);
 const slimCmp = (c: Cmp) => ({ w: c.win, t: c.tie, l: c.loss, rel: r4(c.relReduction), relLo: r4(c.relCi?.lo), relHi: r4(c.relCi?.hi), d: r4(c.meanDiffH), v: c.verdict });
 if (labDoc?.e2 && labDoc.e1) {
@@ -58,6 +64,12 @@ if (labDoc?.e2 && labDoc.e1) {
       stabilityPass: e1.stability?.pass ?? null,
     },
     ...(score ? { gate2: score.gate2, prereg: { section1: score.section1, section2: score.section2 } } : {}),
+    ...(labDoc.e3 ? (() => {
+      // 끝 카드 보완안 문장은 RULE+P7 고정(prereg/predictions_e3.md 3절, 결과 보기 전)
+      const e = labDoc.e3.effects.find((x) => x.variant === "RULE+P7")!;
+      const c = labDoc.e3.closure.find((x) => x.variant === "RULE+P7")!;
+      return { e3: { n: labDoc.e3.source.n, variant: "RULE+P7", rel: r4(e.rel), effLo: r4(e.byEff.lo), effHi: r4(e.byEff.hi), robustBefore: c.robustBefore, closed: c.closed.length, ...(scoreE3 ? { prereg: { hit: scoreE3.hit, total: scoreE3.total } } : {}) } };
+    })() : {}),
   };
   const detail = {
     format: "pl26-lab-ui/1", tag: labTag,
@@ -82,6 +94,17 @@ if (labDoc?.e2 && labDoc.e1) {
       e1b: e1.e1b,
     },
     prereg: score,
+    ...(labDoc.e3 ? {
+      e3: {
+        n: labDoc.e3.source.n, draws: labDoc.e3.source.draws,
+        effects: labDoc.e3.effects.map((e) => ({
+          variant: e.variant, rel: r4(e.rel), relLo: r4(e.relCi?.lo), relHi: r4(e.relCi?.hi), w: e.win, t: e.tie, l: e.loss,
+          effLo: r4(e.byEff.lo), effHi: r4(e.byEff.hi), byCause: Object.fromEntries(Object.entries(e.byCause).map(([k, v]) => [k, r4(v)])),
+        })),
+        closure: labDoc.e3.closure,
+        prereg: scoreE3,
+      },
+    } : {}),
   };
   writeFileSync(path.join(__dirname, "..", "src", "data", "lab.json"), canonicalJson(detail) + "\n", "utf-8");
   console.log(`lab.json(${labTag}) 갱신`);
