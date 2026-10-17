@@ -19,3 +19,8 @@
 - `app/src/lib/sim/sweep.ts`·`analyze.ts`에 E3 함수(runE3, e3Effect, labelsByVariant)를 **덧붙였다**. E1·E2 함수 본문은 바꾸지 않았다. `sweep.ts`가 `patches.ts`를 import하게 되어 파일 sha256은 S4와 다르다.
 - 재현 확인: E2 봉인 실행을 같은 시드로 다시 돌려 5,400행 전부 같음, E1 봉인 주 실행 앞 200행을 다시 계산해 200/200 같음(정본 JSON 비교).
 - 결과 변화: 없음.
+
+## S5 — E3 사전등록 (2026-10-17)
+
+- 커밋: 태그 `S5`. 요약·파일 sha256은 `seal/S5.txt`, OpenTimestamps `seal/S5.txt.ots`(확정 대기 상태로 커밋).
+- 봉인 대상: `prereg/predictions_e3.md`, `prereg/e3.json`(설계·코드 sha256·재현 명령), `spec/patches.json`, 채점 `app/scripts/score-prereg-e3.ts`.

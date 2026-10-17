@@ -1,2 +1,3 @@
 seal/S4.txt -text
+seal/S5.txt -text
 seal/*.ots binary
