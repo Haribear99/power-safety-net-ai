@@ -7,24 +7,29 @@ export const BEFORE_MEASURE = "측정 전" as const;
 export interface PresetAbPolicy { M1: number; M2H: number; M2S: number; highRisk: number }
 export interface PresetAb {
   scenarioId: string; name: string; seed: string; scenarioSha256: string;
-  policies: Partial<Record<"RULE" | "B1_SHORTEST" | "B2_NEAREST", PresetAbPolicy>>;
+  policies: Partial<Record<"RULE" | "B1_SHORTEST" | "B2_NEAREST" | "KR_BASELINE", PresetAbPolicy>>;
 }
 export interface DiffSummary {
   total: { scenarios: number; pass: number; households: number };
   mismatchCounts: Record<string, number>;
   inputManifestSha256: string;
 }
-/** /lab 실험 결과(Phase 3에서 sync-evidence가 채운다) */
-export interface Dominance { n: number; cells: number; p1: number; p0: number; p2: number }
+
+/** 라운드 5 끝 카드 헤드라인(봉인 실행, sync-evidence가 out/lab_sealed.json에서 채운다) */
+export interface LabHeadline {
+  tag: string;
+  e2: { n: number; nCells: number; superiorVsKr: number; inferiorVsKr: number; pooledRel: number; pooledRelLo: number; pooledRelHi: number; relRange: { lo: number; hi: number }; P1: number; P0: number; P2: number };
+  e1: { draws: number; scenarios: number; robustKr: { cls: string; cause: string }[]; robustRule: { cls: string; cause: string }[]; stabilityPass: boolean | null };
+  gate2?: { a: boolean; b: boolean; pass: boolean };
+  prereg?: { section1: { hit: number; total: number }; section2: { hit: number; total: number } };
+}
 
 interface EvidenceDoc {
   format: string;
   presetsAb?: PresetAb[];
   diff?: DiffSummary;
   sweepN?: number;
-  dominance?: Dominance;
-  e3?: { baseA?: { topSameCost?: { mLo: number; mHi: number } } };
-  robustPairs?: string[];
+  lab?: LabHeadline;
   sources?: Record<string, string>;
 }
 
@@ -39,15 +44,9 @@ export function diffSummary(): DiffSummary | null {
 export function sweepN(): number | null {
   return typeof doc.sweepN === "number" ? doc.sweepN : null;
 }
-export function dominance(): Dominance | null {
-  return doc.dominance ?? null;
-}
-export function patchRange(): { mLo: number; mHi: number } | null {
-  return doc.e3?.baseA?.topSameCost ?? null;
-}
-export function robustPairs(): string[] | null {
-  return doc.robustPairs && doc.robustPairs.length > 0 ? doc.robustPairs : null;
-}
 export function evidenceSources(): Record<string, string> {
   return doc.sources ?? {};
+}
+export function labHeadline(): LabHeadline | null {
+  return doc.lab ?? null;
 }

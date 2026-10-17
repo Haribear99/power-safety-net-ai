@@ -1,6 +1,6 @@
 // 봉인 프리셋 A/B 카운터 (spec.md 1.4절 'A/B 카운터 띠', 5.7절). 비AI, 결정적, 네트워크 없음.
 // 실행: (app/에서) npx tsx scripts/presets-ab.ts
-// 봉인된 spec/presets/*.json을 그대로 읽어(다시 만들지 않음) RULE·B1_SHORTEST·B2_NEAREST를 같은 시드로 돌리고
+// 봉인된 spec/presets/*.json을 그대로 읽어(다시 만들지 않음) RULE·B1_SHORTEST·B2_NEAREST·KR_BASELINE(라운드 5 헤드라인 비교)을 같은 시드로 돌리고
 // WorldTruth로 채점한 M1·M2를 out/presets_ab.json에 쓴다. 화면은 이 값을 sync-evidence → evidence.json 경유로만 읽는다(2장).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
@@ -9,7 +9,7 @@ import { runScenario, type SimPolicy } from "../src/lib/sim/run";
 import { presetDefs } from "../src/lib/sim/scenarios";
 
 const repo = path.resolve(__dirname, "..", "..");
-const POLICIES: readonly SimPolicy[] = ["RULE", "B1_SHORTEST", "B2_NEAREST"];
+const POLICIES: readonly SimPolicy[] = ["RULE", "B1_SHORTEST", "B2_NEAREST", "KR_BASELINE"];
 
 const presets = presetDefs().map((p) => {
   const file = path.join(repo, "spec", "presets", p.file);

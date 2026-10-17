@@ -74,3 +74,9 @@ body {
   }
   .clock-fill { transform: scaleX(0); }
 }
+
+/* ---- /lab 빈틈 지도(5.8절): 색 + 무늬 + 글자로 구분(색맹 대응) ---- */
+.lab-robust { background: repeating-linear-gradient(135deg, var(--color-gap) 0 6px, #8f1b12 6px 9px); color: #fff; }
+.lab-conditional { background: radial-gradient(circle, #e8c76a 1.2px, transparent 1.6px) 0 0 / 7px 7px, var(--color-warn-soft); color: var(--color-warn); }
+.lab-fragile { background: #ffffff; color: var(--color-muted); }
+.lab-borderline { background: repeating-linear-gradient(45deg, #eef1f4 0 4px, #ffffff 4px 8px); color: var(--color-ink); }

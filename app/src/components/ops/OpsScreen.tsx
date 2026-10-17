@@ -97,16 +97,16 @@ function TopBar() {
 
 function AbStrip({ scenarioId }: { scenarioId: string }) {
   const ab = presetAb(scenarioId);
-  const r = ab?.policies.RULE, b1 = ab?.policies.B1_SHORTEST, b2 = ab?.policies.B2_NEAREST;
+  const r = ab?.policies.RULE, b1 = ab?.policies.B1_SHORTEST, b2 = ab?.policies.B2_NEAREST, kr = ab?.policies.KR_BASELINE;
   return (
     <section className="mt-3 rounded-lg border border-line bg-paper px-3 py-2 text-[15px]" data-testid="ab-strip"
-      title="결과 보기 전 봉인된 프리셋 · 이 시나리오 1건 결과 · 전체 9칸 승/무/패는 /lab">
+      title="프리셋 시드는 결과를 보기 전에 봉인 · 규칙은 그 뒤 화면 점검으로 고침(개발 기록) · 이 시나리오 1건의 결과일 뿐 · 27개 조건 비교는 /lab">
       {r && b1 && b2 ? (
         <p>
-          같은 정전·같은 시드 — 공백이 남은 고위험 가구(모의): 원안 판단식 구현 규칙 <strong>{r.M1}</strong> / 배터리 짧은 순 <strong>{b1.M1}</strong> / 가까운 자원 순 <strong>{b2.M1}</strong>
-          {" "}· 공백 가구·시간(모의): <strong>{r.M2H}</strong> / <strong>{b1.M2H}</strong> / <strong>{b2.M2H}</strong>
+          같은 정전·같은 시드 — 공백 가구·시간(모의): {kr ? <>현행 절차 <strong>{kr.M2H}</strong> / </> : null}원안 판단식 구현 규칙 <strong>{r.M2H}</strong> / 배터리 짧은 순 <strong>{b1.M2H}</strong> / 가까운 자원 순 <strong>{b2.M2H}</strong>
+          {" "}· 공백이 남은 고위험 가구: {kr ? <><strong>{kr.M1}</strong> / </> : null}<strong>{r.M1}</strong> / <strong>{b1.M1}</strong> / <strong>{b2.M1}</strong>
           <span className="text-muted"> (고위험 {r.highRisk}가구, 봉인 프리셋 기준값(조작 전)) · </span>
-          <Link className="underline" href="/lab#dominance">전체 조건별 승/무/패</Link>
+          <Link className="underline" href="/lab#compare">27개 조건 비교</Link>
         </p>
       ) : (
         <p>같은 정전·같은 시드 비교: 측정 전</p>
