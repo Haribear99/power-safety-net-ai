@@ -54,7 +54,11 @@ export function ClosingCard() {
       {g && g.hhGap.VENT_1H?.rand != null && g.hhGap.VENT_1H?.pre != null ? (
         <p className="mt-3 text-[15px] leading-6" data-testid="closing-e5">
           1시간급 인공호흡기 가구 중 공백이 생긴 비율(실측 정전 분포 모의): 휴대용 배터리 무작위 사전 배치 {pct(g.hhGap.VENT_1H.rand)} → 같은 양을 정전 전 등록 정보(평시 검토로 기종 확인 가정)상 배터리가 짧은 집부터 {pct(g.hhGap.VENT_1H.pre)}.
-          {g.preVsRand.rel != null && g.preVsRand.lo != null && g.preVsRand.rel > 0 && g.preVsRand.lo > 0 ? <> 전체 공백 가구·시간은 무작위보다 {pct(g.preVsRand.rel)} 더 줄고</> : <> 전체 공백 가구·시간은 무작위와 뚜렷한 차이가 없고</>}
+          {g.preVsRand.rel != null && g.preVsRand.lo != null && g.preVsRand.rel > 0 && g.preVsRand.lo > 0
+            ? <> 전체 공백 가구·시간은 무작위보다 {pct(g.preVsRand.rel)} 더 줄고</>
+            : g.preVsRand.rel != null && g.preVsRand.hi != null && g.preVsRand.hi < 0
+              ? <> 전체 공백 가구·시간은 무작위보다 {pct(-g.preVsRand.rel)} 늘고</>
+              : <> 전체 공백 가구·시간은 무작위와 뚜렷한 차이가 없고</>}
           {g.worse.length ? <>, 대신 {g.worse.length}개 기기({g.worse.map((k) => WORSE_KO[k] ?? k).join("·")})는 늘어나는 맞바꿈입니다.</> : <>.</>}
         </p>
       ) : null}
