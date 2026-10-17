@@ -65,6 +65,14 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26,
+   27,
+   28
+  ]
+ },
  "decoy": false,
  "degrade": {
   "glare": [
@@ -86,7 +94,14 @@
  "id": "test-116",
  "kind": "real",
  "lang": "mixed",
- "occluded": {},
+ "occluded": {
+  "batteryText": [
+   25,
+   26,
+   27,
+   28
+  ]
+ },
  "personalInfoVisible": true,
  "split": "test",
  "strength": "full",

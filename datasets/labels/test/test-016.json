@@ -57,11 +57,21 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "decoy": false,
  "degrade": {
   "dark": 0.38,
   "jpegQ": 47,
   "occlusion": {
+   "batteryText": [
+    25,
+    26
+   ],
    "model": [
     5,
     6,
@@ -81,6 +91,10 @@
  "kind": "real",
  "lang": "mixed",
  "occluded": {
+  "batteryText": [
+   25,
+   26
+  ],
   "model": [
    5,
    6,

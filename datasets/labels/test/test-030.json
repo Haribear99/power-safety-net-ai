@@ -49,6 +49,7 @@
    ]
   }
  },
+ "clipped": {},
  "decoy": false,
  "degrade": {
   "blurSigma": 1.78,

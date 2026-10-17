@@ -1,4 +1,22 @@
 {
+ "amendments": [
+  {
+   "before": "봉인 실행 전(시험셋 호출·열람 0회)",
+   "date": "2026-10-17",
+   "generatorSha256": "e44b9472d01d12d9a74f89da0772f2a6eb3dc483728d46b8de006d39739e0a07",
+   "newManifestSha256": {
+    "dev": "ac5394c8df6fc1bfff05151e41f70f5517a9d5b1e30ba811c5d611ae0450c6c0",
+    "test": "ffe413ecb596a1397e89936229593a292b642a36bdb86ace2de407f9d22a1a8b"
+   },
+   "what": "정답 JSON에 'clipped'(라벨 오른쪽 테두리 밖으로 잘린 글자) 기록을 더하고 가림과 같은 규칙으로 채점. 이미지 160장은 바이트 단위로 같음",
+   "why": "dev 판독에서 'Internal Li-ion approx. 7.5 h'의 ' h'가 이미지 밖으로 잘렸는데 정답에 들어 있음을 발견(dev 3장, test 13장 해당). 보이지 않는 글자를 정답으로 두면 보완 금지 규칙과 모순"
+  },
+  {
+   "date": "2026-10-17",
+   "promptSha256": "727bdc8922f9628c00ba3dd84a49c08599f3cb2d660f6eb528b10dff77e16850",
+   "what": "프롬프트 c1-v1 동결(dev 2회: 필드 정확 일치 각 40/40, 열화 model 자신 있게 틀림 0/16, 회차 간 model 동일 37/40). 기준선 tesseract 규칙 고정(scripts/c1-tesseract.ts)"
+  }
+ ],
  "baseline": "tesseract.js(kor+eng) + 정규식 → 같은 matcher (Must)",
  "datasets": {
   "dev": {

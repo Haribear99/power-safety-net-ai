@@ -65,6 +65,7 @@
    ]
   }
  },
+ "clipped": {},
  "decoy": true,
  "degrade": {
   "dark": 0.38,

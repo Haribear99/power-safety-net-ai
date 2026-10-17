@@ -65,6 +65,12 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "decoy": true,
  "degrade": {
   "jpegQ": 90,
@@ -80,7 +86,12 @@
  "id": "test-104",
  "kind": "decoy",
  "lang": "mixed",
- "occluded": {},
+ "occluded": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "personalInfoVisible": true,
  "split": "test",
  "strength": "light",

@@ -57,6 +57,12 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   27,
+   28
+  ]
+ },
  "decoy": false,
  "degrade": {
   "blurSigma": 1.39,
@@ -73,7 +79,12 @@
  "id": "dev-033",
  "kind": "real",
  "lang": "en",
- "occluded": {},
+ "occluded": {
+  "batteryText": [
+   27,
+   28
+  ]
+ },
  "personalInfoVisible": false,
  "split": "dev",
  "strength": "full",

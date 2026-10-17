@@ -57,6 +57,12 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "decoy": false,
  "degrade": {
   "blurSigma": 1.47,
@@ -64,7 +70,8 @@
   "occlusion": {
    "batteryText": [
     24,
-    25
+    25,
+    26
    ]
   },
   "perspectiveDeg": 10.9
@@ -82,7 +89,8 @@
  "occluded": {
   "batteryText": [
    24,
-   25
+   25,
+   26
   ]
  },
  "personalInfoVisible": false,

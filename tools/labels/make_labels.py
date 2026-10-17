@@ -269,10 +269,16 @@ def build(split: str, plan: list[tuple[str, str]], seed0: int) -> None:
         params, occluded = {}, {}
         if strength != "none":
             img, params, occluded = degrade(img, boxes, rng, strength)
+        # 테두리(오른쪽 W-12px 안쪽) 밖으로 잘린 글자는 가림과 같은 규칙으로 기록한다(S3 정정, seal/CHANGELOG.md)
+        W = TEMPLATES[tid]["size"][0]
+        clipped = {f: [i for i, c in enumerate(b["chars"]) if c[2] > W - 12] for f, b in boxes.items()}
+        clipped = {f: ix for f, ix in clipped.items() if ix}
+        for f, ix in clipped.items():
+            occluded[f] = sorted(set(occluded.get(f, [])) | set(ix))
         p = save(img, d / sid, params.get("jpegQ", 92))
         truth = dict(id=sid, split=split, kind=kind, strength=strength, template=tid, lang=lang,
                      truthSpecId=spec_id, decoy=decoy is not None, fields={k: v for k, v in fields.items() if k in ("manufacturer", "model", "ratedPower", "voltage", "batteryText")},
-                     personalInfoVisible=fields["user"] is not None, occluded=occluded, degrade=params,
+                     personalInfoVisible=fields["user"] is not None, occluded=occluded, clipped=clipped, degrade=params,
                      boxes={k: dict(bbox=v["bbox"]) for k, v in boxes.items()})
         (d / f"{sid}.json").write_text(json.dumps(truth, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
         for f in (p, d / f"{sid}.json"):

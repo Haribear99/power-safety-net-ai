@@ -65,12 +65,22 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "decoy": false,
  "degrade": {
   "blurSigma": 2.03,
   "dark": 0.45,
   "jpegQ": 90,
   "occlusion": {
+   "batteryText": [
+    25,
+    26
+   ],
    "model": [
     1,
     2,
@@ -92,6 +102,10 @@
  "kind": "real",
  "lang": "mixed",
  "occluded": {
+  "batteryText": [
+   25,
+   26
+  ],
   "model": [
    1,
    2,

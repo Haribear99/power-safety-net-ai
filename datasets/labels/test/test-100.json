@@ -49,6 +49,7 @@
    ]
   }
  },
+ "clipped": {},
  "decoy": false,
  "degrade": {
   "dark": 0.5,

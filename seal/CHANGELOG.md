@@ -24,3 +24,9 @@
 
 - 커밋: 태그 `S5`. 요약·파일 sha256은 `seal/S5.txt`, OpenTimestamps `seal/S5.txt.ots`(확정 대기 상태로 커밋).
 - 봉인 대상: `prereg/predictions_e3.md`, `prereg/e3.json`(설계·코드 sha256·재현 명령), `spec/patches.json`, 채점 `app/scripts/score-prereg-e3.ts`.
+
+## S3 — C1 시험셋 (2026-10-17, 태그 S3)
+
+### 봉인 뒤 변경(봉인 실행 전, 시험셋 호출·열람 0회)
+- 정답 JSON에 `clipped`(오른쪽 테두리 밖으로 잘린 글자)를 기록하고 가림과 같은 규칙으로 채점하게 고쳤다. 이미지 160장은 바이트 단위로 그대로다. dev 판독에서 잘린 ' h'가 정답에 있던 것을 발견(dev 3장, test 13장). 새 매니페스트 sha256은 `prereg/c1.json` amendments.
+- 채점 코드 버그 수정: 가림 표시 기호를 지우는 규칙이 소수점까지 지웠다(`7.5`). 봉인 실행 전.

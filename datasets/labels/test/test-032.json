@@ -65,6 +65,12 @@
    ]
   }
  },
+ "clipped": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "decoy": false,
  "degrade": {},
  "fields": {
@@ -77,7 +83,12 @@
  "id": "test-032",
  "kind": "real",
  "lang": "mixed",
- "occluded": {},
+ "occluded": {
+  "batteryText": [
+   25,
+   26
+  ]
+ },
  "personalInfoVisible": true,
  "split": "test",
  "strength": "none",
