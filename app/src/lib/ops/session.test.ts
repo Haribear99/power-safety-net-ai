@@ -5,7 +5,7 @@ import { project119 } from "../alloc/project119";
 import { qT } from "../engine/quantize";
 import type { AuditEntry } from "../domain/types";
 import {
-  applyVerify, commitDecision, decisionFromRow, lEndH, modifyOptions, newSession, purge119, recompute, reReport, setNotice, start, visible119Ids,
+  applyVerify, commitDecision, decisionFromRow, lEndH, modifyOptions, newSession, parseOperatorNumber, purge119, recompute, reReport, setNotice, start, visible119Ids,
   type Decision, type Session, type UiPreset,
 } from "./session";
 
@@ -43,6 +43,17 @@ describe("ops 세션", () => {
     const s2 = commitDecision(s1, d, a);
     expect(visible119Ids(s2)).toEqual([other.rec.householdId]);
     expect(purge119(s1)).toBe(s1);
+    // 같은 가구를 파기 뒤 다시 119로 결정하면 다시 보인다
+    const fr = s1.result!.rows.find((r) => r.rec.householdId === first.rec.householdId)!;
+    const d2: Decision = { ...decisionFromRow(fr), lane: "FALLBACK_119", status: "MODIFIED", decidedAtS: s1.nowS };
+    const a2: AuditEntry = { at: "t", actor: "demo-operator", householdId: first.rec.householdId, action: "MODIFY", from: { lane: "FALLBACK_119" }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "재결정 확인용" };
+    expect(visible119Ids(commitDecision(s1, d2, a2))).toContain(first.rec.householdId);
+  });
+
+  it("운영자 숫자 입력은 0 이상 십진수만 받는다(빈 칸이 0이 되지 않음)", () => {
+    for (const bad of ["", " ", "abc", "0x1", "1e1", "-1", "1.", ".5"]) expect(parseOperatorNumber(bad)).toBeNull();
+    expect(parseOperatorNumber(" 2.5 ")).toBe(2.5);
+    expect(parseOperatorNumber("0")).toBe(0);
   });
 
   it("승인 전 119 화면은 비고, 119 레인 승인 뒤 정확히 3필드 1행", () => {

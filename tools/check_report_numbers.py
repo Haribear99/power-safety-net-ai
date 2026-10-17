@@ -45,7 +45,7 @@ expected = {
     "C1 미등록 수동검토": rate(s["unregisteredToReview"]),
     "C1 기준선 모델명": rate(t["modelExact"]),
     "C1 기준선 오매칭": f"오매칭 {t['unflaggedMismatch']['k']}건",
-    "사전등록 결과 전 예측": f"결과 전 예측 {ev['preregSplit']['before']['hit']}/{ev['preregSplit']['before']['total']}",
+    "사전등록 결과 전 예측": f"모의 전 예측 {ev['preregSplit']['before']['hit']}/{ev['preregSplit']['before']['total']}",
     "사전등록 예비 뒤 재현": f"재현 확인 {ev['preregSplit']['afterPilot']['hit']}/{ev['preregSplit']['afterPilot']['total']}",
     "사전등록 틀린 수": f"틀린 {ev['preregSplit']['before']['total'] - ev['preregSplit']['before']['hit'] + ev['preregSplit']['afterPilot']['total'] - ev['preregSplit']['afterPilot']['hit']}개",
     "오라클 차등": f"{ev['diff']['total']['pass']}/{ev['diff']['total']['scenarios']}",
@@ -62,7 +62,7 @@ with zipfile.ZipFile(REPO / "datasets" / "external" / "nhis_yoyangbi_payments_20
     name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
     rows = list(csv.reader(io.TextIOWrapper(z.open(name), encoding="cp949")))
 vent = max((r for r in rows[1:] if r[1].strip() == "인공호흡기"), key=lambda r: int(r[0]))
-expected[f"인공호흡기 요양비 {vent[0]}"] = f"연 {int(vent[2]) / 1e4:.1f}만 건(건보 {vent[0]}"
+expected[f"인공호흡기 요양비 {vent[0]}"] = f"{vent[0]}년 {int(vent[2]) / 1e4:.1f}만 건(건보"
 miss = {k: v for k, v in expected.items() if v not in part1}
 for k, v in expected.items():
     print(("✓ " if k not in miss else "✗ ") + f"{k}: {v}")

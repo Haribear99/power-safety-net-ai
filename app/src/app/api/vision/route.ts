@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   try {
     body = Body.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    return NextResponse.json({ error: "bad_request", message: "요청 형식이 맞지 않습니다. 화면을 새로고침한 뒤 다시 시도해 주세요" }, { status: 400 });
   }
   const buf = Buffer.from(body.imageBase64, "base64");
   const mediaType = sniffImage(buf);
@@ -55,8 +55,10 @@ export async function POST(req: Request) {
       }
       if (accessCodeOk(code)) {
         pool = "judge";
-        // 코드당 시간 30회(spec 7.2절). IP를 바꿔도 같은 코드면 같은 창을 쓴다
-        if (!(await hit(be, `pl26:rl:judge:${hourKey()}:${codeKey(code)}`, 30, 7200))) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+        // 코드당 시간 60회(spec 7.2절 30회에서 10/18 상향: 심사위원 여럿이 한 코드를 나눠 씀). IP를 바꿔도 같은 코드면 같은 창
+        if (!(await hit(be, `pl26:rl:judge:${hourKey()}:${codeKey(code)}`, 60, 7200))) {
+          return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 시간당 한도(60회)를 넘었습니다. 다음 정시 이후 다시 시도해 주세요" }, { status: 429 });
+        }
       } else {
         if (!(await hit(be, `pl26:rl:badcode:${hourKey()}:${ip}`, 5, 7200))) await be.raw(["SET", `pl26:rl:badcode-block:${ip}`, "1", "EX", 3600]);
         return NextResponse.json({ error: "bad_code", message: "접근 코드가 맞지 않습니다" }, { status: 403 });

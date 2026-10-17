@@ -8,7 +8,7 @@ import { sToH } from "@/lib/engine/quantize";
 import { renderReason, type Reason } from "@/lib/alloc/reasons";
 import { DEVICE_CLASS_LABEL } from "@/lib/alloc/project119";
 import {
-  applyVerify, commitDecision, DB, decisionFromRow, deviceClass, etaForResource, modifyOptions, MODIFY_REASON_CODES, nowIso, reReport,
+  applyVerify, commitDecision, DB, decisionFromRow, parseOperatorNumber, deviceClass, etaForResource, modifyOptions, MODIFY_REASON_CODES, nowIso, reReport,
   type Decision, type VerifyInput,
 } from "@/lib/ops/session";
 import { useOps } from "./OpsProvider";
@@ -166,9 +166,9 @@ function VerifyForms({ householdId }: { householdId: string }) {
   const hint = s.reviewHints[householdId];
   /** 빈 칸·숫자 아님은 0으로 바꾸지 않고 거부한다(빈 연식이 0년으로 저장되면 하한이 올라간다) */
   function num(raw: string, label: string): number | null {
-    const t = raw.trim();
-    if (t === "" || !Number.isFinite(Number(t))) { setMsg(`저장 불가: ${label}을(를) 숫자로 입력하세요`); return null; }
-    return Number(t);
+    const v = parseOperatorNumber(raw);
+    if (v == null) setMsg(`저장 불가: ${label}을(를) 0 이상의 숫자로 입력하세요`);
+    return v;
   }
   function run(v: VerifyInput) {
     const out = applyVerify(s, v);

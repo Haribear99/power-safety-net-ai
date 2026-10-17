@@ -5,7 +5,7 @@
 ## S4 — 사전등록 (2026-10-17)
 
 - 커밋: 태그 `S4`(5e7b529). 내용 요약과 파일 sha256은 `seal/S4.txt`.
-- OpenTimestamps: `seal/S4.txt.ots`(2026-10-17 스탬프, 비트코인 확정 대기 상태로 커밋). 확정 뒤 `ots upgrade seal/S4.txt.ots`로 갱신한다.
+- OpenTimestamps: `seal/S4.txt.ots`(2026-10-17 스탬프, 확정 대기 상태로 커밋 → 10/18 `ots upgrade`로 비트코인 블록 증명 포함, 아래 끝 절).
 - 검증: `ots verify seal/S4.txt.ots` → S4.txt의 sha256이 스탬프와 같은지. S4.txt의 각 줄은 `git show S4:<파일> | sha256sum`으로 다시 만들 수 있다.
   - Windows에서 python-bitcoinlib이 OpenSSL을 못 찾으면 `ctypes.util.find_library`가 Python `DLLs\libcrypto-3.dll`을 돌려주게 감싸서 실행한다(이번 스탬프도 그렇게 만들었다).
 - 봉인 순서: `node tools/check-seal-order.mjs`(S4 이전 이력·out/에 E1·E2 전용 시드 0개).
@@ -22,7 +22,7 @@
 
 ## S5 — E3 사전등록 (2026-10-17)
 
-- 커밋: 태그 `S5`. 요약·파일 sha256은 `seal/S5.txt`, OpenTimestamps `seal/S5.txt.ots`(확정 대기 상태로 커밋).
+- 커밋: 태그 `S5`. 요약·파일 sha256은 `seal/S5.txt`, OpenTimestamps `seal/S5.txt.ots`(확정 대기로 커밋 → 10/18 비트코인 블록 증명 포함).
 - 봉인 대상: `prereg/predictions_e3.md`, `prereg/e3.json`(설계·코드 sha256·재현 명령), `spec/patches.json`, 채점 `app/scripts/score-prereg-e3.ts`.
 
 ### 봉인 뒤 변경 — S5 이후 E4 준비 (2026-10-17)
@@ -41,7 +41,7 @@
 
 ## S6 — E4 실측 정전시간 분포 사전등록 (2026-10-17)
 
-- 커밋: 태그 `S6`(bda205d). 요약·파일 sha256은 `seal/S6.txt`, OpenTimestamps `seal/S6.txt.ots`(확정 대기 상태로 커밋).
+- 커밋: 태그 `S6`(bda205d). 요약·파일 sha256은 `seal/S6.txt`, OpenTimestamps `seal/S6.txt.ots`(확정 대기로 커밋 → 10/18 비트코인 블록 증명 포함).
 - 봉인 대상: `prereg/predictions_e4.md`(1절은 예비 실행 전 커밋 520a10f, 2절은 예비 실행 뒤), `prereg/e4.json`(설계·코드 39개 sha256), `spec/restoration_empirical.json`, 채점 `app/scripts/e4-analyze.ts`, 출처 PDF.
 - 봉인 실행은 시드 4,000,001~4,002,000(LHS master `E4`)을 한 번만 쓴다.
 

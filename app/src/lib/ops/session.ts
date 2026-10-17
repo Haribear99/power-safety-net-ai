@@ -174,7 +174,15 @@ export function commitDecision(s: Session, d: Decision, audit: AuditEntry): Sess
   const s1 = pushAudit(s, [audit]);
   const { [d.householdId]: _drop, ...alts } = s1.alternatives;
   void _drop;
-  return recompute({ ...s1, decisions: { ...s1.decisions, [d.householdId]: d }, alternatives: alts });
+  // 파기 뒤 같은 가구를 다시 결정하면 새 결정이므로 119 화면에 다시 보인다
+  const purged119Ids = s1.purged119Ids.filter((id) => id !== d.householdId);
+  return recompute({ ...s1, decisions: { ...s1.decisions, [d.householdId]: d }, alternatives: alts, purged119Ids });
+}
+
+/** 운영자 숫자 입력 파싱: 0 이상 십진수만(빈 칸·공백·"abc"·"0x1"·"1e1"·음수는 null). 빈 칸이 0으로 바뀌어 하한이 오르는 것을 막는다 */
+export function parseOperatorNumber(raw: string): number | null {
+  const t = raw.trim();
+  return /^\d+(\.\d+)?$/.test(t) ? Number(t) : null;
 }
 
 export const MODIFY_REASON_CODES = [

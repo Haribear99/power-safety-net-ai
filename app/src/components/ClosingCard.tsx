@@ -28,13 +28,13 @@ export function ClosingCard() {
           <p className="mt-1 text-[15px]">
             {h.e2.nCells}개 조건 중 {h.e2.superiorVsKr}개에서 우세 · 모의정전 {h.e2.n.toLocaleString("ko-KR")}회 · 조건별 {pct(h.e2.relRange.lo)}~{pct(h.e2.relRange.hi)}
           </p>
-          <p className="mt-1 text-[13px] text-muted">비상전원이 가구 {hpr.lo}~{hpr.hi}곳당 1대 있다고 가정. 현행 절차에는 그 전원을 가구와 잇는 단계가 없습니다.</p>
+          <p className="mt-1 text-[15px]">비상전원이 가구 {hpr.lo}~{hpr.hi}곳당 1대 있다고 가정. 현행 절차에는 그 전원을 가구와 잇는 단계가 없습니다.</p>
           <p className="mt-3 text-[15px] leading-6">
             짧은 순·가까운 순 단순 규칙과는 {h.e2.nCells}개 중 {h.e2.P0}개 조건에서 차이가 없고{h.e2.vsB2 && h.e2.vsB2.rel != null && h.e2.vsB2.rel < 0 ? <>, 합산하면 가까운 순이 {pct(-h.e2.vsB2.rel)} 낫습니다</> : null}. 효과는 정교한 순서가 아니라 등록 기록을 호환 자원과 잇는 데서 나옵니다(모의).
           </p>
           {h.e1.robustRule.length > 0 ? (
             <p className="mt-3 text-[15px] leading-6 text-gap">
-              도구를 써도 기기×정전 조합 {h.e1.robustRule.length}곳에는 가정 범위 추첨 90% 이상(95% 신뢰하한)에서 공백이 남습니다: {robustPhrase(h.e1.robustRule)}(배터리 0시간 산소발생기는 별도, 어떤 정책으로도 공백). 정전 뒤 배정이 아니라 사전 배치가 필요한 곳입니다(모의정전).
+              도구를 써도 기기×정전 조합 {h.e1.robustRule.length}곳에는 가정 범위 추첨 90% 이상(95% 신뢰하한)에서 공백이 남습니다: {robustPhrase(h.e1.robustRule)}(배터리 0시간 산소발생기는 별도: 정전 뒤 배정으로는 공백, 사전 배치로도 대부분 남음). 정전 뒤 배정이 아니라 사전 배치가 필요한 곳입니다(모의정전).
             </p>
           ) : null}
           {h.e3 && h.e3.effLo > 0 ? (

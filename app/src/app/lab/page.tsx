@@ -54,7 +54,7 @@ function Hero({ d }: { d: LabDoc }) {
         {d.e2!.cells.length}개 조건 중 <strong>{sup}개</strong>에서 우세 · 95% CI {pct1(kr.relLo)}~{pct1(kr.relHi)}(몬테카를로 추첨 오차만, 가정의 불확실성은 조건별 범위로)
       </p>
       <p className="mt-3 text-[15px] leading-6">
-        단, 배터리 짧은 순·가까운 순 같은 단순 규칙과는 {d.e2!.cells.length}개 중 <strong>{p0}개</strong> 조건에서 차이가 없고, 합산하면 가까운 순이 {pct1(-(b2?.rel ?? 0))} 낫습니다. 효과는 정교한 순서가 아니라
+        단, 배터리 짧은 순·가까운 순 같은 단순 규칙과는 {d.e2!.cells.length}개 중 <strong>{p0}개</strong> 조건에서 차이가 없고{b2?.v === "INFERIOR" && b2.rel != null ? <>, 합산하면 가까운 순이 {pct1(-b2.rel)} 낫습니다</> : null}. 효과는 정교한 순서가 아니라
         <strong> 등록된 기기 정보로 호환 자원을 정전 즉시 잇는 것</strong>에서 나옵니다.
       </p>
       {robustRule.length > 0 ? (
