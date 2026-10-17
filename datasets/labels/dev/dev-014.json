@@ -1,0 +1,88 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    370,
+    100,
+    598.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    731.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    655.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    427.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    380,
+    598.0,
+    420
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    436,
+    465.0,
+    476
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    769.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "glare": [
+   527,
+   303,
+   141,
+   46
+  ],
+  "jpegQ": 30,
+  "perspectiveDeg": 16.3,
+  "rotateDeg": 1.1
+ },
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "Philips Respironics",
+  "model": "COUGHASSIST E70",
+  "ratedPower": "60W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "dev-014",
+ "kind": "real",
+ "lang": "en",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "dev",
+ "strength": "full",
+ "template": "T5",
+ "truthSpecId": "COUGH_E70"
+}

@@ -1,0 +1,94 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    731.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    540.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    652.984375,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    548.953125,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    440.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    589.984375,
+    476
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    492,
+    472.0,
+    532
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    754.0,
+    364
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {
+  "glare": [
+   298,
+   423,
+   213,
+   100
+  ],
+  "jpegQ": 90
+ },
+ "fields": {
+  "batteryText": "내장 리튬이온 약 3시간",
+  "manufacturer": "Philips Respironics",
+  "model": "Trilogy 10O",
+  "ratedPower": "60W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "dev-012",
+ "kind": "decoy",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "dev",
+ "strength": "light",
+ "template": "T2",
+ "truthSpecId": null
+}

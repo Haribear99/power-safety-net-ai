@@ -1,0 +1,70 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    301.0,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    177.984375,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    124.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    564,
+    259.0,
+    600
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    392.0,
+    512
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {},
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "Vyaire(CareFusion)",
+  "model": "LTV 1200",
+  "ratedPower": "60 W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "test-018",
+ "kind": "decoy",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "none",
+ "template": "T6",
+ "truthSpecId": null
+}

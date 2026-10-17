@@ -1,0 +1,75 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    370,
+    100,
+    470.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    530.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    510.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    470.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    380,
+    610.0,
+    420
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    770.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "blurSigma": 2.58,
+  "dark": 0.58,
+  "jpegQ": 90,
+  "rotateDeg": 2.4
+ },
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "Invacare",
+  "model": "IRC5PO2",
+  "ratedPower": "280 W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "test-020",
+ "kind": "real",
+ "lang": "mixed",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T8",
+ "truthSpecId": "PERFECTO2"
+}

@@ -1,0 +1,95 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    950.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    470.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    490.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    630.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    430.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    610.0,
+    476
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    492,
+    430.0,
+    532
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    790.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "glare": [
+   351,
+   410,
+   205,
+   70
+  ],
+  "jpegQ": 90,
+  "perspectiveDeg": 8.3
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 6.5 h",
+  "manufacturer": "Inogen",
+  "model": "INOGEN ONE G5",
+  "ratedPower": "90W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "test-116",
+ "kind": "real",
+ "lang": "mixed",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "test",
+ "strength": "full",
+ "template": "T8",
+ "truthSpecId": "INOGEN_G5"
+}

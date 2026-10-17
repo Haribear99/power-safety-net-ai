@@ -1,0 +1,88 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    50,
+    564,
+    431.0,
+    600
+   ]
+  },
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    298.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    201.953125,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    113.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    652,
+    248.0,
+    688
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    392.0,
+    512
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "blurSigma": 1.12,
+  "dark": 0.64,
+  "glare": [
+   391,
+   528,
+   118,
+   89
+  ],
+  "jpegQ": 55
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 7.5 h",
+  "manufacturer": "Philips Respironics",
+  "model": "Trilogy Evo",
+  "ratedPower": "60W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "test-033",
+ "kind": "real",
+ "lang": "mixed",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T3",
+ "truthSpecId": "TRILOGY_EVO"
+}

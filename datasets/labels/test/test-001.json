@@ -1,0 +1,86 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    50,
+    564,
+    370.0,
+    600
+   ]
+  },
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    158.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    189.0,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    113.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    652,
+    259.0,
+    688
+   ]
+  },
+  "user": {
+   "bbox": [
+    50,
+    740,
+    140.0,
+    776
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    360.0,
+    512
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {},
+ "fields": {
+  "batteryText": "내장 리튬이온 약 6시간",
+  "manufacturer": "ResMed",
+  "model": "Astral 100",
+  "ratedPower": "60W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "test-001",
+ "kind": "decoy",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "test",
+ "strength": "none",
+ "template": "T6",
+ "truthSpecId": null
+}

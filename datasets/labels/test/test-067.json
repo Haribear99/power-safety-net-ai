@@ -1,0 +1,80 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    298.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    276.0,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    113.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    564,
+    254.984375,
+    600
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    283.0,
+    512
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "blurSigma": 2.75,
+  "dark": 0.53,
+  "glare": [
+   388,
+   325,
+   118,
+   84
+  ],
+  "jpegQ": 90
+ },
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "Philips Respironics",
+  "model": "CoughAssist E70",
+  "ratedPower": "60W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "test-067",
+ "kind": "real",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T6",
+ "truthSpecId": "COUGH_E70"
+}

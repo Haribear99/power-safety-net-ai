@@ -1,0 +1,98 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    883.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    655.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    731.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    579.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    446.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    598.0,
+    476
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    750.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "blurSigma": 2.68,
+  "dark": 0.49,
+  "jpegQ": 90,
+  "occlusion": {
+   "model": [
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  "rotateDeg": 5.5
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 3 h",
+  "manufacturer": "Philips Respironics",
+  "model": "TRILOGY 100",
+  "ratedPower": "60 W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "test-079",
+ "kind": "real",
+ "lang": "en",
+ "occluded": {
+  "model": [
+   3,
+   4,
+   5,
+   6
+  ]
+ },
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T5",
+ "truthSpecId": "TRILOGY100"
+}

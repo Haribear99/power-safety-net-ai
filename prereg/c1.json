@@ -1,0 +1,49 @@
+{
+ "baseline": "tesseract.js(kor+eng) + 정규식 → 같은 matcher (Must)",
+ "datasets": {
+  "dev": {
+   "manifest": "datasets/labels/dev/manifest.json",
+   "n": 40,
+   "sha256": "f2f5cd701ba3e45bc25eebc8090589183cf0778cea1ed1dc5cff9bb4a2922401"
+  },
+  "test": {
+   "composition": "열화 60(real/full), 깨끗 30(real/none), 혼동·미등록 30(decoy/none 15 + decoy/light 15)",
+   "manifest": "datasets/labels/test/manifest.json",
+   "n": 120,
+   "sha256": "d3750a4474295656eceb380cb56037d9e3416c36c90179c379528c2d7d465475",
+   "testOnlyRule": "시험셋 4장마다 1장(i % 4 == 0)이 T7·T8",
+   "testOnlyTemplates": [
+    "T7",
+    "T8"
+   ]
+  }
+ },
+ "format": "pl26-prereg-c1/1",
+ "generator": {
+  "file": "tools/labels/make_labels.py",
+  "note": "Pillow 렌더(명세의 HTML+Playwright 대신). 값은 device_db 공개 사양만, 시리얼·사용자는 합성",
+  "sha256": "281bdde016b1c656254f72412929c979a826c65b540ce3c0318c36bb6a8552cc"
+ },
+ "headline": {
+  "denominator": 60,
+  "gate3": "점추정 > 10%면 UI를 '기종 선택 + 사진 보조 확인'으로 낮춘다. Wilson CI는 병기만",
+  "metric": "자신 있게 틀린 비율 = 열화 60장 × model 필드에서 (정규화 값 ≠ 정답) ∧ confidence=high ∧ legibility=clear",
+  "run": "봉인 실행 1회의 그 회차"
+ },
+ "matcher": "model.verbatim 정규화 == DB matchKeys 중 하나 ∧ legibility=clear ∧ confidence=high일 때만 specId, 그 밖은 수동검토",
+ "normalize": "대문자, 공백·하이픈 제거(matcher와 같음). 정답 비교도 같은 정규화",
+ "occlusionRule": "가림이 닿은 필드는 정답 = 보이는 부분 문자열(정규화 뒤 보이는 글자열의 부분문자열) 또는 legibility partial|illegible. 가린 글자까지 채워 전체 정답과 일치하면 '보완 위반'(정답 아님)",
+ "rawResponses": "out/sealed/c1/ 에 요청 ID 포함 원시 응답 저장",
+ "sealedRuns": 1,
+ "secondary": [
+  "열화 60장 × 전 필드 자신 있게 틀린 비율",
+  "필드 정확 일치율(전 120장)",
+  "DB 수준 무플래그 오매칭 건수(기준 ≤ 2/120, CI 상한 병기, 건별 공개)",
+  "DB 최종 매칭률",
+  "미등록(DB 밖) → 수동검토 재현율(100%여야 함)",
+  "보완 위반 건수(가린 글자를 기기 지식으로 채운 출력)",
+  "이미지당 비용·지연",
+  "전용 템플릿(T7·T8) 분과 공용 템플릿 분을 나눈 지표"
+ ],
+ "status": "SEALED S3 (2026-10-17). C1 프롬프트 개발 전에 커밋. 시험셋 120장은 개발 중 열람·호출하지 않는다"
+}

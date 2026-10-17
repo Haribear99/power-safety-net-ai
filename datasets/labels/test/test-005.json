@@ -1,0 +1,78 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    162.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    206.984375,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    130.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    564,
+    245.0,
+    600
+   ]
+  },
+  "user": {
+   "bbox": [
+    50,
+    652,
+    140.0,
+    688
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    283.0,
+    512
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {},
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "Invacare",
+  "model": "PERFECTO2",
+  "ratedPower": "280W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "test-005",
+ "kind": "real",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "test",
+ "strength": "none",
+ "template": "T6",
+ "truthSpecId": "PERFECTO2"
+}

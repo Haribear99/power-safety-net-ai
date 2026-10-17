@@ -1,0 +1,78 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    754.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    608.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    497.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    523.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    449.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    597.96875,
+    476
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    625.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {},
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 8 h",
+  "manufacturer": "ResMed",
+  "model": "Astral 150",
+  "ratedPower": "60 W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "test-070",
+ "kind": "real",
+ "lang": "en",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "none",
+ "template": "T4",
+ "truthSpecId": "ASTRAL150"
+}

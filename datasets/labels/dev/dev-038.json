@@ -1,0 +1,86 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    883.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    655.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    484.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    560.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    446.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    598.0,
+    476
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    636.0,
+    364
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {
+  "glare": [
+   653,
+   362,
+   137,
+   55
+  ],
+  "jpegQ": 90
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 3 h",
+  "manufacturer": "ResMed",
+  "model": "Astral 100",
+  "ratedPower": "60 W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "dev-038",
+ "kind": "decoy",
+ "lang": "en",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "dev",
+ "strength": "light",
+ "template": "T5",
+ "truthSpecId": null
+}

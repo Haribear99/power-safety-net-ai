@@ -1,0 +1,89 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    731.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    540.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    655.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    520.984375,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    452.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    603.0,
+    476
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    492,
+    472.0,
+    532
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    717.0,
+    364
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {
+  "blurSigma": 2.66,
+  "jpegQ": 90
+ },
+ "fields": {
+  "batteryText": "내장 리튬이온 약 3시간",
+  "manufacturer": "Vyaire(CareFusion)",
+  "model": "LTV 115O",
+  "ratedPower": "60 W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "test-087",
+ "kind": "decoy",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "test",
+ "strength": "light",
+ "template": "T2",
+ "truthSpecId": null
+}

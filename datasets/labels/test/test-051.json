@@ -1,0 +1,83 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    50,
+    564,
+    394.0,
+    600
+   ]
+  },
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    144.0,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    286.0,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    124.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    652,
+    248.0,
+    688
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    283.0,
+    512
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "blurSigma": 2.02,
+  "dark": 0.7,
+  "jpegQ": 45,
+  "rotateDeg": -10.0
+ },
+ "fields": {
+  "batteryText": "내장 리튬이온 약 6.5시간",
+  "manufacturer": "Inogen",
+  "model": "INOGEN ONE G5",
+  "ratedPower": "90 W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "test-051",
+ "kind": "real",
+ "lang": "ko",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T6",
+ "truthSpecId": "INOGEN_G5"
+}

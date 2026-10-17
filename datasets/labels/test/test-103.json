@@ -1,0 +1,96 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    50,
+    564,
+    370.0,
+    600
+   ]
+  },
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    158.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    178.0,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    113.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    652,
+    255.0,
+    688
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    283.0,
+    512
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "jpegQ": 90,
+  "occlusion": {
+   "model": [
+    5,
+    6,
+    7,
+    8
+   ]
+  },
+  "perspectiveDeg": 19.0
+ },
+ "fields": {
+  "batteryText": "내장 리튬이온 약 8시간",
+  "manufacturer": "ResMed",
+  "model": "Astral150",
+  "ratedPower": "60W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "test-103",
+ "kind": "real",
+ "lang": "ko",
+ "occluded": {
+  "model": [
+   5,
+   6,
+   7,
+   8
+  ]
+ },
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T6",
+ "truthSpecId": "ASTRAL150"
+}

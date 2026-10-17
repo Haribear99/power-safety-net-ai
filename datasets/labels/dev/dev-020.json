@@ -1,0 +1,80 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    50,
+    564,
+    407.0,
+    600
+   ]
+  },
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    162.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    179.0,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    141.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    652,
+    248.0,
+    688
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    283.0,
+    512
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {
+  "jpegQ": 53
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 1 h",
+  "manufacturer": "Invacare",
+  "model": "Perfecto3",
+  "ratedPower": "300 W",
+  "voltage": "AC 220V ~ 60Hz"
+ },
+ "id": "dev-020",
+ "kind": "decoy",
+ "lang": "mixed",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "dev",
+ "strength": "light",
+ "template": "T3",
+ "truthSpecId": null
+}

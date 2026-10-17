@@ -1,0 +1,86 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    754.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    608.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    665.984375,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    519.875,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    440.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    596.0,
+    476
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    492,
+    453.0,
+    532
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    740.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {},
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 1 h",
+  "manufacturer": "Vyaire(CareFusion)",
+  "model": "LTV-1150",
+  "ratedPower": "60W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "dev-003",
+ "kind": "real",
+ "lang": "en",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "dev",
+ "strength": "none",
+ "template": "T1",
+ "truthSpecId": "LTV1150"
+}

@@ -1,0 +1,70 @@
+{
+ "boxes": {
+  "item": {
+   "bbox": [
+    50,
+    124,
+    200.0,
+    160
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    50,
+    212,
+    158.984375,
+    248
+   ]
+  },
+  "model": {
+   "bbox": [
+    50,
+    300,
+    194.984375,
+    336
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    50,
+    388,
+    124.0,
+    424
+   ]
+  },
+  "sn": {
+   "bbox": [
+    50,
+    564,
+    244.0,
+    600
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    50,
+    476,
+    360.0,
+    512
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {},
+ "fields": {
+  "batteryText": null,
+  "manufacturer": "ResMed",
+  "model": "Stellar 150",
+  "ratedPower": "60 W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "dev-010",
+ "kind": "decoy",
+ "lang": "mixed",
+ "occluded": {},
+ "personalInfoVisible": false,
+ "split": "dev",
+ "strength": "none",
+ "template": "T3",
+ "truthSpecId": null
+}

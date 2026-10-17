@@ -1,0 +1,89 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    754.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    684.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    474.0,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    601.0,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    459.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    596.0,
+    476
+   ]
+  },
+  "user": {
+   "bbox": [
+    370,
+    492,
+    449.0,
+    532
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    701.0,
+    364
+   ]
+  }
+ },
+ "decoy": true,
+ "degrade": {
+  "dark": 0.38,
+  "jpegQ": 90
+ },
+ "fields": {
+  "batteryText": "Internal Li-ion approx. 1 h",
+  "manufacturer": "Inogen",
+  "model": "Inogen One G3",
+  "ratedPower": "300W",
+  "voltage": "100-240 V~, 50/60 Hz"
+ },
+ "id": "test-119",
+ "kind": "decoy",
+ "lang": "en",
+ "occluded": {},
+ "personalInfoVisible": true,
+ "split": "test",
+ "strength": "light",
+ "template": "T1",
+ "truthSpecId": null
+}

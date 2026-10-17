@@ -1,0 +1,104 @@
+{
+ "boxes": {
+  "batteryText": {
+   "bbox": [
+    370,
+    380,
+    731.0,
+    420
+   ]
+  },
+  "item": {
+   "bbox": [
+    370,
+    100,
+    540.0,
+    140
+   ]
+  },
+  "manufacturer": {
+   "bbox": [
+    370,
+    156,
+    652.984375,
+    196
+   ]
+  },
+  "model": {
+   "bbox": [
+    370,
+    212,
+    571.984375,
+    252
+   ]
+  },
+  "ratedPower": {
+   "bbox": [
+    370,
+    268,
+    440.0,
+    308
+   ]
+  },
+  "sn": {
+   "bbox": [
+    370,
+    436,
+    605.0,
+    476
+   ]
+  },
+  "voltage": {
+   "bbox": [
+    370,
+    324,
+    754.0,
+    364
+   ]
+  }
+ },
+ "decoy": false,
+ "degrade": {
+  "glare": [
+   291,
+   205,
+   161,
+   89
+  ],
+  "jpegQ": 34,
+  "occlusion": {
+   "model": [
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  },
+  "rotateDeg": -8.4
+ },
+ "fields": {
+  "batteryText": "내장 리튬이온 약 3시간",
+  "manufacturer": "Philips Respironics",
+  "model": "TRILOGY 100",
+  "ratedPower": "60W",
+  "voltage": "AC 100-240V ~ 50/60Hz"
+ },
+ "id": "test-074",
+ "kind": "real",
+ "lang": "ko",
+ "occluded": {
+  "model": [
+   5,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ "personalInfoVisible": false,
+ "split": "test",
+ "strength": "full",
+ "template": "T2",
+ "truthSpecId": "TRILOGY100"
+}
