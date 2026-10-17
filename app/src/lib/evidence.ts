@@ -65,11 +65,24 @@ export function c1Evidence(): C1Evidence | null {
   return (doc as unknown as { c1?: C1Evidence }).c1 ?? null;
 }
 
-/** 사후 외부 대조(봉인 아님): 아파트 정전 복구시간 가정 분포 대 기후에너지환경부 3년 집계 */
+/** 사후 외부 대조(봉인 아님): 아파트 정전 복구시간 가정 분포 대 기후에너지환경부 3년 7구간 분포 */
 export interface AptCalib {
-  n: number; gt12h: number; gt24h: number; perYear: number; gt12hPerYear: number; gt24hPerYear: number;
-  sourceUrl: string; capH: number; consistent: boolean; fireRange: [number, number] | null; partsPlusFireRange: [number, number] | null;
+  n: number; years: number; binsUpperH: number[]; counts: number[]; gt12h: number; gt24h: number; perYear: number;
+  sourceUrl: string; sourceDate: string; capH: number; consistent: boolean; G: number; p: number; expected: number[];
 }
 export function aptCalib(): AptCalib | null {
   return (doc as unknown as { calib?: { apt?: AptCalib } }).calib?.apt ?? null;
+}
+
+/** E4: 실측 정전시간 분포 재시뮬레이션(S6 봉인 실행) */
+type ByPolicy = { KR_BASELINE: number | null; RULE: number | null; "RULE+P7": number | null };
+export interface E4Evidence {
+  n: number;
+  ruleVsKr: { rel: number; lo: number; hi: number };
+  p7: { rel: number; lo: number; hi: number };
+  hhGap: { VENT_1H: ByPolicy; VENT_3H: ByPolicy };
+  prereg: { hit: number; total: number; missed: { id: string; text: string; value: string }[] };
+}
+export function e4Evidence(): E4Evidence | null {
+  return (doc as unknown as { e4?: E4Evidence }).e4 ?? null;
 }

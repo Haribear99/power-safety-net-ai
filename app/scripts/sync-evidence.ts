@@ -145,20 +145,42 @@ if (c1) {
   };
 }
 
-// ---- 사후 외부 대조(봉인 아님): 아파트 복구시간 가정 분포 대 정부 3년 집계(tools/check_apt_calibration.py) ----
-type FamCal = { consistent: boolean; weightRange: Record<string, [number, number] | null>; partsPlusFireRange: [number, number] | null };
+// ---- 사후 외부 대조(봉인 아님): 아파트 복구시간 가정 분포 대 정부 3년 7구간 분포(tools/check_apt_calibration.py) ----
+type FamCal = { consistent: boolean; G: number; p: number; expected: number[] };
 const cal = take("out/calib/apt_calibration.json") as {
-  source: { url: string }; capH: number; families: Record<string, FamCal>;
-  observed: { n: number; gt12h: number; gt24h: number; perYear: number; gt12hPerYear: number; gt24hPerYear: number };
+  source: { url: string; date: string }; capH: number; families: Record<string, FamCal>;
+  observed: { n: number; years: number; binsUpperH: number[]; counts: number[]; gt12h: number; gt24h: number; perYear: number; gt12hPerYear: number; gt24hPerYear: number };
 } | null;
 if (cal) {
   const g = cal.families.gamma;
   out.calib = {
     apt: {
-      ...cal.observed, sourceUrl: cal.source.url, capH: cal.capH,
-      consistent: Object.values(cal.families).every((f) => f.consistent),
-      fireRange: g.weightRange.APT_FIRE, partsPlusFireRange: g.partsPlusFireRange,
+      n: cal.observed.n, years: cal.observed.years, binsUpperH: cal.observed.binsUpperH, counts: cal.observed.counts,
+      gt12h: cal.observed.gt12h, gt24h: cal.observed.gt24h, perYear: cal.observed.perYear,
+      sourceUrl: cal.source.url, sourceDate: cal.source.date, capH: cal.capH,
+      consistent: Object.values(cal.families).every((f) => f.consistent), G: g.G, p: g.p, expected: g.expected,
     },
+  };
+}
+
+// ---- E4: 실측 정전시간 분포 재시뮬레이션(S6 봉인 실행, scripts/e4-analyze.ts) ----
+type HhRate = { k: number; n: number; rate: number };
+const e4 = take("out/e4_sealed.json") as {
+  source: { n: number; draws: number; seedLo: number; sha256: string };
+  ruleVsKr: { rel: number; lo: number; hi: number; w: number; t: number; l: number };
+  patches: { variant: string; rel: number; lo: number; hi: number }[];
+  hhRates: Record<string, Record<string, HhRate>>;
+  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
+} | null;
+if (e4) {
+  // 비율은 반올림하지 않고 싣는다(r4 뒤 toFixed(1)의 이중 반올림으로 76.4% → 76.3%가 되던 것)
+  const pick = (cls: string) => Object.fromEntries(["KR_BASELINE", "RULE", "RULE+P7"].map((v) => [v, e4.hhRates[cls]?.[v]?.rate ?? null]));
+  const p7 = e4.patches.find((x) => x.variant === "RULE+P7")!;
+  out.e4 = {
+    n: e4.source.n, ruleVsKr: { rel: e4.ruleVsKr.rel, lo: e4.ruleVsKr.lo, hi: e4.ruleVsKr.hi },
+    p7: { rel: p7.rel, lo: p7.lo, hi: p7.hi },
+    hhGap: { VENT_1H: pick("VENT_1H"), VENT_3H: pick("VENT_3H") },
+    prereg: { hit: e4.prereg.hit, total: e4.prereg.total, missed: e4.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
 }
 

@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ⑥ 사전등록 대조. ④ 보완안·⑤ 반증 슬라이더는 Should(아직 없음, 「측정 전」).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, e4Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 
@@ -291,14 +291,61 @@ function Patches({ d }: { d: LabDoc }) {
 function AptCalibNote() {
   const c = aptCalib();
   if (!c) return <p className="mt-2 text-[13px] text-muted" data-testid="apt-calib">실측 대조: {BEFORE_MEASURE}</p>;
-  const pr = (r: [number, number] | null) => (r ? `${Math.round(r[0] * 100)}~${Math.round(r[1] * 100)}%` : "없음");
   return (
     <p className="mt-2 rounded-lg border border-line p-2 text-[13px]" data-testid="apt-calib">
-      <strong>실측 대조(사후, 봉인 아님).</strong> 기후에너지환경부 최근 3년 아파트 정전 {c.n}건 중 12시간 초과 {c.gt12h}건, 24시간 초과 {c.gt24h}건
-      (<a className="underline" href={c.sourceUrl} target="_blank" rel="noreferrer">보도</a>). 아파트 원인 4종의 가정 분포를 섞어 두 비율을 동시에 맞출 수 {c.consistent ? "있었습니다" : "없었습니다"}
-      {c.consistent ? ` — 화재급 비중 ${pr(c.fireRange)}, 부품·화재급 합 ${pr(c.partsPlusFireRange)}일 때` : ""}. 빈틈 지도는 원인별 결과라 이 대조로 바뀌지 않습니다.
-      세종 수전실 화재(5일)처럼 {c.capH}시간을 넘는 정전은 표에서 {c.capH}시간으로 잘려 공백 시간이 적게 잡힙니다.
+      <strong>실측 대조(사후, 봉인 아님).</strong> 위 지도의 아파트 원인 4종은 보도 사건에 맞춘 가정 분포입니다. 이 넷을 어떤 비중으로 섞어도 기후에너지환경부 최근 {c.years}년 아파트 정전 {c.n}건의
+      정전시간 분포를 {c.consistent ? "재현했습니다" : "재현하지 못했습니다"}(G = {c.G.toFixed(1)}, 자유도 3, p {c.p < 0.001 ? "< 0.001" : `= ${c.p.toFixed(3)}`}). 12·24시간 초과 꼬리는 맞지만 3~6시간 구간이 실측 {c.counts[3]}건 대 모형 {Math.round(c.expected[3])}건으로 모자랍니다.
+      그래서 실측 분포를 그대로 넣어 다시 돌렸습니다 → <a className="underline" href="#empirical">⑦</a>
     </p>
+  );
+}
+
+const BIN_LABEL = (c: { binsUpperH: number[] }, i: number) => (i < c.binsUpperH.length ? `~${c.binsUpperH[i]}h` : `${c.binsUpperH[c.binsUpperH.length - 1]}h~`);
+
+function Empirical() {
+  const c = aptCalib(), e = e4Evidence();
+  if (!c || !e) return <p className="mt-2 text-[14px]" data-testid="e4">실측 분포 재시뮬레이션: <strong>{BEFORE_MEASURE}</strong></p>;
+  const max = Math.max(...c.counts);
+  const row = (cls: "VENT_1H" | "VENT_3H") => {
+    const r = e.hhGap[cls];
+    return (
+      <tr key={cls} className="border-t border-line tabular-nums">
+        <th className="px-2 py-1 text-left font-normal">{CLASS_KO[cls]}</th>
+        <td className="px-2 py-1 text-right">{pct1(r.KR_BASELINE)}</td><td className="px-2 py-1 text-right">{pct1(r.RULE)}</td><td className="px-2 py-1 text-right font-bold">{pct1(r["RULE+P7"])}</td>
+      </tr>
+    );
+  };
+  return (
+    <div data-testid="e4">
+      <p className="mt-1 text-[14px]">
+        복구시간을 가정 분포 대신 <a className="underline" href={c.sourceUrl} target="_blank" rel="noreferrer">기후에너지환경부 집계({c.sourceDate} 보도자료 붙임)</a>의 아파트 정전 {c.n}건 분포로 바꾸고, 나머지 18개 가정 축은 그대로 둔 채
+        {" "}{e.n.toLocaleString("ko-KR")}번 다시 돌렸습니다. 구간 안은 선형 보간, 24시간 초과 {c.gt24h}건은 24~72시간에 고르게 둔 것이 가정입니다. 계획자(도구)도 이 분포를 가정 범위로 봅니다.
+      </p>
+      <div className="mt-3 grid gap-1 text-[12px]" aria-label="정전시간별 건수">
+        {c.counts.map((n, i) => (
+          <div key={i} className="flex items-center gap-2 tabular-nums">
+            <span className="w-14 text-right text-muted">{BIN_LABEL(c, i)}</span>
+            <span className="inline-block h-3 rounded bg-ink/70" style={{ width: `${(n / max) * 60}%` }} />
+            <span>{n}건</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+        <table className="w-full min-w-[420px] border-collapse text-[13px]">
+          <caption className="px-2 py-1 text-left text-[14px] font-bold">전원 공백이 생긴 가구 비율(모의)</caption>
+          <thead><tr className="text-muted"><th className="px-2 py-1 text-left font-normal">기기</th><th className="px-2 py-1 text-right font-normal">현행 절차</th><th className="px-2 py-1 text-right font-normal">도구</th><th className="px-2 py-1 text-right font-normal">도구 + 휴대용 배터리 사전 배치</th></tr></thead>
+          <tbody>{row("VENT_1H")}{row("VENT_3H")}</tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[14px]">
+        도구는 공백 가구·시간을 {pct1(e.ruleVsKr.rel)} 줄였지만(95% CI {pct1(e.ruleVsKr.lo)}~{pct1(e.ruleVsKr.hi)}), 1시간급 인공호흡기 가구 중 공백이 생기는 비율은 줄이지 못했습니다. 공백을 짧게 할 뿐 막지는 못합니다.
+        정전 전에 배터리를 가구에 미리 두어야 그 비율이 내려갑니다(도구 위 사전 배치: 공백 가구·시간 {pct1(e.p7.rel)} 추가 감소).
+      </p>
+      <p className="mt-1 text-[13px] text-muted">
+        사전등록(S6, 결과 전 봉인) {e.prereg.hit}/{e.prereg.total} 맞힘.{" "}
+        {e.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ")}
+      </p>
+    </div>
   );
 }
 
@@ -313,6 +360,7 @@ export default function LabPage() {
         <a className="rounded border border-line px-2 py-0.5" href="#compare">③ 도구 대 현행</a>
         <a className="rounded border border-line px-2 py-0.5" href="#breakeven">① 손익분기</a>
         <a className="rounded border border-line px-2 py-0.5" href="#patches">④ 보완안</a>
+        <a className="rounded border border-line px-2 py-0.5" href="#empirical">⑦ 실측 분포</a>
         <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
@@ -363,6 +411,9 @@ export default function LabPage() {
           </Section>
           <Section id="patches" n="④" title="보완안: 해외 절차를 얹고 다시 돌리면">
             <Patches d={d} />
+          </Section>
+          <Section id="empirical" n="⑦" title="실측 정전시간으로 다시: 정부 집계 382건">
+            <Empirical />
           </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <Prereg d={d} />

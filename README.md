@@ -24,11 +24,12 @@
 
 ## 주요 결과(봉인 실측, 합성 데이터 위의 모의)
 
-숫자는 `app/src/data/evidence.json`에서 나온다. 예측·임계값·실행 코드 해시는 결과를 보기 전에 커밋하고 OpenTimestamps로 봉인했다(`prereg/`, `seal/`).
+숫자는 `app/src/data/evidence.json`에서 나온다. 예측·임계값·실행 코드 해시는 결과를 보기 전에 커밋하고 OpenTimestamps로 봉인했다(`prereg/`, `seal/` S3~S6). 외부 실측 자료: 기후에너지환경부 보도자료(2026-05-20) 붙임 「아파트 정전현황」(`datasets/external/`).
 
 - 같은 정전 5,400회: 현행 공개 절차(자원 연결 단계 없음, 119 자가 호출)보다 공백 가구·시간 15.0% 감소, 27개 조건 모두 우세. 단순 규칙(짧은 순·가까운 순)과는 24개 조건에서 차이 없음.
 - 빈틈 지도 32,000회: 도구를 써도 가정 범위 추첨 90% 이상에서 공백이 남는 기기×정전 조합 12곳(1·3시간급 인공호흡기 × 아파트 장기 정전 등).
 - 보완안 8,000회: 휴대용 배터리 사전 배치(PG&E 절차의 한국화)를 얹으면 남던 빈틈 13곳 중 11곳이 닫힘.
+- 실측 정전시간 2,000회(E4): 기후에너지환경부 최근 3년 아파트 정전 382건의 정전시간 분포를 그대로 넣으면, 도구는 공백 가구·시간을 16.5% 줄이지만 1시간급 인공호흡기 가구의 공백 발생 비율(95.8%)은 줄이지 못함. 사전 배치를 얹어야 73.1%. 원인별 가정 분포는 이 실측 분포의 3~6시간 구간을 재현하지 못했다(`tools/check_apt_calibration.py`).
 - 라벨 판독 봉인 시험셋 120장 1회: 흐림·가림 60장에서 모델명을 자신 있게 틀린 경우 0/60, DB의 엉뚱한 기종과 표시 없이 일치 0/120.
 
 ## 재현
@@ -39,9 +40,11 @@ npm test                      # vitest
 npx tsx scripts/sweep.ts E2 --tag sealed --seedLo 3000001 --cells 27
 npx tsx scripts/sweep.ts E1 --tag sealed --seedLo 2000001 --draws 4000 --master E1 --falsify 500 --lognormal
 npx tsx scripts/sweep.ts E3 --tag sealed --seedLo 1000001 --draws 1000 --master E3
-npx tsx scripts/lab-analyze.ts --tag sealed && npx tsx scripts/score-prereg.ts --tag sealed && npx tsx scripts/score-prereg-e3.ts --tag sealed
+npx tsx scripts/sweep.ts E4 --tag sealed --seedLo 4000001 --draws 2000 --master E4
+npx tsx scripts/lab-analyze.ts --tag sealed && npx tsx scripts/score-prereg.ts --tag sealed && npx tsx scripts/score-prereg-e3.ts --tag sealed && npx tsx scripts/e4-analyze.ts --tag sealed
 npx tsx scripts/sync-evidence.ts
 node ../tools/check-seal-order.mjs
+python -I ../tools/check_apt_calibration.py
 python -I ../tools/check_report_numbers.py
 ```
 
@@ -49,7 +52,7 @@ python -I ../tools/check_report_numbers.py
 
 ## 착안과 차이
 
-`[사용자 결정 대기: 착안 공개 문구(Q1·Q2)]` 시뮬레이션으로 안전 매뉴얼의 빈틈을 찾는 해커톤 작품에서 착안했다. 그 작품의 코드·자산은 쓰지 않았다. 이 저장소는 ① 공인 사양 DB와 공개 통계에 맞춘 정량 몬테카를로, ② 빈틈 발견 → 해외 보완안 → 재시뮬레이션 검증의 닫힌 고리, ③ 같은 엔진을 쓰는 실제 운영자 도구, ④ 결과 전 사전등록·봉인을 더했다.
+가상의 사람과 사건을 반복해 행사장 안전 매뉴얼의 빈틈을 찾은 해커톤 출품작(공개 저장소 JEONJO)에서 착안했다. 그 작품의 코드·자산은 쓰지 않았다. 이 저장소는 ① 공인 사양 DB와 공개 통계에 맞춘 정량 몬테카를로, ② 빈틈 발견 → 해외 보완안 → 재시뮬레이션 검증의 닫힌 고리, ③ 같은 엔진을 쓰는 실제 운영자 도구, ④ 결과 전 사전등록·봉인을 더했다.
 
 ## 문서
 

@@ -7,7 +7,7 @@ import { computeRestoration } from "@/lib/engine/restoration";
 import { TwoClocks } from "@/components/TwoClocks";
 import { GapWidget, type WidgetCause, type WidgetDevice } from "@/components/GapWidget";
 import { ClosingCard } from "@/components/ClosingCard";
-import { sweepN } from "@/lib/evidence";
+import { aptCalib, sweepN } from "@/lib/evidence";
 
 const DEVICE_CHIPS: { specId: string; label: string; source: string }[] = [
   { specId: "PERFECTO2", label: "산소발생기 · 배터리 없음", source: "사양: Invacare Perfecto2 사용자 설명서(거치형, 내장배터리 없음)" },
@@ -49,13 +49,16 @@ function widgetCauses(): WidgetCause[] {
 
 export default function Home() {
   const n = sweepN();
+  const apt = aptCalib();
   return (
     <main className="mx-auto max-w-xl px-4 pb-12">
       <section className="pt-4" aria-labelledby="h1">
         <h1 id="h1" className="text-[28px] font-extrabold leading-9 tracking-tight">배터리가 먼저 끝날까, 전기가 먼저 올까</h1>
         <div className="mt-3"><TwoClocks /></div>
         <p className="mt-3 text-[16px] leading-7" data-testid="avg-line">
-          한국 정전은 한 집당 1년 9분입니다. 그러나 2026년 8월 인천 계양 아파트는 11시간, 충남 서산 아파트는 14시간 동안 전기가 끊겼습니다(보도).
+          {apt
+            ? <>한국 정전은 한 집당 1년 9분입니다. 그러나 최근 {apt.years}년 아파트 정전 {apt.n}건 중 {apt.gt12h}건, {Math.round(apt.n / apt.gt12h)}건에 1건꼴로 12시간을 넘겼습니다(기후에너지환경부 집계).</>
+            : <>한국 정전은 한 집당 1년 9분입니다. 그러나 2026년 8월 인천 계양 아파트는 11시간, 충남 서산 아파트는 14시간 동안 전기가 끊겼습니다(보도).</>}
         </p>
         <div className="mt-4 grid gap-2">
           <Link href="/ops?s=PRESET-SUWON" data-testid="cta-ops"

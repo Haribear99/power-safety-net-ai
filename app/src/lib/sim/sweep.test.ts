@@ -55,3 +55,27 @@ describe("E1 층화(5.4절)", () => {
     expect(r.cls.O2_STAT![1]).toBe(r.cls.O2_STAT![0]); // 배터리 없는 거치형 산소는 복구 전 전부 공백(KR)
   });
 });
+
+describe("E4 실측 분포(APT_EMP, S6)", () => {
+  it("APT_EMP는 봉인 실험 원인 목록 밖에 있고 분위 표는 실측 매듭을 지난다", async () => {
+    const { CAUSES, EXTRA_CAUSES } = await import("../domain/types");
+    const { quantileTable } = await import("../engine/restoration");
+    expect(CAUSES).not.toContain("APT_EMP");
+    expect(EXTRA_CAUSES).toEqual(["APT_EMP"]);
+    const q = quantileTable("APT_EMP");
+    expect(q).toHaveLength(1001);
+    for (let i = 0; i + 1 < q.length; i++) expect(q[i]).toBeLessThanOrEqual(q[i + 1]);
+    // 12h 이하 327/382 = 0.856 → u = 0.856 부근이 12h
+    const at12 = q.findIndex((s) => s > 12 * 3600) / 1000;
+    expect(at12).toBeGreaterThan(0.85);
+    expect(at12).toBeLessThan(0.86);
+    expect(q[1000]).toBe(72 * 3600);
+    expect(quantileTable("APT_EMP", "lognormal")).toEqual(q);
+  });
+  it("e4Thetas는 복구 척도 배수만 1로 고정한다", async () => {
+    const { e4Thetas } = await import("./sweep");
+    const a = e1Thetas(20, "E4"), b = e4Thetas(20, "E4");
+    b.forEach((t, i) => expect({ ...t, scaleMult: a[i].scaleMult }).toEqual(a[i]));
+    expect(b.every((t) => t.scaleMult === 1)).toBe(true);
+  });
+});

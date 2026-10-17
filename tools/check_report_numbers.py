@@ -42,10 +42,20 @@ expected = {
     "사전등록 2절": f"{lab['prereg']['section2']['hit']}/{lab['prereg']['section2']['total']}",
     "사전등록 E3": f"{e3['prereg']['hit']}/{e3['prereg']['total']}",
     "오라클 차등": f"{ev['diff']['total']['pass']}/{ev['diff']['total']['scenarios']}",
+    "정부 집계 건수": f"{ev['calib']['apt']['n']}건",
+    "정부 집계 12h 초과": f"{ev['calib']['apt']['gt12h']}건",
+    "E4 시나리오 수": f"{ev['e4']['n']:,}회",
+    "E4 도구 감소율": pct(ev["e4"]["ruleVsKr"]["rel"]),
+    "E4 1시간급 도구": pct(ev["e4"]["hhGap"]["VENT_1H"]["RULE"]),
+    "E4 1시간급 사전배치": pct(ev["e4"]["hhGap"]["VENT_1H"]["RULE+P7"]),
+    "사전등록 E4": f"{ev['e4']['prereg']['hit']}/{ev['e4']['prereg']['total']}",
 }
 miss = {k: v for k, v in expected.items() if v not in part1}
 for k, v in expected.items():
     print(("✓ " if k not in miss else "✗ ") + f"{k}: {v}")
+if ev["e4"]["hhGap"]["VENT_1H"]["KR_BASELINE"] != ev["e4"]["hhGap"]["VENT_1H"]["RULE"]:
+    print("✗ E4 1시간급 '그대로' 문장이 evidence와 다르다(현행 ≠ 도구)")
+    miss["E4 그대로"] = "현행 = 도구"
 if not c1["gate3"]["pass"] or not lab["gate2"]["pass"]:
     print("✗ 관문 2 또는 3 미통과 — 보고서 대체안 문장을 써야 한다")
     sys.exit(1)
