@@ -5,7 +5,8 @@
 // 표본 추출(sampleRestorationS)은 materialize 용도이며 결과를 qT 정수로 돌려준다.
 import { z } from "zod";
 import raw from "../../../../spec/restoration_quantiles.json";
-import { CAUSES, RESTORATION_LABEL, type Cause, type EstimateStatus, type RestorationView } from "../domain/types";
+import rawEmp from "../../../../spec/restoration_empirical.json";
+import { CAUSES, EXTRA_CAUSES, RESTORATION_LABEL, type Cause, type EstimateStatus, type RestorationView } from "../domain/types";
 import { pNum, pRange, pRatio } from "./params";
 import { qT, sToH } from "./quantize";
 
@@ -21,14 +22,15 @@ const FileSchema = z.object({
 });
 
 const parsed = FileSchema.parse(raw);
+const parsedEmp = FileSchema.parse(rawEmp);
 const GRID = pNum("restoration.gridPoints");
 const STEPS = GRID - 1; // 1000
 if (parsed.meta.grid !== GRID) throw new Error("restoration_quantiles.json grid ≠ params restoration.gridPoints");
 
 const TABLES: Record<QuantileFamily, Record<Cause, readonly number[]>> = { gamma: {} as never, lognormal: {} as never };
 for (const fam of ["gamma", "lognormal"] as const) {
-  for (const c of CAUSES) {
-    const t = parsed.tables[fam][c];
+  for (const c of [...CAUSES, ...EXTRA_CAUSES]) {
+    const t = (CAUSES.includes(c) ? parsed : parsedEmp).tables[fam][c];
     if (!t) throw new Error(`분위 표 없음: ${fam}.${c}`);
     if (t.qS.length !== GRID) throw new Error(`분위 표 길이 ≠ ${GRID}: ${fam}.${c}`);
     for (let i = 0; i + 1 < GRID; i++) if (t.qS[i] > t.qS[i + 1]) throw new Error(`분위 표 단조 위반 ${fam}.${c}@${i}`);

@@ -64,3 +64,12 @@ export interface C1Evidence { sonnet: C1Side; tesseract?: C1Side; gate3: { point
 export function c1Evidence(): C1Evidence | null {
   return (doc as unknown as { c1?: C1Evidence }).c1 ?? null;
 }
+
+/** 사후 외부 대조(봉인 아님): 아파트 정전 복구시간 가정 분포 대 기후에너지환경부 3년 집계 */
+export interface AptCalib {
+  n: number; gt12h: number; gt24h: number; perYear: number; gt12hPerYear: number; gt24hPerYear: number;
+  sourceUrl: string; capH: number; consistent: boolean; fireRange: [number, number] | null; partsPlusFireRange: [number, number] | null;
+}
+export function aptCalib(): AptCalib | null {
+  return (doc as unknown as { calib?: { apt?: AptCalib } }).calib?.apt ?? null;
+}

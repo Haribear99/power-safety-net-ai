@@ -145,6 +145,23 @@ if (c1) {
   };
 }
 
+// ---- 사후 외부 대조(봉인 아님): 아파트 복구시간 가정 분포 대 정부 3년 집계(tools/check_apt_calibration.py) ----
+type FamCal = { consistent: boolean; weightRange: Record<string, [number, number] | null>; partsPlusFireRange: [number, number] | null };
+const cal = take("out/calib/apt_calibration.json") as {
+  source: { url: string }; capH: number; families: Record<string, FamCal>;
+  observed: { n: number; gt12h: number; gt24h: number; perYear: number; gt12hPerYear: number; gt24hPerYear: number };
+} | null;
+if (cal) {
+  const g = cal.families.gamma;
+  out.calib = {
+    apt: {
+      ...cal.observed, sourceUrl: cal.source.url, capH: cal.capH,
+      consistent: Object.values(cal.families).every((f) => f.consistent),
+      fireRange: g.weightRange.APT_FIRE, partsPlusFireRange: g.partsPlusFireRange,
+    },
+  };
+}
+
 out.sources = sources;
 writeFileSync(path.join(__dirname, "..", "src", "data", "evidence.json"), canonicalJson(out) + "\n", "utf-8");
 console.log("evidence.json 키:", Object.keys(out).join(", "));

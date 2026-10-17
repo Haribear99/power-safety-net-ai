@@ -138,8 +138,8 @@ export const E3_BASES = ["KR_BASELINE", "RULE"] as const;
 export const E3_VARIANTS: readonly string[] = E3_BASES.flatMap((b) => ["", ...PATCH_IDS].map((p) => (p ? `${b}+${p}` : b)));
 export const E3_LHS_MASTER = "E3";
 
-export function e3Def(d: number, cause: Cause, theta: Theta, seedLo: number): ScenarioDef {
-  return { ...e1Def(d, cause, theta, seedLo), scenarioId: `E3-${d}-${cause}` };
+export function e3Def(d: number, cause: Cause, theta: Theta, seedLo: number, prefix = "E3"): ScenarioDef {
+  return { ...e1Def(d, cause, theta, seedLo), scenarioId: `${prefix}-${d}-${cause}` };
 }
 
 export interface E3Row {
@@ -150,8 +150,8 @@ export interface E3Row {
   cls: ClassCounts;
 }
 
-export function runE3(d: number, cause: Cause, theta: Theta, seedLo: number): E3Row {
-  const def = e3Def(d, cause, theta, seedLo);
+export function runE3(d: number, cause: Cause, theta: Theta, seedLo: number, prefix = "E3"): E3Row {
+  const def = e3Def(d, cause, theta, seedLo, prefix);
   const m0 = materialize(def).scenario;
   const ax = patchAxes(def.seed);
   const cls: ClassCounts = {};
@@ -175,4 +175,16 @@ export function runE3(d: number, cause: Cause, theta: Theta, seedLo: number): E3
     }
   });
   return { d, seed: Number(def.seed), cause, rTrueH: sToH(m0.truth.restorationS), ax, m1, m2S, cls };
+}
+
+// ---------- E4: 실측 정전시간 분포(사후 등록, S6) ----------
+// 원인은 APT_EMP 하나(기후에너지환경부 2026-05-20 붙임, 382건 경험 분포). 변형·판정은 E3와 같다.
+export const E4_CAUSE: Cause = "APT_EMP";
+export const E4_LHS_MASTER = "E4";
+/** 복구 척도 배수 축은 1로 고정한다(실측 분포를 늘이거나 줄이지 않는다). 나머지 18개 축은 E1 범위 그대로 */
+export function e4Thetas(draws: number, master: string = E4_LHS_MASTER): Theta[] {
+  return e1Thetas(draws, master).map((t) => ({ ...t, scaleMult: 1 }));
+}
+export function runE4(d: number, theta: Theta, seedLo: number): E3Row {
+  return runE3(d, E4_CAUSE, theta, seedLo, "E4");
 }

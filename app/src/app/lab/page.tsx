@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ⑥ 사전등록 대조. ④ 보완안·⑤ 반증 슬라이더는 Should(아직 없음, 「측정 전」).
 import Link from "next/link";
-import { BEFORE_MEASURE } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 
@@ -288,6 +288,20 @@ function Patches({ d }: { d: LabDoc }) {
   );
 }
 
+function AptCalibNote() {
+  const c = aptCalib();
+  if (!c) return <p className="mt-2 text-[13px] text-muted" data-testid="apt-calib">실측 대조: {BEFORE_MEASURE}</p>;
+  const pr = (r: [number, number] | null) => (r ? `${Math.round(r[0] * 100)}~${Math.round(r[1] * 100)}%` : "없음");
+  return (
+    <p className="mt-2 rounded-lg border border-line p-2 text-[13px]" data-testid="apt-calib">
+      <strong>실측 대조(사후, 봉인 아님).</strong> 기후에너지환경부 최근 3년 아파트 정전 {c.n}건 중 12시간 초과 {c.gt12h}건, 24시간 초과 {c.gt24h}건
+      (<a className="underline" href={c.sourceUrl} target="_blank" rel="noreferrer">보도</a>). 아파트 원인 4종의 가정 분포를 섞어 두 비율을 동시에 맞출 수 {c.consistent ? "있었습니다" : "없었습니다"}
+      {c.consistent ? ` — 화재급 비중 ${pr(c.fireRange)}, 부품·화재급 합 ${pr(c.partsPlusFireRange)}일 때` : ""}. 빈틈 지도는 원인별 결과라 이 대조로 바뀌지 않습니다.
+      세종 수전실 화재(5일)처럼 {c.capH}시간을 넘는 정전은 표에서 {c.capH}시간으로 잘려 공백 시간이 적게 잡힙니다.
+    </p>
+  );
+}
+
 export default function LabPage() {
   const d = lab();
   return (
@@ -324,6 +338,7 @@ export default function LabPage() {
                 {d.e1!.stability.pass ? "통과" : "실패"}
               </p>
             ) : null}
+            <AptCalibNote />
           </Section>
           <Section id="compare" n="③" title="도구 대 현행: 어디서 효과가 나오는가">
             <Decomposition d={d} />

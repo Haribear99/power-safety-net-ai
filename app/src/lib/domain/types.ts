@@ -11,10 +11,13 @@ export type DeviceClass = "O2_STAT" | "O2_STAT_CYL" | "VENT_1H" | "VENT_3H" | "O
   | "VENT_8H" | "VENT_8H_EXT2" | "INTERMITTENT" | "UNKNOWN";
 export type Connector = "AC220" | "DC12" | "VENDOR_EXT" | "O2_FLOW";
 export type Cause = "KEPCO_DIST" | "APT_SHORT" | "APT_NIGHT_XFMR" | "APT_PARTS" | "APT_FIRE"
-  | "TYPHOON_WEAK" | "TYPHOON_STRONG" | "ROTATING";
+  | "TYPHOON_WEAK" | "TYPHOON_STRONG" | "ROTATING" | "APT_EMP";
+/** 봉인 실험(E1·E2·E3)의 원인 8종. APT_EMP는 E4(실측 경험 분포) 전용이라 여기 넣지 않는다(넣으면 E2 원인 추첨이 바뀐다) */
 export const CAUSES: readonly Cause[] = [
   "KEPCO_DIST", "APT_SHORT", "APT_NIGHT_XFMR", "APT_PARTS", "APT_FIRE", "TYPHOON_WEAK", "TYPHOON_STRONG", "ROTATING",
 ] as const;
+/** 봉인 표 밖의 원인(spec/restoration_empirical.json) */
+export const EXTRA_CAUSES: readonly Cause[] = ["APT_EMP"] as const;
 
 export interface DeviceSpec {
   specId: string; manufacturer: string; model: string;

@@ -1,0 +1,214 @@
+{
+  "kind": "post-hoc external check (not sealed)",
+  "source": {
+    "title": "기후에너지환경부 보도자료 「공동주택(아파트) 정전, 24시간 내로 임시 전력복구 체계 마련한다」 붙임 「아파트 정전현황」",
+    "date": "2026-05-20",
+    "url": "https://mcee.go.kr/home/web/board/read.do?boardId=1864960&boardMasterId=939&menuId=10598",
+    "file": "datasets/external/mcee_apt_outage_press_2026-05-20.pdf",
+    "sha256": "421ae242874bd669a3aa3bef950559af7dfcc1c84bb3a49281cb63bf97c04720",
+    "vaultNoteIds": [
+      "기후에너지환경부-보도자료-상세-공동주택아파트-정전-24시간-내로-임시-전력복구-체계-마련한다",
+      "기후부-공동주택-정전-24시간-내-임시-전력-복구-체계-마련"
+    ],
+    "maxObservedNote": "세종 조치원 수전실 화재 2026-05-01(집계 기간 밖), 1,429세대 닷새 정전 — 분위 표 상한 72h를 넘는다"
+  },
+  "observed": {
+    "n": 382,
+    "years": 3,
+    "binsUpperH": [
+      1,
+      2,
+      3,
+      6,
+      12,
+      24
+    ],
+    "counts": [
+      42,
+      77,
+      47,
+      90,
+      71,
+      40,
+      15
+    ],
+    "byCause": {
+      "기자재": 233,
+      "차단기동작": 60,
+      "침수": 34,
+      "외물접촉": 33,
+      "화재": 10,
+      "기타": 12
+    },
+    "gt12h": 55,
+    "gt24h": 15,
+    "perYear": 127.3,
+    "gt12hPerYear": 18.3,
+    "gt24hPerYear": 5.0
+  },
+  "capH": 72.0,
+  "families": {
+    "gamma": {
+      "binProbByCause": {
+        "APT_SHORT": [
+          0.3247,
+          0.3886,
+          0.1868,
+          0.0969,
+          0.002,
+          0.0,
+          0.001
+        ],
+        "APT_NIGHT_XFMR": [
+          0.001,
+          0.0,
+          0.006,
+          0.2038,
+          0.6893,
+          0.0989,
+          0.001
+        ],
+        "APT_PARTS": [
+          0.001,
+          0.0,
+          0.0,
+          0.025,
+          0.3786,
+          0.5654,
+          0.03
+        ],
+        "APT_FIRE": [
+          0.001,
+          0.0,
+          0.001,
+          0.012,
+          0.0869,
+          0.3427,
+          0.5564
+        ]
+      },
+      "bestWeights": {
+        "APT_SHORT": 0.53,
+        "APT_NIGHT_XFMR": 0.34,
+        "APT_PARTS": 0.06,
+        "APT_FIRE": 0.07
+      },
+      "expected": [
+        65.9,
+        78.7,
+        38.6,
+        47.0,
+        100.9,
+        35.0,
+        15.9
+      ],
+      "G": 53.334,
+      "df": 3,
+      "p": 0.0,
+      "consistent": false,
+      "weightRange95": {
+        "APT_SHORT": [
+          0.45,
+          0.61
+        ],
+        "APT_NIGHT_XFMR": [
+          0.235,
+          0.445
+        ],
+        "APT_PARTS": [
+          0.0,
+          0.15
+        ],
+        "APT_FIRE": [
+          0.03,
+          0.14
+        ]
+      },
+      "partsPlusFireRange95": [
+        0.06,
+        0.21
+      ]
+    },
+    "lognormal": {
+      "binProbByCause": {
+        "APT_SHORT": [
+          0.3856,
+          0.3726,
+          0.1419,
+          0.0879,
+          0.011,
+          0.0,
+          0.001
+        ],
+        "APT_NIGHT_XFMR": [
+          0.001,
+          0.0,
+          0.002,
+          0.2248,
+          0.6723,
+          0.0989,
+          0.001
+        ],
+        "APT_PARTS": [
+          0.001,
+          0.0,
+          0.0,
+          0.018,
+          0.4226,
+          0.5215,
+          0.037
+        ],
+        "APT_FIRE": [
+          0.001,
+          0.0,
+          0.0,
+          0.005,
+          0.0949,
+          0.3996,
+          0.4995
+        ]
+      },
+      "bestWeights": {
+        "APT_SHORT": 0.52,
+        "APT_NIGHT_XFMR": 0.365,
+        "APT_PARTS": 0.025,
+        "APT_FIRE": 0.09
+      },
+      "expected": [
+        76.8,
+        74.0,
+        28.5,
+        49.1,
+        103.2,
+        32.5,
+        17.9
+      ],
+      "G": 69.678,
+      "df": 3,
+      "p": 0.0,
+      "consistent": false,
+      "weightRange95": {
+        "APT_SHORT": [
+          0.44,
+          0.6
+        ],
+        "APT_NIGHT_XFMR": [
+          0.26,
+          0.465
+        ],
+        "APT_PARTS": [
+          0.0,
+          0.13
+        ],
+        "APT_FIRE": [
+          0.035,
+          0.155
+        ]
+      },
+      "partsPlusFireRange95": [
+        0.055,
+        0.195
+      ]
+    }
+  }
+}

@@ -52,10 +52,12 @@ export const CAUSE_ORDER: readonly Cause[] = ["KEPCO_DIST", "APT_SHORT", "TYPHOO
 const CAUSE_NAME: Record<Cause, string> = {
   KEPCO_DIST: "한전 배전 고장", APT_SHORT: "단지 단기 고장", APT_NIGHT_XFMR: "야간 변압기", APT_PARTS: "부품 조달 지연",
   APT_FIRE: "전기실 화재", TYPHOON_WEAK: "약한 태풍", TYPHOON_STRONG: "강한 태풍", ROTATING: "순환단전",
+  APT_EMP: "아파트 정전 실측 분포",
 };
 
 /** 원인 이름 + 장부의 가정 복구 범위(P10~P90). 범위는 spec/params.json에서 읽는다 */
 export function causeLabel(c: Cause): { name: string; range: string } {
+  if (c === "APT_EMP") return { name: CAUSE_NAME[c], range: "정부 집계 382건" };
   const v = pValue<{ p10H?: number; p90H?: number; valueH?: number; dist: string }>(`restoration.${c}`);
   let range = "";
   if (v.p10H != null && v.p90H != null) range = `가정 ${v.p10H}~${v.p90H}h`;
