@@ -239,3 +239,80 @@ export function analyzeE2Cell(cell: string, rows: readonly E2Row[], comparators:
   const oracleCapture = kr != null && ru != null && or != null && kr - or > 0 ? (kr - ru) / (kr - or) : null;
   return { cell, n: rows.length, compares, totals, pClass, oracleCapture };
 }
+
+// ---------- E3 (보완안, 라운드 6) ----------
+export interface E3Effect {
+  variant: string; base: string; patch: string; n: number;
+  /** 1 − ΣM2(바탕+보완안)/ΣM2(바탕), 시나리오 재표본 부트스트랩 95% CI */
+  rel: number | null; relCi: { lo: number; hi: number } | null;
+  /** 공백 고위험 가구 수(M1) 시나리오별 승/무/패(보완안이 적으면 승) */
+  win: number; tie: number; loss: number;
+  byCause: Record<string, number | null>;
+  /** 실효 보급률(보급 × 배수 × (1 − 고장), P3는 × 계획률, P1은 계획률) 10분위별 감소율. lo = 최하위, hi = 최상위 분위 */
+  byEff: { deciles: (number | null)[]; lo: number | null; hi: number | null };
+}
+
+type E3LikeRow = { cause: string; ax: { covMult: number; failProb: number; planRate: number }; m1: number[]; m2S: number[] };
+
+export function effCoverage(patch: string, ax: E3LikeRow["ax"], def: { coverage?: number; requiresPlan?: boolean; kind: string }): number {
+  if (def.kind === "PLAN_EVAC") return ax.planRate;
+  return (def.coverage ?? 0) * ax.covMult * (1 - ax.failProb) * (def.requiresPlan ? ax.planRate : 1);
+}
+
+function relOf(rows: readonly E3LikeRow[], bi: number, vi: number): number | null {
+  let a = 0, b = 0;
+  for (const r of rows) { a += r.m2S[vi]; b += r.m2S[bi]; }
+  return b > 0 ? 1 - a / b : null;
+}
+
+export function e3Effect(
+  rows: readonly E3LikeRow[], variants: readonly string[], variant: string,
+  def: { coverage?: number; requiresPlan?: boolean; kind: string }, boot = E2_BOOT,
+): E3Effect {
+  const [base, patch] = variant.split("+");
+  const bi = variants.indexOf(base), vi = variants.indexOf(variant);
+  if (bi < 0 || vi < 0) throw new Error(`변형 ${variant} 없음`);
+  let win = 0, tie = 0, loss = 0;
+  for (const r of rows) { if (r.m1[vi] < r.m1[bi]) win++; else if (r.m1[vi] > r.m1[bi]) loss++; else tie++; }
+  const n = rows.length;
+  const rng = rngFor("E3-BOOT", variant, "BOOT");
+  const rels: number[] = [];
+  for (let t = 0; t < boot; t++) {
+    let a = 0, b = 0;
+    for (let i = 0; i < n; i++) { const r = rows[Math.floor(rng.uniform() * n)]; a += r.m2S[vi]; b += r.m2S[bi]; }
+    if (b > 0) rels.push(1 - a / b);
+  }
+  rels.sort((p, q) => p - q);
+  const byCause: Record<string, number | null> = {};
+  for (const c of [...new Set(rows.map((r) => r.cause))].sort()) byCause[c] = relOf(rows.filter((r) => r.cause === c), bi, vi);
+  const sorted = [...rows].sort((p, q) => effCoverage(patch, p.ax, def) - effCoverage(patch, q.ax, def));
+  const deciles: (number | null)[] = [];
+  for (let q = 0; q < 10; q++) deciles.push(relOf(sorted.slice(Math.floor((q * n) / 10), Math.floor(((q + 1) * n) / 10)), bi, vi));
+  return {
+    variant, base, patch, n, rel: relOf(rows, bi, vi),
+    relCi: rels.length === boot ? { lo: quantile(rels, 0.025), hi: quantile(rels, 0.975) } : null,
+    win, tie, loss, byCause, byEff: { deciles, lo: deciles[0], hi: deciles[9] },
+  };
+}
+
+/** 변형별 (등급, 원인) 표지(축 반증 없이 CI 컷만). rows의 cls 배열은 [n, 변형별 공백 수…] */
+export function labelsByVariant(
+  rows: readonly { cause: Cause; cls: Partial<Record<GenClass, number[]>> }[], variants: readonly string[], causes: readonly Cause[],
+): { variant: string; cls: GenClass; cause: Cause; n: number; p: number; ci: { lo: number; hi: number }; label: E1Label }[] {
+  const out: { variant: string; cls: GenClass; cause: Cause; n: number; p: number; ci: { lo: number; hi: number }; label: E1Label }[] = [];
+  variants.forEach((variant, j) => {
+    for (const cls of GEN_CLASSES) for (const cause of causes) {
+      let n = 0, k = 0;
+      for (const r of rows) {
+        if (r.cause !== cause) continue;
+        const g = majorityGap(r.cls[cls], j);
+        if (g == null) continue;
+        n++; if (g) k++;
+      }
+      if (n === 0) continue;
+      const ci = wilson(k, n);
+      out.push({ variant, cls, cause, n, p: k / n, ci, label: e1Label(ci) });
+    }
+  });
+  return out;
+}

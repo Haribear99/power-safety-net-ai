@@ -11,6 +11,7 @@ import { materialize, type ScenarioDef } from "./materialize";
 import { rngFor } from "./prng";
 import { runScenario, type SimPolicy } from "./run";
 import type { QuantileFamily } from "../engine/restoration";
+import { applyPatch, PATCH_IDS, patchAxes, type PatchAxes, type PatchId } from "./patches";
 
 const CAUSES7: readonly Cause[] = CAUSES.filter((c) => c !== "ROTATING");
 
@@ -128,4 +129,50 @@ export function falsifyVariants(): FalsifyVariant[] {
 }
 export function withAxis(theta: Theta, v: FalsifyVariant): Theta {
   return { ...theta, [v.axis]: v.value } as Theta;
+}
+
+// ---------- E3 (보완안 재시뮬레이션, 라운드 6) ----------
+// 설계는 E1과 같다(60가구, 7등급 × 5가구 층화, 원인 8개 × LHS 추첨). 시드는 보류 범위 1,000,001~1,001,000, LHS master "E3".
+// 같은 시나리오에 바탕 정책 2개(KR_BASELINE·RULE) × {보완안 없음, P1, P2, P3, P7}를 돌린다(공통 난수).
+export const E3_BASES = ["KR_BASELINE", "RULE"] as const;
+export const E3_VARIANTS: readonly string[] = E3_BASES.flatMap((b) => ["", ...PATCH_IDS].map((p) => (p ? `${b}+${p}` : b)));
+export const E3_LHS_MASTER = "E3";
+
+export function e3Def(d: number, cause: Cause, theta: Theta, seedLo: number): ScenarioDef {
+  return { ...e1Def(d, cause, theta, seedLo), scenarioId: `E3-${d}-${cause}` };
+}
+
+export interface E3Row {
+  d: number; seed: number; cause: Cause; rTrueH: number; ax: PatchAxes;
+  /** 변형별 M1·M2S(E3_VARIANTS 순서) */
+  m1: number[]; m2S: number[];
+  /** 등급별 [등록 가구 수, 변형별 G>0 가구 수…] */
+  cls: ClassCounts;
+}
+
+export function runE3(d: number, cause: Cause, theta: Theta, seedLo: number): E3Row {
+  const def = e3Def(d, cause, theta, seedLo);
+  const m0 = materialize(def).scenario;
+  const ax = patchAxes(def.seed);
+  const cls: ClassCounts = {};
+  const regIds = new Set(m0.planner.households.map((h) => h.id));
+  for (const id of regIds) {
+    const c = m0.labels[id] as GenClass;
+    if (!GEN_CLASSES.includes(c)) continue;
+    cls[c] ??= [0, ...E3_VARIANTS.map(() => 0)];
+    cls[c]![0]++;
+  }
+  const m1: number[] = [], m2S: number[] = [];
+  E3_VARIANTS.forEach((v, j) => {
+    const [base, patch] = v.split("+") as [SimPolicy, PatchId | undefined];
+    const m = patch ? applyPatch(m0, patch, ax) : m0;
+    const r = runScenario(m, base);
+    m1.push(r.outcome.metrics.M1); m2S.push(r.outcome.metrics.M2S);
+    for (const row of r.outcome.rows) {
+      if (!row.registered || !regIds.has(row.householdId) || row.gapS <= 0) continue;
+      const c = m0.labels[row.householdId] as GenClass;
+      if (cls[c]) cls[c]![1 + j]++;
+    }
+  });
+  return { d, seed: Number(def.seed), cause, rTrueH: sToH(m0.truth.restorationS), ax, m1, m2S, cls };
 }

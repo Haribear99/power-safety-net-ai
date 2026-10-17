@@ -13,3 +13,9 @@
 ### 봉인 뒤 변경
 
 (없음)
+
+### 봉인 뒤 변경 — 라운드 6 (2026-10-17)
+
+- `app/src/lib/sim/sweep.ts`·`analyze.ts`에 E3 함수(runE3, e3Effect, labelsByVariant)를 **덧붙였다**. E1·E2 함수 본문은 바꾸지 않았다. `sweep.ts`가 `patches.ts`를 import하게 되어 파일 sha256은 S4와 다르다.
+- 재현 확인: E2 봉인 실행을 같은 시드로 다시 돌려 5,400행 전부 같음, E1 봉인 주 실행 앞 200행을 다시 계산해 200/200 같음(정본 JSON 비교).
+- 결과 변화: 없음.

@@ -2,6 +2,7 @@
 // 실행 (app/에서):
 //   npx tsx scripts/sweep.ts E2 --tag dev --seedLo 6001 [--cells 27]
 //   npx tsx scripts/sweep.ts E1 --tag dev --seedLo 7001 --draws 400 --master E1-dev [--falsify 100] [--lognormal]
+//   npx tsx scripts/sweep.ts E3 --tag dev --seedLo 8001 --draws 200 --master E3-dev
 // 봉인 실행(S4 뒤)은 --tag sealed와 prereg/sweep.json의 시드 범위·추첨 수를 쓴다. 출력: out/sweeps/<exp>_<tag>.json
 // 출력 행마다 seed 키가 있다(scripts/check-seal-order.mjs가 S4 이전 출력에서 E1·E2 전용 시드를 찾는다).
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -10,7 +11,7 @@ import path from "node:path";
 import { Worker } from "node:worker_threads";
 import { CAUSES } from "../src/lib/domain/types";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
-import { e1Thetas, E1_FALSIFY_DRAWS, e2Cells, E2_SEEDS_PER_CELL, falsifyVariants, withAxis, type E1Row, type E2Row } from "../src/lib/sim/sweep";
+import { e1Thetas, E1_FALSIFY_DRAWS, e2Cells, E2_SEEDS_PER_CELL, E3_VARIANTS, falsifyVariants, withAxis, type E1Row, type E2Row, type E3Row } from "../src/lib/sim/sweep";
 import type { Job } from "./sweep-worker";
 
 const repo = path.resolve(__dirname, "..", "..");
@@ -94,7 +95,19 @@ async function main() {
     });
     return;
   }
-  throw new Error("실험은 E1 또는 E2");
+  if (exp === "E3") {
+    const draws = Number(arg("draws"));
+    const master = arg("master")!;
+    if (!(draws > 0) || !master) throw new Error("--draws, --master 필요");
+    const thetas = e1Thetas(draws, master);
+    const jobs: Job[] = [];
+    for (let d = 0; d < draws; d++) for (const cause of CAUSES) jobs.push({ exp: "E3", d, cause, theta: thetas[d], seedLo });
+    console.log(`E3 작업 ${jobs.length}건`);
+    const rows = await runPool<E3Row>(jobs, 20);
+    write(`E3_${tag}.json`, { format: "pl26-sweep-e3/1", tag, seedLo, draws, master, variants: E3_VARIANTS, rows });
+    return;
+  }
+  throw new Error("실험은 E1, E2, E3");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

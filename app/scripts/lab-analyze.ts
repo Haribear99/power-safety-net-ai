@@ -3,9 +3,10 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { CAUSES } from "../src/lib/domain/types";
-import { analyzeE1, analyzeE2Cell, e1bCurves, stabilityCheck, type E1Cell, type E2CellResult } from "../src/lib/sim/analyze";
+import { analyzeE1, analyzeE2Cell, e1bCurves, e3Effect, labelsByVariant, stabilityCheck, type E1Cell, type E2CellResult } from "../src/lib/sim/analyze";
+import { PATCHES, type PatchId } from "../src/lib/sim/patches";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
-import type { E1Row, E2CellDef, E2Row, FalsifyVariant } from "../src/lib/sim/sweep";
+import type { E1Row, E2CellDef, E2Row, E3Row, FalsifyVariant } from "../src/lib/sim/sweep";
 
 const repo = path.resolve(__dirname, "..", "..");
 const argv = process.argv.slice(2);
@@ -77,6 +78,32 @@ if (existsSync(e1File)) {
   }
   if (stability) console.log("\n안정성:", `ROBUST 유지 ${stability.robustKept}/${stability.robustTotal}`, stability.pass ? "통과" : "실패", `뒤집힌 칸 ${stability.flipped.length}`);
   for (const c of robust("KR_BASELINE")) if (c.flips?.length) console.log(`  뒤집힘 ${c.cls}×${c.cause}:`, c.flips.map((f) => `${f.axis}=${f.value}(p ${f.p.toFixed(2)})`).join(", "));
+}
+
+const e3File = path.join(repo, "out", "sweeps", `E3_${tag}.json`);
+if (existsSync(e3File)) {
+  const raw = readFileSync(e3File, "utf-8");
+  const doc = JSON.parse(raw) as { variants: string[]; rows: E3Row[]; draws: number; seedLo: number; master: string };
+  const effects = doc.variants.filter((v) => v.includes("+")).map((v) => e3Effect(doc.rows, doc.variants, v, PATCHES.get(v.split("+")[1] as PatchId)!));
+  const labels = labelsByVariant(doc.rows, doc.variants, CAUSES);
+  const robust = (v: string) => labels.filter((c) => c.variant === v && c.label === "ROBUST" && c.cls !== "O2_STAT");
+  const closure = doc.variants.filter((v) => v.includes("+")).map((v) => {
+    const base = v.split("+")[0];
+    const before = robust(base), after = robust(v);
+    const closed = before.filter((c) => !after.some((x) => x.cls === c.cls && x.cause === c.cause));
+    const opened = after.filter((c) => !before.some((x) => x.cls === c.cls && x.cause === c.cause));
+    return { variant: v, base, robustBefore: before.length, robustAfter: after.length, closed: closed.map((c) => ({ cls: c.cls, cause: c.cause })), opened: opened.map((c) => ({ cls: c.cls, cause: c.cause })) };
+  });
+  out.e3 = { source: { file: `out/sweeps/E3_${tag}.json`, sha256: sha256Hex(raw.trim()), draws: doc.draws, seedLo: doc.seedLo, master: doc.master, n: doc.rows.length }, effects, labels, closure };
+  console.log(`
+E3 (${tag}) ${doc.rows.length}건`);
+  for (const e of effects) {
+    const c = closure.find((x) => x.variant === e.variant)!;
+    console.log(`${e.variant.padEnd(16)} M2 ${pct(e.rel)} [${pct(e.relCi?.lo)}, ${pct(e.relCi?.hi)}] · M1 ${e.win}/${e.tie}/${e.loss} · 실효보급 하위~상위 ${pct(e.byEff.lo)}~${pct(e.byEff.hi)} · ROBUST ${c.robustBefore}→${c.robustAfter} (해소 ${c.closed.length})`);
+  }
+  for (const c of closure.filter((x) => x.base === "RULE")) console.log(`  ${c.variant} 해소:`, c.closed.map((x) => `${x.cls}×${x.cause}`).join(", ") || "없음");
+  const o2 = (v: string) => labels.filter((c) => c.variant === v && c.cls === "O2_STAT").map((c) => `${c.cause.slice(0, 6)} ${c.p.toFixed(2)}`).join(" ");
+  console.log("  O2_STAT RULE:", o2("RULE")); console.log("  O2_STAT RULE+P2:", o2("RULE+P2"));
 }
 
 writeFileSync(path.join(repo, "out", `lab_${tag}.json`), canonicalJson(out) + "\n", "utf-8");

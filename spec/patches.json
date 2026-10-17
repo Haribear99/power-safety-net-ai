@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "해외 보완안 라이브러리 v0 — 시뮬레이터 내장판 (spec.md 6.3절, 라운드 6)",
+    "note": "6.3절 P1~P8 중 시뮬레이터 내장 동작으로 옮길 수 있는 4개(P1·P2·P3·P7)만 담는다. P4(충전 순환)는 외장 재충전 모형이 없어, P6·P8(사전 통지·사전 충전)은 생성기가 예보 사건을 이미 완충(gen.startCharge.forecastH = 1.0)으로 두어 모형 안 효과가 0이라 넣지 않는다. P5는 답변서가 거부한 규칙이라 E2의 B1으로만 보인다. 수치 값은 모두 사람 검수 전(Q9)이다.",
+    "humanReview": null
+  },
+  "global": {
+    "inverterEff": { "value": 0.85, "type": "assumed", "note": "가정용 배터리 인버터 효율. 1,000Wh × 0.85 ÷ 기기 소비전력 상한(device_db drawW.hi) = 추가 가동시간" },
+    "covMultRange": { "lo": 0.5, "hi": 1.0, "type": "assumed", "note": "5.3절 E3 전용 축: 각 패치 기본 coverage의 ×0.5~×1.0" },
+    "failProbRange": { "lo": 0.1, "hi": 0.8, "type": "assumed", "note": "5.3절 E3 전용 축. 상한 0.8은 예비전원 15대 중 12대 미작동 사례(evaluation-of-solar-powered-battery-systems…)" },
+    "planRateRange": { "lo": 0.2, "hi": 0.8, "type": "assumed", "note": "개인 계획 작성 가구 비율. 출처 없음 → 축으로 둔다" },
+    "evacMarginH": { "value": 1, "type": "policy", "note": "P1 EVAC_AT 규칙 L − A_119 − 1h (마치다시 양식의 '여유를 두고 이송' 취지를 1h로 옮김, 6.1절)" }
+  },
+  "patches": [
+    {
+      "id": "P1", "kind": "PLAN_EVAC", "origin": "마치다시 재택 인공호흡기 사용자 재해 시 개인 지원 계획", "actorKr": "보건소",
+      "rule": "계획 보유 가구(planRate)는 하한 끝 − 119 계획 도착(상한) − 1h에 119를 부른다(신고 시각 이전이면 신고 시각)",
+      "sourceIds": ["町田市-在宅人工呼吸器使用者のための災害時個別支援計画-様式"]
+    },
+    {
+      "id": "P2", "kind": "PREPOSITION", "origin": "와카야마현 인공호흡기 이용자 전원 확보 사업(의료기관 무상 대여)", "actorKr": "준요양기관(대여업체)",
+      "energyWh": 1000, "coverage": 0.8, "requiresPlan": false,
+      "sourceIds": ["人工呼吸器利用者の電源確保事業について-和歌山県"], "note": "energyWh·coverage는 6.3절 표 값(assumed)"
+    },
+    {
+      "id": "P3", "kind": "PREPOSITION", "origin": "이나기시 재택 인공호흡기 사용자 재해 지원(발전기·축전지 구입 보조)", "actorKr": "지자체",
+      "energyWh": 1000, "coverage": 0.8, "requiresPlan": true,
+      "sourceIds": ["disaster-support-program-for-home-ventilator-users-official-website-of-inagi-cit"], "note": "P2와 같되 개인 계획 보유 가구만(보조금 신청 요건)"
+    },
+    {
+      "id": "P7", "kind": "PREPOSITION", "origin": "PG&E 휴대용 배터리 프로그램", "actorKr": "한전",
+      "energyWh": 1000, "coverage": 0.6, "requiresPlan": false,
+      "sourceIds": ["portable-battery-program-pge"], "note": "energyWh·coverage는 6.3절 표 값(assumed)"
+    }
+  ]
+}
