@@ -186,18 +186,42 @@ if (e4) {
   };
 }
 
+// ---- E5: AI 판독 기여·표적 사전 배치(S7 봉인 실행, scripts/e5-analyze.ts) ----
+type Cmp5 = { rel: number | null; lo: number | null; hi: number | null };
+const e5 = take("out/e5_sealed.json") as {
+  source: { n: number }; arms: Record<string, number>;
+  compares: Record<"aiVsNo" | "perfVsNo" | "aiVsKr" | "noVsKr" | "p7tVsP7" | "p7VsRule" | "p7tVsRule", Cmp5>;
+  hhRates: Record<string, Record<string, HhRate>>;
+  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
+} | null;
+if (e5) {
+  const c = (x: Cmp5) => ({ rel: x.rel, lo: x.lo, hi: x.hi });
+  const pickV = (cls: string) => Object.fromEntries(["AI@RULE", "AI@RULE+P7", "AI@RULE+P7T"].map((v) => [v, e5.hhRates[cls]?.[v]?.rate ?? null]));
+  out.e5 = {
+    n: e5.source.n, unknownRateAI: e5.arms.AI,
+    aiVsNo: c(e5.compares.aiVsNo), perfVsNo: c(e5.compares.perfVsNo), aiVsKr: c(e5.compares.aiVsKr), p7tVsP7: c(e5.compares.p7tVsP7),
+    hhGap: { VENT_1H: pickV("VENT_1H"), VENT_3H: pickV("VENT_3H"), O2_STAT: pickV("O2_STAT") },
+    prereg: {
+      hit: e5.prereg.hit, total: e5.prereg.total,
+      missed: e5.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })),
+      notScored: e5.prereg.items.filter((x) => x.hit == null).map((x) => ({ id: x.id, text: x.text, value: x.value })),
+    },
+  };
+}
+
 // ---- 사전등록 나눔(레드팀 10/18): 결과 전 예측(1.x·H*·4.x)과 예비 실행 뒤 재현 확인(2.x·3.x·5.x)을 따로 센다 ----
 {
   const items = [
     ...(((score?.items ?? []) as { id: string; hit: boolean | null }[])),
     ...(((scoreE3?.items ?? []) as { id: string; hit: boolean | null }[])),
     ...(e4?.prereg.items ?? []),
+    ...(e5?.prereg.items ?? []),
   ];
   const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
   const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
-      before: { hit: pre.filter((x) => x.hit).length, total: pre.length },
+      before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
       afterPilot: { hit: post.filter((x) => x.hit).length, total: post.length },
     };
   }

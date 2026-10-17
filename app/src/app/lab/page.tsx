@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE, e4Evidence } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, e4Evidence, e5Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 import { pRange } from "@/lib/engine/params";
@@ -352,6 +352,47 @@ function Empirical() {
   );
 }
 
+function AiAndTarget() {
+  const e = e5Evidence();
+  if (!e) return <p className="mt-2 text-[14px]" data-testid="e5">AI 판독 기여·표적 배치: <strong>{BEFORE_MEASURE}</strong></p>;
+  const row = (cls: "VENT_1H" | "VENT_3H" | "O2_STAT") => {
+    const r = e.hhGap[cls];
+    return (
+      <tr key={cls} className="border-t border-line tabular-nums">
+        <th className="px-2 py-1 text-left font-normal">{CLASS_KO[cls]}</th>
+        <td className="px-2 py-1 text-right">{pct1(r["AI@RULE"])}</td><td className="px-2 py-1 text-right">{pct1(r["AI@RULE+P7"])}</td><td className="px-2 py-1 text-right font-bold">{pct1(r["AI@RULE+P7T"])}</td>
+      </tr>
+    );
+  };
+  const ci = (x: { rel: number | null; lo: number | null; hi: number | null }) => `${pct1(x.rel)}(95% CI ${pct1(x.lo)}~${pct1(x.hi)}, 추첨 오차만)`;
+  return (
+    <div data-testid="e5">
+      <p className="mt-1 text-[14px]">
+        ⑦과 같은 실측 정전 분포에서 {e.n.toLocaleString("ko-KR")}번, 한 시나리오 안에서 &lsquo;기종을 모르는 가구 비율&rsquo;만 바꿨습니다.
+        AI 판독 갈래는 봉인 시험셋에서 DB 등록 기종을 자동 확정하지 못한 비율({pct1(e.unknownRateAI)})만큼 수동검토로 보냅니다. 판독 없음 갈래는 모든 기종이 수동검토, 완전 판독 갈래는 0입니다.
+      </p>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px]">
+        <li>AI 판독은 판독 없음보다 공백 가구·시간을 {ci(e.aiVsNo)} 더 줄였습니다. 작습니다. 이 모형에는 수동검토 인력의 한도가 없고 검토 지연이 0.25~1시간이라, 판독이 없어도 공백이 크게 늘지 않습니다. AI의 몫은 공백보다 수동검토 부담(등록 기종의 {pct1(1 - e.unknownRateAI)} 자동 확정)이며, 이 업무량 효과는 모형 밖입니다.</li>
+        <li>판독이 늘 맞는 경우도 판독 없음과 차이가 없었습니다(감소율 {ci(e.perfVsNo)}). 모르는 기종을 가장 짧은 배터리로 보수 계산하는 설계가 판독 실패의 손해를 막기 때문입니다.</li>
+        <li>실측 판독 오류를 넣어도 도구는 현행 절차보다 공백 가구·시간을 {ci(e.aiVsKr)} 줄였습니다.</li>
+        <li>같은 양의 휴대용 배터리를 무작위가 아니라 등록 기록상 배터리 하한이 짧은 집부터 두면 공백 가구·시간이 {ci(e.p7tVsP7)} 더 줄고, 아래처럼 기기별 공백 비율이 바뀝니다. 짧은 기기는 줄고 3시간급은 늘어나는 맞바꿈입니다.</li>
+      </ul>
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+        <table className="w-full min-w-[420px] border-collapse text-[13px]">
+          <caption className="px-2 py-1 text-left text-[14px] font-bold">전원 공백이 생긴 가구 비율(모의, AI 판독 갈래)</caption>
+          <thead><tr className="text-muted"><th className="px-2 py-1 text-left font-normal">기기</th><th className="px-2 py-1 text-right font-normal">도구</th><th className="px-2 py-1 text-right font-normal">+ 무작위 사전 배치</th><th className="px-2 py-1 text-right font-normal">+ 기록 기반 표적 배치</th></tr></thead>
+          <tbody>{row("VENT_1H")}{row("O2_STAT")}{row("VENT_3H")}</tbody>
+        </table>
+      </div>
+      <p className="mt-1 text-[13px] text-muted">
+        사전등록(S7, 결과 전 봉인) {e.prereg.hit}/{e.prereg.total} 맞힘.{" "}
+        {e.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ")}
+        {e.prereg.notScored.length ? ` · 판정 불가 ${e.prereg.notScored.map((m) => m.id).join(", ")}(완전 판독이 판독 없음보다 낫지 않아 '이득'이 정의되지 않음)` : null}
+      </p>
+    </div>
+  );
+}
+
 export default function LabPage() {
   const d = lab();
   return (
@@ -364,6 +405,7 @@ export default function LabPage() {
         <a className="rounded border border-line px-2 py-0.5" href="#breakeven">① 손익분기</a>
         <a className="rounded border border-line px-2 py-0.5" href="#patches">④ 보완안</a>
         <a className="rounded border border-line px-2 py-0.5" href="#empirical">⑦ 실측 분포</a>
+        <a className="rounded border border-line px-2 py-0.5" href="#ai-target">⑧ AI 판독·표적 배치</a>
         <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
@@ -417,6 +459,9 @@ export default function LabPage() {
           </Section>
           <Section id="empirical" n="⑦" title="실측 정전시간으로 다시: 정부 집계 382건">
             <Empirical />
+          </Section>
+          <Section id="ai-target" n="⑧" title="AI 판독의 몫과 기록 기반 표적 배치">
+            <AiAndTarget />
           </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <Prereg d={d} />

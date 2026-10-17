@@ -44,8 +44,7 @@ describe("ops 세션", () => {
     expect(visible119Ids(s2)).toEqual([other.rec.householdId]);
     expect(purge119(s1)).toBe(s1);
     // 같은 가구를 파기 뒤 다시 119로 결정하면 다시 보인다
-    const fr = s1.result!.rows.find((r) => r.rec.householdId === first.rec.householdId)!;
-    const d2: Decision = { ...decisionFromRow(fr), lane: "FALLBACK_119", status: "MODIFIED", decidedAtS: s1.nowS };
+    const d2: Decision = { ...s1.decisions[first.rec.householdId], status: "MODIFIED", decidedAtS: s1.nowS };
     const a2: AuditEntry = { at: "t", actor: "demo-operator", householdId: first.rec.householdId, action: "MODIFY", from: { lane: "FALLBACK_119" }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "재결정 확인용" };
     expect(visible119Ids(commitDecision(s1, d2, a2))).toContain(first.rec.householdId);
   });

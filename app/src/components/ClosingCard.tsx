@@ -1,6 +1,6 @@
 // 끝 카드 (spec.md 12.3절, 라운드 5 '끝 카드'). evidence.json만 읽는다. 측정 전이면 「측정 전」으로 표시하고 숫자를 하드코딩하지 않는다.
 // 관문 2를 통과하지 못했으면 비교 문장을 싣지 않는다(대체안의 C1·C2 실측은 아직 없으므로 「측정 전」).
-import { BEFORE_MEASURE, labHeadline } from "@/lib/evidence";
+import { BEFORE_MEASURE, e5Evidence, labHeadline } from "@/lib/evidence";
 import { CLASS_KO, CLASS_ORDER } from "@/lib/lab";
 import { pRange } from "@/lib/engine/params";
 import type { GenClass } from "@/lib/sim/labels";
@@ -18,6 +18,8 @@ export function ClosingCard() {
   const h = labHeadline();
   const ok = h && h.gate2?.pass !== false;
   const hpr = pRange("sweep.hhPerResource");
+  const e5 = e5Evidence();
+  const v1 = e5?.hhGap.VENT_1H;
   return (
     <section data-testid="closing-card" aria-label="끝 카드" className="rounded-xl border border-line bg-paper p-5">
       {h && ok ? (
@@ -49,6 +51,11 @@ export function ClosingCard() {
           같은 정전을 여러 번 다시 돌린 결과: <strong>{BEFORE_MEASURE}</strong>
         </p>
       )}
+      {v1 && v1["AI@RULE"] != null && v1["AI@RULE+P7"] != null && v1["AI@RULE+P7T"] != null ? (
+        <p className="mt-3 text-[15px] leading-6" data-testid="closing-e5">
+          1시간급 인공호흡기 가구 중 공백이 생긴 비율(실측 정전 분포 모의): 정전 뒤 배정 {pct(v1["AI@RULE"])} → 휴대용 배터리 무작위 사전 배치 {pct(v1["AI@RULE+P7"])} → 같은 양을 등록 기록상 배터리가 짧은 집부터 {pct(v1["AI@RULE+P7T"])}.
+        </p>
+      ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">
         1시간급 인공호흡기 가구에는 정전 뒤 배정이 닿지 않았습니다(모의). 남은 일은 등록 기록으로 사전 배치 대상을 정전 전에 고르는 것입니다.
       </p>

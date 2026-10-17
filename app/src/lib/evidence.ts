@@ -86,3 +86,16 @@ export interface E4Evidence {
 export function e4Evidence(): E4Evidence | null {
   return (doc as unknown as { e4?: E4Evidence }).e4 ?? null;
 }
+
+/** E5: AI 판독 기여·기록 기반 표적 사전 배치(S7 봉인 실행) */
+type Rel = { rel: number | null; lo: number | null; hi: number | null };
+type ByArm = { "AI@RULE": number | null; "AI@RULE+P7": number | null; "AI@RULE+P7T": number | null };
+export interface E5Evidence {
+  n: number; unknownRateAI: number;
+  aiVsNo: Rel; perfVsNo: Rel; aiVsKr: Rel; p7tVsP7: Rel;
+  hhGap: { VENT_1H: ByArm; VENT_3H: ByArm; O2_STAT: ByArm };
+  prereg: { hit: number; total: number; missed: { id: string; text: string; value: string }[]; notScored: { id: string; text: string; value: string }[] };
+}
+export function e5Evidence(): E5Evidence | null {
+  return (doc as unknown as { e5?: E5Evidence }).e5 ?? null;
+}
