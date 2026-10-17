@@ -42,7 +42,7 @@ python -I oracle/run_tests.py                                            # 손�
   metrics: { M1, M2S, highRisk, gapS: {<id>: s}, serveSource: {<id>: RESTORE|RESOURCE|119|SHELTER} } }
 ```
 
-`diff.py` 통과 기준(8절): 가구별 `lane`·`resourceId`·`order`와 `M1`·`M2S`가 정확히 같다. `order`는 결정 시점을 가로지르는 전역 처리 순번이며 MANUAL_REVIEW·HOLD는 `null`이다.
+`diff.py` 통과 기준(8절): 가구별 `lane`·`resourceId`·`order`와 `M1`·`M2S`가 정확히 같다. 하한 `L`(status·hoursS·endS·capS·flags)까지 비교하는 정본 비교기는 `app/scripts/diff-oracle.ts`이고, 보고서의 553/553은 그 결과다. `order`는 결정 시점을 가로지르는 전역 처리 순번이며 MANUAL_REVIEW·HOLD는 `null`이다.
 
 ## 호출 규약 필드 (Phase 2.5)
 

@@ -26,6 +26,8 @@ describe("운영자 확인 저장 규칙 (1.4절, I2·I3)", () => {
   it("VERIFY_AGE: 근거 텍스트 필수", () => {
     expect(verifyAgePayloadSchema.safeParse({ batteryAgeY: 1 }).success).toBe(false);
     expect(verifyAgePayloadSchema.safeParse({ batteryAgeY: 1, basis: "구입 기록" }).success).toBe(true);
+    expect(verifyAgePayloadSchema.safeParse({ batteryAgeY: Number.NaN, basis: "구입 기록" }).success).toBe(false);
+    expect(verifyAgePayloadSchema.safeParse({ batteryAgeY: 99, basis: "구입 기록" }).success).toBe(false);
   });
   it("AuditEntry: 수정은 사유 필수, system은 HOLD_EXPIRED·RECHECK_FLAG만", () => {
     expect(auditEntryRuleSchema.safeParse({ actor: "demo-operator", action: "MODIFY", reasonCode: "X", reasonText: "짧음" }).success).toBe(false);

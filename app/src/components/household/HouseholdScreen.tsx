@@ -45,7 +45,7 @@ export function HouseholdScreen() {
       const b64 = await shrink(f);
       if (b64.length > 2 * 1024 * 1024) { setMsg("이미지가 너무 큽니다"); return; }
       setImg(`data:image/jpeg;base64,${b64}`);
-      const r = await fetch("/api/vision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageBase64: b64, ...(code ? { accessCode: code } : {}) }) });
+      const r = await fetch("/api/vision", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageBase64: b64, consent: { synthetic: ok1, overseas: ok2 }, ...(code.replace(/\s+/g, "") ? { accessCode: code.replace(/\s+/g, "") } : {}) }) });
       const j = await r.json();
       if (j.mode === "replay") { setMsg(j.message); setTab("sample"); return; }
       if (!r.ok || !j.ok) { setMsg(j.message ?? `판독 실패(${j.error ?? j.reason})`); return; }
@@ -85,7 +85,7 @@ export function HouseholdScreen() {
           <p className="text-gap">이 서비스는 이미지를 저장하지 않습니다. 판독을 위해 국외 AI 사업자(Anthropic, 미국) API로 전송되며, 해당 사업자 정책에 따라 최대 30일(정책 위반으로 분류되면 최대 2년) 보관될 수 있습니다(<a className="underline" href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" target="_blank" rel="noreferrer">정책</a>). 실제 환자 라벨·성명·시리얼은 올리지 마세요.</p>
           <label className="mt-2 flex gap-2"><input type="checkbox" checked={ok1} onChange={(e) => setOk1(e.target.checked)} />합성 라벨이거나 환자가 쓰지 않는 기기의 라벨입니다</label>
           <label className="mt-1 flex gap-2"><input type="checkbox" checked={ok2} onChange={(e) => setOk2(e.target.checked)} />국외 전송에 동의합니다</label>
-          <label className="mt-2 block">심사용 접근 코드(선택) <input className="ml-1 w-56 rounded border border-line px-1" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" /></label>
+          <label className="mt-2 block">심사용 접근 코드(선택) <input type="password" className="ml-1 w-56 rounded border border-line px-1" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" /></label>
           <input className="mt-2 block" type="file" accept="image/jpeg,image/png,image/webp" disabled={!ok1 || !ok2 || busy} data-testid="upload-input"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }} />
           {busy ? <p className="mt-1">판독 중…</p> : null}

@@ -155,17 +155,27 @@ function VerifyForms({ householdId }: { householdId: string }) {
   const lbd = computeLowerBoundDetail(hh, DB);
   const [msg, setMsg] = useState<string | null>(null);
   const [reason, setReason] = useState("");
-  const [num, setNum] = useState("");
-  const [num2, setNum2] = useState("");
+  // 칸마다 상태를 따로 둔다(한 칸 입력이 다른 칸으로 새지 않게)
+  const [mrH, setMrH] = useState("");
+  const [cylN, setCylN] = useState("");
+  const [cylH, setCylH] = useState("");
+  const [extN, setExtN] = useState("");
+  const [ageY, setAgeY] = useState("");
   const [spec, setSpec] = useState("");
   const [charge, setCharge] = useState(false);
   const hint = s.reviewHints[householdId];
+  /** 빈 칸·숫자 아님은 0으로 바꾸지 않고 거부한다(빈 연식이 0년으로 저장되면 하한이 올라간다) */
+  function num(raw: string, label: string): number | null {
+    const t = raw.trim();
+    if (t === "" || !Number.isFinite(Number(t))) { setMsg(`저장 불가: ${label}을(를) 숫자로 입력하세요`); return null; }
+    return Number(t);
+  }
   function run(v: VerifyInput) {
     const out = applyVerify(s, v);
     if (!out.ok) { setMsg(`저장 불가: ${out.error}`); return; }
     update(() => out.session);
     setMsg("저장했습니다. 다시 계산했습니다.");
-    setReason(""); setNum(""); setNum2("");
+    setReason(""); setMrH(""); setCylN(""); setCylH(""); setExtN(""); setAgeY("");
   }
   const isMr = lbd.lb.status === "MANUAL_REVIEW";
   const extIdx = hh.ext.findIndex((e) => e.extSpecId != null && !e.opVerified);
@@ -186,36 +196,39 @@ function VerifyForms({ householdId }: { householdId: string }) {
                 {[...DB.devices.values()].map((d) => <option key={d.specId} value={d.specId}>{d.manufacturer} {d.model}</option>)}
               </select>
               <span>또는 보수 하한</span>
-              <input className="w-16 rounded border border-line p-1" inputMode="decimal" value={num} onChange={(e) => setNum(e.target.value)} aria-label="보수 하한 시간" />h
+              <input className="w-16 rounded border border-line p-1" inputMode="decimal" value={mrH} onChange={(e) => setMrH(e.target.value)} aria-label="보수 하한 시간" />h
               <button type="button" className="rounded border border-ink px-2 py-0.5" data-testid="mr-done"
-                onClick={() => run({ action: "MANUAL_REVIEW_DONE", householdId, specId: spec || undefined, operatorLowerH: spec ? undefined : Number(num), reasonText: reason })}>완료</button>
+                onClick={() => {
+                  if (spec) { run({ action: "MANUAL_REVIEW_DONE", householdId, specId: spec, reasonText: reason }); return; }
+                  const h = num(mrH, "보수 하한"); if (h != null) run({ action: "MANUAL_REVIEW_DONE", householdId, operatorLowerH: h, reasonText: reason });
+                }}>완료</button>
             </div>
           </div>
         )}
         {extIdx >= 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <span>외장 확인({hh.ext[extIdx].extSpecId}, 신고 {hh.ext[extIdx].declaredCount}개)</span>
-            <input className="w-12 rounded border border-line p-1" inputMode="numeric" value={num2} onChange={(e) => setNum2(e.target.value)} aria-label="확인 개수" />개
+            <input className="w-12 rounded border border-line p-1" inputMode="numeric" value={extN} onChange={(e) => setExtN(e.target.value)} aria-label="확인 개수" />개
             <label className="flex items-center gap-1"><input type="checkbox" checked={charge} onChange={(e) => setCharge(e.target.checked)} />충전 표시 직접 확인</label>
             <button type="button" className="rounded border border-ink px-2 py-0.5" data-testid="verify-ext"
-              onClick={() => run({ action: "VERIFY_EXT", householdId, extIndex: extIdx, count: Number(num2), chargeConfirmed: charge, reasonText: reason })}>저장</button>
+              onClick={() => { const c = num(extN, "확인 개수"); if (c != null) run({ action: "VERIFY_EXT", householdId, extIndex: extIdx, count: c, chargeConfirmed: charge, reasonText: reason }); }}>저장</button>
           </div>
         )}
         {hh.cylinder?.declared && !hh.cylinder.opVerified && (
           <div className="flex flex-wrap items-center gap-2">
             <span>실린더 확인</span>
-            <input className="w-12 rounded border border-line p-1" inputMode="numeric" value={num2} onChange={(e) => setNum2(e.target.value)} aria-label="실린더 개수" />개
-            <input className="w-14 rounded border border-line p-1" inputMode="decimal" value={num} onChange={(e) => setNum(e.target.value)} aria-label="실린더 하한 시간" />h
+            <input className="w-12 rounded border border-line p-1" inputMode="numeric" value={cylN} onChange={(e) => setCylN(e.target.value)} aria-label="실린더 개수" />개
+            <input className="w-14 rounded border border-line p-1" inputMode="decimal" value={cylH} onChange={(e) => setCylH(e.target.value)} aria-label="실린더 하한 시간" />h
             <button type="button" className="rounded border border-ink px-2 py-0.5" data-testid="verify-cyl"
-              onClick={() => run({ action: "VERIFY_CYL", householdId, count: Number(num2), hoursLo: Number(num), reasonText: reason })}>저장</button>
+              onClick={() => { const c = num(cylN, "실린더 개수"); const h = c == null ? null : num(cylH, "실린더 하한 시간"); if (c != null && h != null) run({ action: "VERIFY_CYL", householdId, count: c, hoursLo: h, reasonText: reason }); }}>저장</button>
           </div>
         )}
         {!isMr && hh.device.batteryAgeY == null && (
           <div className="flex flex-wrap items-center gap-2">
             <span>연식 확인(대여·구입 기록)</span>
-            <input className="w-14 rounded border border-line p-1" inputMode="decimal" value={num} onChange={(e) => setNum(e.target.value)} aria-label="배터리 연식(년)" />년
+            <input className="w-14 rounded border border-line p-1" inputMode="decimal" value={ageY} onChange={(e) => setAgeY(e.target.value)} aria-label="배터리 연식(년)" />년
             <button type="button" className="rounded border border-ink px-2 py-0.5" data-testid="verify-age"
-              onClick={() => run({ action: "VERIFY_AGE", householdId, batteryAgeY: Number(num), reasonText: reason })}>저장</button>
+              onClick={() => { const y = num(ageY, "배터리 연식"); if (y != null) run({ action: "VERIFY_AGE", householdId, batteryAgeY: y, reasonText: reason }); }}>저장</button>
           </div>
         )}
         {hh.device.specBy === "ai_label_user_confirmed" && (

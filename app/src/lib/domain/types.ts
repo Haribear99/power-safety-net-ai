@@ -110,7 +110,8 @@ export interface AuditEntry {
   at: string; actor: "demo-operator" | "system"; householdId: string;   // system은 HOLD_EXPIRED·RECHECK_FLAG만
   action: "APPROVE" | "MODIFY" | "VERIFY_EXT" | "VERIFY_CYL" | "VERIFY_AGE" | "VERIFY_MODEL" | "MANUAL_REVIEW_DONE" | "HOLD_EXPIRED"
     | "RECHECK_FLAG"                        // 승인 행의 feasible·도착 조건 위반 감지(1.4절 재계산)
-    | "POWER_SUPPLIED";                     // 자원 도착·복구 확인. 재신고로 L_end가 늘 수 있는 유일한 예외(3.9절)
+    | "POWER_SUPPLIED"                      // 자원 도착·복구 확인. 재신고로 L_end가 늘 수 있는 유일한 예외(3.9절)
+    | "PURGE_119";                          // /ops/119 표시분 파기(재난안전법 제74조의3⑤). 운영 결정 기록은 감사용으로 남는다
   from: { lane: Lane; resourceId?: string }; to: { lane: Lane; resourceId?: string };
   reasonCode?: string; reasonText?: string;  // MODIFY·VERIFY_*·MANUAL_REVIEW_DONE은 필수
   payload?: { extSpecId?: string; count?: number; hoursLo?: number; specId?: string; operatorLowerH?: number; basis?: string;

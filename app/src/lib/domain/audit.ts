@@ -33,7 +33,7 @@ export function verifyExtPayloadSchema(hh: HouseholdView, extIndex: number, ctx:
 /** 「실린더 확인」: declared === true ∧ hoursLo ≤ 10h × count */
 export function verifyCylPayloadSchema(hh: HouseholdView, ctx: VerifyContext) {
   return z
-    .object({ count: z.number().int().min(1), hoursLo: z.number().nonnegative() })
+    .object({ count: z.number().int().min(1), hoursLo: z.number().finite().nonnegative() })
     .strict()
     .refine(() => hh.cylinder?.declared === true, { message: "실린더를 신고한 가구만" })
     .refine((p) => p.hoursLo <= ctx.cylHoursLoPerUnitH * p.count, { message: "hoursLo ≤ 10h × count" });
@@ -41,7 +41,7 @@ export function verifyCylPayloadSchema(hh: HouseholdView, ctx: VerifyContext) {
 
 /** 「연식 확인」: 근거 텍스트 필수 */
 export const verifyAgePayloadSchema = z
-  .object({ batteryAgeY: z.number().nonnegative(), basis: z.string().trim().min(1) })
+  .object({ batteryAgeY: z.number().finite().min(0).max(30), basis: z.string().trim().min(1) })
   .strict();
 
 const REASON_REQUIRED = new Set(["MODIFY", "VERIFY_EXT", "VERIFY_CYL", "VERIFY_AGE", "VERIFY_MODEL", "MANUAL_REVIEW_DONE"]);

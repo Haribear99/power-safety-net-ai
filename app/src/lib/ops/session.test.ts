@@ -5,7 +5,7 @@ import { project119 } from "../alloc/project119";
 import { qT } from "../engine/quantize";
 import type { AuditEntry } from "../domain/types";
 import {
-  applyVerify, commitDecision, decisionFromRow, lEndH, modifyOptions, newSession, recompute, reReport, setNotice, start,
+  applyVerify, commitDecision, decisionFromRow, lEndH, modifyOptions, newSession, purge119, recompute, reReport, setNotice, start, visible119Ids,
   type Decision, type Session, type UiPreset,
 } from "./session";
 
@@ -29,6 +29,20 @@ describe("ops 세션", () => {
     expect(s0.result!.rows).toHaveLength(preset.planner.households.length);
     expect(new Set(s0.result!.rows.map((r) => r.status))).toEqual(new Set(["PROPOSED"]));
     expect(Object.keys(s0.decisions)).toHaveLength(0);
+  });
+
+  it("119 파기는 그 시점 표시분만 지우고 감사 행을 남기며, 파기 뒤 새 119 결정은 다시 보인다", () => {
+    const rows = s0.result!.rows;
+    const first = rows.find((r) => r.rec.lane === "FALLBACK_119")!;
+    const s1 = purge119(approve(s0, first.rec.householdId));
+    expect(visible119Ids(s1)).toEqual([]);
+    expect(s1.audit.filter((a) => a.action === "PURGE_119").map((a) => a.householdId)).toEqual([first.rec.householdId]);
+    const other = rows.find((r) => r.rec.householdId !== first.rec.householdId)!;
+    const d: Decision = { ...decisionFromRow(other), lane: "FALLBACK_119", status: "MODIFIED", decidedAtS: s1.nowS };
+    const a: AuditEntry = { at: "t", actor: "demo-operator", householdId: other.rec.householdId, action: "MODIFY", from: { lane: other.rec.lane }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "현장 요청으로 119" };
+    const s2 = commitDecision(s1, d, a);
+    expect(visible119Ids(s2)).toEqual([other.rec.householdId]);
+    expect(purge119(s1)).toBe(s1);
   });
 
   it("승인 전 119 화면은 비고, 119 레인 승인 뒤 정확히 3필드 1행", () => {

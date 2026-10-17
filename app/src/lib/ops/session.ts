@@ -55,8 +55,8 @@ export interface Session {
   result: AllocResult | null;
   restoration: RestorationDetail | null;
   audit: AuditEntry[];
-  /** /ops/119 파기 여부(재난안전법 제74조의3⑤) */
-  purged119: boolean;
+  /** /ops/119에서 파기한 가구 id(재난안전법 제74조의3⑤). 파기 뒤 새로 승인한 119 건은 다시 보인다 */
+  purged119Ids: string[];
   auditSeq: number;
 }
 
@@ -71,7 +71,7 @@ export function newSession(preset: UiPreset): Session {
   });
   return {
     preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: {},
-    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119: false, auditSeq: 0,
+    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0,
   };
 }
 
@@ -157,7 +157,7 @@ export function recompute(s0: Session, nowS: number = s0.nowS): Session {
 }
 
 export function start(s: Session): Session {
-  return recompute({ ...s, started: true, purged119: false });
+  return recompute({ ...s, started: true, purged119Ids: [] });
 }
 
 // ---------- 승인 서랍이 쓰는 결정 저장 ----------
@@ -272,7 +272,9 @@ export function applyVerify(s: Session, v: VerifyInput): VerifyOutcome {
       if (!DB.devices.has(v.specId)) return { ok: false, error: "DB에 없는 기종" };
       next = { ...hh, device: { ...hh.device, specId: v.specId, specBy: "operator" } };
       payload = { specId: v.specId };
-    } else if (v.operatorLowerH != null && v.operatorLowerH > 0) {
+    } else if (v.operatorLowerH != null && Number.isFinite(v.operatorLowerH) && v.operatorLowerH > 72) {
+      return { ok: false, error: "보수 하한은 72시간 이하로 입력하세요(시뮬레이션 상한과 같음)" };
+    } else if (v.operatorLowerH != null && Number.isFinite(v.operatorLowerH) && v.operatorLowerH > 0) {
       next = { ...hh, device: { ...hh.device, operatorLowerH: { hours: v.operatorLowerH, basis: v.reasonText, auditId } } };
       payload = { operatorLowerH: v.operatorLowerH, basis: v.reasonText };
     } else {
@@ -305,8 +307,20 @@ export function setNotice(s: Session, n: Notice | null): Session {
   return recompute({ ...s, notice: n });
 }
 
+/** 119 연계 화면 파기: 그 시점에 보이는 FALLBACK_119 건만 지우고 가구마다 감사 행을 남긴다 */
 export function purge119(s: Session): Session {
-  return { ...s, purged119: true };
+  const ids = visible119Ids(s);
+  if (ids.length === 0) return s;
+  const at = nowIso(s);
+  return pushAudit({ ...s, purged119Ids: [...s.purged119Ids, ...ids] }, ids.map((householdId) => ({
+    at, actor: "demo-operator" as const, householdId, action: "PURGE_119" as const,
+    from: { lane: "FALLBACK_119" as const }, to: { lane: "FALLBACK_119" as const }, reasonText: "재난 대응 종료 파기(119 연계 화면 표시분)",
+  })));
+}
+
+/** /ops/119에 보일 가구 id: 운영자가 결정한 FALLBACK_119 중 파기하지 않은 것 */
+export function visible119Ids(s: Session): string[] {
+  return Object.values(s.decisions).filter((d) => d.lane === "FALLBACK_119" && !s.purged119Ids.includes(d.householdId)).map((d) => d.householdId);
 }
 
 // ---------- 표시 보조 ----------

@@ -41,6 +41,9 @@ export function accessCodeOk(code: string | null | undefined, env = process.env.
   return ok;
 }
 
+/** 코드별 제한 키: 코드 원문 대신 sha256 앞 12자(키·로그에 코드가 남지 않게) */
+export const codeKey = (code: string) => createHash("sha256").update(code).digest("hex").slice(0, 12);
+
 /** 시간 창 카운터(INCR + EXPIRE). 한도를 넘으면 false */
 export async function hit(be: UpstashBackend, key: string, limit: number, ttlSec: number): Promise<boolean> {
   const n = Number(await be.raw(["INCR", key]));

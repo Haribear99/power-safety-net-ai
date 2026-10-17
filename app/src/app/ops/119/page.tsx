@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { project119 } from "@/lib/alloc/project119";
 import { sToH } from "@/lib/engine/quantize";
-import { lEndH, purge119 } from "@/lib/ops/session";
+import { lEndH, purge119, visible119Ids } from "@/lib/ops/session";
 import { useOps } from "@/components/ops/OpsProvider";
 
 export default function Page119() {
   const { session, update, presetId } = useOps();
-  const rows = session && !session.purged119
-    ? project119(Object.values(session.decisions).map((d) => ({
+  const shown = session ? new Set(visible119Ids(session)) : new Set<string>();
+  const rows = session
+    ? project119(Object.values(session.decisions).filter((d) => shown.has(d.householdId)).map((d) => ({
       householdId: d.householdId, lane: d.lane, status: d.status, lEndH: lEndH(session.households.find((h) => h.id === d.householdId)!),
     })), session.households, session.preset.meta.baseIso)
     : [];
@@ -46,7 +47,7 @@ export default function Page119() {
         </ul>
       )}
       <div className="mt-6 rounded-lg bg-paper p-3 text-[14px]">
-        <p>재난 대응 종료 시 파기(재난안전법 제74조의3⑤)</p>
+        <p>재난 대응 종료 시 파기(재난안전법 제74조의3⑤). 지금 보이는 건만 지우고 감사 기록에 남깁니다. 이후 새로 승인한 건은 다시 보입니다.</p>
         <button type="button" className="mt-2 rounded border border-gap px-3 py-1 font-semibold text-gap disabled:opacity-40" disabled={!session || rows.length === 0}
           onClick={() => update(purge119)} data-testid="purge-119">파기</button>
       </div>
