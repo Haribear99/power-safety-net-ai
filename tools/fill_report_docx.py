@@ -21,7 +21,7 @@ def part1(md: str) -> dict:
         out[f] = re.sub(r"\*\*(.+?)\*\*", r"\1", seg).replace("`", "")  # 마크다운 굵게·백틱 제거(양식은 일반 글)
     return out
 
-URL_RE = re.compile(r"https?://\S+")
+URL_RE = re.compile(r"https?://[^\s)]+[^\s).,]")  # 끝의 닫는 괄호·마침표는 링크에서 뺀다
 
 def add_hyperlink(para, url: str, rpr):
     """문단에 외부 링크 run을 붙인다(PDF에서도 링크 주석이 생기게)."""

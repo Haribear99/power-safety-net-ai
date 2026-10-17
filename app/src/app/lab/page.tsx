@@ -357,7 +357,8 @@ function AiAndTarget() {
   if (!e || !g) return <p className="mt-2 text-[14px]" data-testid="e5">AI 판독 기여·표적 배치: <strong>{BEFORE_MEASURE}</strong></p>;
   const ci = (x: { rel: number | null; lo: number | null; hi: number | null }) => `${pct1(x.rel)}(95% CI ${pct1(x.lo)}~${pct1(x.hi)}, 추첨 오차만)`;
   const sig = (x: { lo: number | null; hi: number | null }) => x.lo != null && x.hi != null && (x.lo > 0 || x.hi < 0);
-  const aiClear = sig(e.aiVsNo) && e.aiVsNo.rel! > 0 && e.perfVsNo.rel != null && e.perfVsNo.rel > 0;
+  // 판독 정확도 효과로 읽으려면 AI·완전 판독이 둘 다 판독 없음보다 유의하게 낫고, 완전 판독이 AI보다 못하지 않아야 한다(단조)
+  const aiClear = sig(e.aiVsNo) && e.aiVsNo.rel! > 0 && sig(e.perfVsNo) && e.perfVsNo.rel! > 0 && e.perfVsNo.rel! >= e.aiVsNo.rel!;
   const ocr = c1?.tesseract ? pct1(c1.tesseract.dbMatchRate.k / c1.tesseract.dbMatchRate.n) : BEFORE_MEASURE;
   const KO: Record<string, string> = { VENT_1H: "1시간급 인공호흡기", VENT_3H: "3시간급 인공호흡기", VENT_8H: "8시간급 인공호흡기", VENT_8H_EXT2: "8시간급 + 외장", O2_STAT: "거치형 산소(배터리 없음)", O2_PORT: "휴대형 산소", O2_STAT_CYL: "거치형 산소 + 실린더" };
   const order = ["VENT_1H", "O2_STAT", "VENT_3H", "O2_PORT", "VENT_8H", "VENT_8H_EXT2", "O2_STAT_CYL"].filter((k) => g.hhGap[k]);
@@ -380,7 +381,7 @@ function AiAndTarget() {
       </p>
       <h3 className="mt-4 text-[16px] font-bold">기록 기반 표적 사전 배치(E6, 봉인 S8)</h3>
       <p className="mt-1 text-[14px]">
-        같은 양의 휴대용 배터리(보급률 가정)를 무작위가 아니라 정전 전 등록부 정보(기종 사양·연식·외장 신고, 충전량 모름)로 계산한 배터리 하한이 짧은 집부터 두었습니다.
+        같은 양의 휴대용 배터리(보급률 가정)를 무작위가 아니라 정전 전 등록부 정보(기종 사양·연식·외장 신고, 충전량 모름. 기종은 평시 수동검토로 모두 확인됐다고 가정)로 계산한 배터리 하한이 짧은 집부터 두었습니다.
         무작위보다 공백 가구·시간이 {ci(g.preVsRand)}{sig(g.preVsRand) && g.preVsRand.rel! > 0 ? " 더 줄었습니다" : " 달라졌습니다(유의하지 않음)"}.
         정전 중 신고 시각·충전량까지 알고 고르면(낙관 상한, E5 방식) {ci(g.outVsRand)}입니다.
       </p>
@@ -399,7 +400,7 @@ function AiAndTarget() {
       </div>
       <p className="mt-1 text-[13px]">▲ = 표적 배치로 오히려 늘어난 기기({g.worse.map((k) => KO[k] ?? k).join(", ")}). 배터리가 짧은 집에 몰아주는 맞바꿈입니다.</p>
       <p className="mt-1 text-[13px] text-muted">
-        예측(S8, 예측 커밋 뒤 실행) {g.prereg.hit}/{g.prereg.total} 맞힘.{g.prereg.missed.length ? " " + g.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ") : ""}
+        예측(S8, 예측 커밋 뒤 실행) {g.prereg.hit}/{g.prereg.total} 맞힘. 단 레드팀이 봉인 E5 시드 400추첨으로 같은 평시 순위의 효과를 먼저 보고한 뒤 쓴 예측이라 &lsquo;실행 전 예측&rsquo;이 아니라 &lsquo;사전 분석 뒤 확인&rsquo;으로 셉니다.{g.prereg.missed.length ? " " + g.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ") : ""}
       </p>
     </div>
   );

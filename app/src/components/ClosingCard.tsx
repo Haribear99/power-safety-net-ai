@@ -6,6 +6,7 @@ import { pRange } from "@/lib/engine/params";
 import type { GenClass } from "@/lib/sim/labels";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
+const WORSE_KO: Record<string, string> = { VENT_1H: "1시간급 인공호흡기", VENT_3H: "3시간급 인공호흡기", VENT_8H: "8시간급 인공호흡기", VENT_8H_EXT2: "8시간급+외장", O2_STAT: "거치형 산소", O2_PORT: "휴대형 산소", O2_STAT_CYL: "거치형 산소+실린더" };
 
 /** ROBUST 쌍 → 「기기(정전 원인 k종)」 요약. 기기 순서는 CLASS_ORDER, 칸별 상세는 /lab 빈틈 지도 */
 export function robustPhrase(pairs: { cls: string; cause: string }[]): string {
@@ -52,8 +53,9 @@ export function ClosingCard() {
       )}
       {g && g.hhGap.VENT_1H?.rand != null && g.hhGap.VENT_1H?.pre != null ? (
         <p className="mt-3 text-[15px] leading-6" data-testid="closing-e5">
-          1시간급 인공호흡기 가구 중 공백이 생긴 비율(실측 정전 분포 모의): 휴대용 배터리 무작위 사전 배치 {pct(g.hhGap.VENT_1H.rand)} → 같은 양을 정전 전 등록 정보상 배터리가 짧은 집부터 {pct(g.hhGap.VENT_1H.pre)}.
-          {g.preVsRand.rel != null ? <> 전체 공백 가구·시간은 무작위보다 {pct(g.preVsRand.rel)} 더 줄고, 대신 {g.worse.length}개 기기(3·8시간급 인공호흡기 등)는 늘어나는 맞바꿈입니다.</> : null}
+          1시간급 인공호흡기 가구 중 공백이 생긴 비율(실측 정전 분포 모의): 휴대용 배터리 무작위 사전 배치 {pct(g.hhGap.VENT_1H.rand)} → 같은 양을 정전 전 등록 정보(평시 검토로 기종 확인 가정)상 배터리가 짧은 집부터 {pct(g.hhGap.VENT_1H.pre)}.
+          {g.preVsRand.rel != null && g.preVsRand.lo != null && g.preVsRand.rel > 0 && g.preVsRand.lo > 0 ? <> 전체 공백 가구·시간은 무작위보다 {pct(g.preVsRand.rel)} 더 줄고</> : <> 전체 공백 가구·시간은 무작위와 뚜렷한 차이가 없고</>}
+          {g.worse.length ? <>, 대신 {g.worse.length}개 기기({g.worse.map((k) => WORSE_KO[k] ?? k).join("·")})는 늘어나는 맞바꿈입니다.</> : <>.</>}
         </p>
       ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">

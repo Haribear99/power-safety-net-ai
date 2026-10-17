@@ -228,7 +228,8 @@ if (e6) {
   };
 }
 
-// ---- 사전등록 나눔(레드팀 10/18): 결과 전 예측(1.x·H*·4.x)과 예비 실행 뒤 재현 확인(2.x·3.x·5.x)을 따로 센다 ----
+// ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----
+// 7.x(E6)는 레드팀 3라운드가 봉인 E5 시드 400추첨으로 같은 평시 순위의 효과를 먼저 보고한 뒤 쓴 예측이라 '확인' 쪽에 넣는다(레드팀 4라운드)
 {
   const items = [
     ...(((score?.items ?? []) as { id: string; hit: boolean | null }[])),
@@ -237,11 +238,11 @@ if (e6) {
     ...(e5?.prereg.items ?? []),
     ...(e6?.prereg.items ?? []),
   ];
-  const pre = items.filter((x) => /^(1\.|H|4\.|6\.|7\.)/.test(x.id) && x.hit != null);
-  const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);
+  const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
+  const post = items.filter((x) => /^(2\.|3\.|5\.|7\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
-      before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.|7\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
+      before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
       afterPilot: { hit: post.filter((x) => x.hit).length, total: post.length },
     };
   }
