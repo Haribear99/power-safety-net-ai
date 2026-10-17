@@ -68,7 +68,22 @@ pr("4.3", "VENT_1H RULE 표지 p ≥ 0.5", v1 ? v1.p >= 0.5 : null, v1 ? v1.p.to
 pr("4.4", "VENT_8H RULE 표지 p ≤ 0.3", v8 ? v8.p <= 0.3 : null, v8 ? v8.p.toFixed(3) : "없음");
 pr("4.5", "VENT_3H 표지 p(RULE+P7) < p(RULE)", v3 && v3p ? v3p.p < v3.p : null, v3 && v3p ? `${v3p.p.toFixed(3)} < ${v3.p.toFixed(3)}` : "없음");
 pr("4.6", "RULE 대 KR_BASELINE M2 감소율 점추정 5%~30%", ruleVsKr.rel != null && ruleVsKr.rel >= 0.05 && ruleVsKr.rel <= 0.3, pc(ruleVsKr.rel));
-// 2절(예비 실행 뒤) 예측은 S6 봉인 전에 아래에 덧붙인다
+// 2절(예비 실행 E4-dev 200추첨을 본 뒤, S6 봉인 전)
+const hh = hhRates();
+const rate = (cls: string, v: string) => hh[cls]?.[v]?.rate ?? null;
+const relOfV = (v: string) => patchEffects.find((e) => e.variant === v)?.rel ?? null;
+const dpp = (a: number | null, b: number | null) => (a == null || b == null ? null : a - b);
+pr("5.1", "RULE 대 KR_BASELINE M2 감소율 점추정 12%~23%", ruleVsKr.rel != null && ruleVsKr.rel >= 0.12 && ruleVsKr.rel <= 0.23, pc(ruleVsKr.rel));
+const d1t = dpp(rate("VENT_1H", "KR_BASELINE"), rate("VENT_1H", "RULE"));
+pr("5.2", "VENT_1H 가구 공백률: 현행 − 도구 < 3%p(도구 단독으로는 1시간급 공백 가구 비율이 거의 줄지 않음)", d1t == null ? null : d1t < 0.03, d1t == null ? "없음" : `${(d1t * 100).toFixed(1)}%p`);
+const d1p = dpp(rate("VENT_1H", "RULE"), rate("VENT_1H", "RULE+P7"));
+pr("5.3", "VENT_1H 가구 공백률: 도구 − (도구+P7) ≥ 10%p", d1p == null ? null : d1p >= 0.1, d1p == null ? "없음" : `${(d1p * 100).toFixed(1)}%p`);
+const d3p = dpp(rate("VENT_3H", "RULE"), rate("VENT_3H", "RULE+P7"));
+pr("5.4", "VENT_3H 가구 공백률: 도구 − (도구+P7) ≥ 8%p", d3p == null ? null : d3p >= 0.08, d3p == null ? "없음" : `${(d3p * 100).toFixed(1)}%p`);
+pr("5.5", "RULE+P7 대 RULE M2 감소율 점추정 8%~17%", p7.rel != null && p7.rel >= 0.08 && p7.rel <= 0.17, pc(p7.rel));
+pr("5.6", "KR_BASELINE+P1 M2 감소율 ≤ 0", relOfV("KR_BASELINE+P1") != null ? relOfV("KR_BASELINE+P1")! <= 0 : null, pc(relOfV("KR_BASELINE+P1")));
+const ord = ["RULE+P2", "RULE+P7", "RULE+P3", "RULE+P1"].map(relOfV);
+pr("5.7", "RULE 바탕 감소율 순서 P2 > P7 > P3 > P1", ord.every((x) => x != null) ? ord[0]! > ord[1]! && ord[1]! > ord[2]! && ord[2]! > ord[3]! : null, ord.map(pc).join(" > "));
 const scored = PREDICTIONS.filter((x) => x.hit != null);
 
 const out = {
@@ -77,7 +92,7 @@ const out = {
   ruleVsKr: { ...ruleVsKr, rel: r4(ruleVsKr.rel), lo: r4(ruleVsKr.lo), hi: r4(ruleVsKr.hi) },
   patches: patchEffects.map((e) => ({ variant: e.variant, rel: r4(e.rel), lo: r4(e.relCi?.lo), hi: r4(e.relCi?.hi), w: e.win, t: e.tie, l: e.loss, effLo: r4(e.byEff.lo), effHi: r4(e.byEff.hi) })),
   labels: labels.map((c) => ({ variant: c.variant, cls: c.cls, n: c.n, p: r4(c.p), lo: r4(c.ci.lo), hi: r4(c.ci.hi), label: c.label })),
-  hhRates: hhRates(),
+  hhRates: hh,
   prereg: { hit: scored.filter((x) => x.hit).length, total: scored.length, items: PREDICTIONS },
 };
 writeFileSync(path.join(repo, "out", `e4_${tag}.json`), canonicalJson(out) + "\n", "utf-8");
