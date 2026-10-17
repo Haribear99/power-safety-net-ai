@@ -61,6 +61,8 @@ export interface ScenarioDef {
   nResources: number;
   focusClass?: GenClass | null;
   nFocus?: number;
+  /** E1 층화(5.4절). 없으면 materialize 결과가 이전과 같다(봉인 sha256 유지) */
+  stratPerClass?: number;
   table?: QuantileFamily;
 }
 
@@ -77,7 +79,7 @@ export interface MaterializedScenario {
     pEarly: number;
   };
   theta: Theta;
-  composition: { nRegistered: number; nUnregistered: number; nResources: number; focusClass: GenClass | null; nFocus: number };
+  composition: { nRegistered: number; nUnregistered: number; nResources: number; focusClass: GenClass | null; nFocus: number; stratPerClass?: number };
   /** 분석 전용 등급 라벨(배정기 입력 아님, I5) */
   labels: Record<string, DeviceClass>;
   planner: MatPlanner;
@@ -90,7 +92,8 @@ export function materializeRaw(def: ScenarioDef, db?: EngineDb): MaterializedSce
   const table: QuantileFamily = def.table ?? "gamma";
   const pop = generatePopulation({
     scenarioId: def.scenarioId, seed: def.seed, cause: def.cause, theta,
-    nRegistered: def.nRegistered, nResources: def.nResources, focusClass: def.focusClass ?? null, nFocus: def.nFocus ?? 0, db,
+    nRegistered: def.nRegistered, nResources: def.nResources, focusClass: def.focusClass ?? null, nFocus: def.nFocus ?? 0,
+    ...(def.stratPerClass ? { stratPerClass: def.stratPerClass } : {}), db,
   } satisfies PopulationSpec);
   const tOutageS = qT(sNum("sim.tOutageH"));
   const profile = travelProfile(theta.travelProfile);
@@ -179,6 +182,7 @@ export function materializeRaw(def: ScenarioDef, db?: EngineDb): MaterializedSce
     composition: {
       nRegistered: def.nRegistered, nUnregistered: pop.unregistered.length, nResources: def.nResources,
       focusClass: def.focusClass ?? null, nFocus: def.focusClass ? (def.nFocus ?? 0) : 0,
+      ...(def.stratPerClass ? { stratPerClass: def.stratPerClass } : {}),
     },
     labels,
     planner: {

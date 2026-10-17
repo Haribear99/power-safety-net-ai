@@ -9,7 +9,7 @@ import { makeResource } from "../engine/arrival";
 import { CYLINDERS, DEFAULT_DB, type EngineDb } from "../engine/lowerBound";
 import { PROV_TYPES, pNum, pRange, pValue } from "../engine/params";
 import { qT, sToH } from "../engine/quantize";
-import { classOf, type GenClass } from "./labels";
+import { classOf, GEN_CLASSES, type GenClass } from "./labels";
 import type { Theta } from "./lhs";
 import { rngFor, type Rng } from "./prng";
 
@@ -71,6 +71,8 @@ export interface PopulationSpec {
   /** 초점 등급(표준 50건, 5.6절). 없으면 전부 혼합 */
   focusClass?: GenClass | null;
   nFocus?: number;
+  /** E1 층화(5.4절): 7등급 각 stratPerClass가구, 나머지는 혼합. focusClass와 함께 쓰지 않는다. 없으면 기존과 같은 결과 */
+  stratPerClass?: number;
   db?: EngineDb;
 }
 
@@ -306,6 +308,8 @@ export function generatePopulation(spec: PopulationSpec): Population {
   if (!Number.isInteger(N) || N <= 0) throw new Error("nRegistered는 양의 정수");
   const nFocus = spec.focusClass ? (spec.nFocus ?? 0) : 0;
   if (nFocus < 0 || nFocus > N) throw new Error("nFocus 범위 오류");
+  const strat = spec.stratPerClass ?? 0;
+  if (strat > 0 && (nFocus > 0 || strat * GEN_CLASSES.length > N)) throw new Error("stratPerClass 범위 오류");
 
   const hhRng = rngFor(spec.seed, spec.scenarioId, "HH");
   const behRng = rngFor(spec.seed, spec.scenarioId, "BEHAVIOR");
@@ -321,6 +325,9 @@ export function generatePopulation(spec: PopulationSpec): Population {
   // 초점 가구 위치(순열 앞 nFocus개)
   const perm = hhRng.shuffle(Array.from({ length: N }, (_, i) => i));
   const focusSet = new Set(perm.slice(0, nFocus));
+  // 층화 위치: 순열 앞 7×strat개를 등급 순서대로(같은 순열을 쓰므로 균등값 소비는 늘지 않는다)
+  const stratOf = new Map<number, GenClass>();
+  for (let k = 0; k < strat * GEN_CLASSES.length; k++) stratOf.set(perm[k], GEN_CLASSES[Math.floor(k / strat)]);
 
   const tOutageS = qT(sNum("sim.tOutageH"));
   const rd = pRange("sim.reportDelayH");
@@ -331,9 +338,9 @@ export function generatePopulation(spec: PopulationSpec): Population {
   for (let i = 0; i < N; i++) {
     const u = draws(hhRng, K_HH);
     const b = draws(behRng, K_BEH);
-    const isFocus = focusSet.has(i);
-    const choice = isFocus && spec.focusClass ? focusClass(spec.focusClass, u[H.classB], db) : mixedClass(u[H.classA], u[H.classB], db);
-    const d = drawDevice(u, choice, spec, db, aptCenter, isFocus && spec.focusClass === "VENT_8H_EXT2", isFocus && spec.focusClass === "VENT_8H");
+    const fc: GenClass | null = focusSet.has(i) && spec.focusClass ? spec.focusClass : (stratOf.get(i) ?? null);
+    const choice = fc ? focusClass(fc, u[H.classB], db) : mixedClass(u[H.classA], u[H.classB], db);
+    const d = drawDevice(u, choice, spec, db, aptCenter, fc === "VENT_8H_EXT2", fc === "VENT_8H");
     const dev = db.devices.get(choice.specId)!;
     const id = `H${pad(i + 1, 3)}`;
 
