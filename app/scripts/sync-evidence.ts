@@ -193,7 +193,7 @@ if (e4) {
     ...(((scoreE3?.items ?? []) as { id: string; hit: boolean | null }[])),
     ...(e4?.prereg.items ?? []),
   ];
-  const pre = items.filter((x) => /^(1\.|H|4\.)/.test(x.id) && x.hit != null);
+  const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
   const post = items.filter((x) => /^(2\.|3\.|5\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
