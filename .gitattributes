@@ -3,3 +3,4 @@ seal/S5.txt -text
 seal/*.ots binary
 datasets/labels/**/*.jpg binary
 datasets/labels/**/*.json -text
+seal/S6.txt -text
