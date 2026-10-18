@@ -2,7 +2,8 @@
 // 순서: 본문 검사(JSON·zod) → 사실 묶음(코드) → 접근 코드(맞으면 코드당 시간 60회, 틀리면 /api/vision과 같은 차단 규칙)
 //       → 코드 없으면 IP(/64) 시간 5회 → 생성(PW_N1_notice) → 1차 검사(글자 규칙) → 통과하면 2차 검사(PW_N1_check: 다른 모델이 글만 읽고 주장 추출 → 사실 대조)
 //       → 둘 다 통과하면 AI 본문, 아니면 고정 문안. 119·123 문장과 꼬리말은 늘 코드가 붙인다.
-// 예산은 알림 전용 풀(notice, 일 $0.60)이라 라벨 판독 공개 예산을 쓰지 않는다. 예산·저장소가 없으면 고정 문안(재생 모드).
+// 예산: 공개 요청은 알림 전용 풀(notice, 일 $0.60), 심사용 코드 요청은 judge 풀(공개 사용자가 심사 몫을 소진하지 못하게).
+// 예산·저장소가 없거나 어느 단계든 예산이 거부되면 고정 문안(재생 모드). 생성만 하고 검사를 못 하면 AI 글은 나가지 않는다.
 import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -46,11 +47,13 @@ export async function POST(req: Request) {
   const ip = ipBucket(ipAddress(req) ?? req.headers.get("x-forwarded-for")?.split(",")[0]);
   try {
     const code = (body.accessCode ?? "").replace(/\s+/g, "");
+    let pool: "notice" | "judge" = "notice";
     if (code) {
       if (await be.raw(["GET", `pl26:rl:badcode-block:${ip}`])) {
         return NextResponse.json({ error: "code_blocked", message: "접근 코드를 여러 번 틀려 이 주소의 코드 입력이 1시간 막혔습니다. 코드 칸을 비우면 공개 생성은 쓸 수 있습니다" }, { status: 429 });
       }
       if (accessCodeOk(code)) {
+        pool = "judge";
         if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 60, 7200))) {
           return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 시간당 한도(60회)를 넘었습니다. 다음 정시 이후 다시 시도해 주세요" }, { status: 429 });
         }
@@ -62,7 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "rate_limited", message: "이 주소에서 시간당 5회를 넘었습니다" }, { status: 429 });
     }
     const t0 = Date.now();
-    const r = await callStructured({ stage: "PW_N1_notice", pool: "notice", system: NOTICE_SYSTEM, user: noticeUser(facts), backend: be }, NoticeOut);
+    const r = await callStructured({ stage: "PW_N1_notice", pool, system: NOTICE_SYSTEM, user: noticeUser(facts), backend: be }, NoticeOut);
     if (!r.ok) {
       if (r.reason === "budget" || r.reason === "no_budget_store" || r.reason === "spend_limit") return replay(r.reason);
       // 생성 실패도 알림은 나가야 한다: 고정 문안 + 실패 이유
@@ -72,8 +75,10 @@ export async function POST(req: Request) {
     let check: Check2 | null = null;
     let checkCost = 0;
     if (verify(facts, r.data.sentences).ok) {
-      const c = await callStructured({ stage: "PW_N1_check", pool: "notice", system: CHECK_SYSTEM, user: checkUser(r.data.sentences), backend: be }, Claims);
+      const c = await callStructured({ stage: "PW_N1_check", pool, system: CHECK_SYSTEM, user: checkUser(r.data.sentences), backend: be }, Claims);
       checkCost = c.meta.costUsd ?? 0;
+      // 검사 단계에서 예산이 막히면 '검사 탈락'이 아니라 '한도 도달'로 알린다(AI 글은 나가지 않음)
+      if (!c.ok && (c.reason === "budget" || c.reason === "no_budget_store" || c.reason === "spend_limit")) return replay(c.reason);
       check = c.ok ? { claims: c.data } : { error: c.reason };
     }
     const composed = compose(facts, { sentences: r.data.sentences, check });

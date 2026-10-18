@@ -119,7 +119,7 @@ export interface N1Evidence {
   missedCategories: { category: string; missed: number; n: number }[];
   judge: { ai: number; template: number; same: number; fail: number };
   latencyP50: number | null;
-  prereg: { hit: number; total: number; missed: { id: string; text: string; value: string }[] };
+  prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }
 export function n1Evidence(): N1Evidence | null {
   return (doc as unknown as { n1?: N1Evidence }).n1 ?? null;

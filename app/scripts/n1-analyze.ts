@@ -1,6 +1,7 @@
 // N1(보호자 알림, S9) 봉인 실행 채점. 비AI, 결정적. 예측·판정 규칙은 prereg/predictions_n1.md 1절을 그대로 옮긴 것이다.
-// 실행: (app/에서) npx tsx scripts/n1-analyze.ts [--tag sealed] [--python-discrepancies <n>]  → out/n1_<tag>.json
-// 9.5의 Python 독립 재검사 불일치 수는 tools/notice_check.py 결과를 인자로 넘긴다(넘기지 않으면 판정 불가).
+// 실행: (app/에서) npx tsx scripts/n1-analyze.ts [--tag sealed]  → out/n1_<tag>.json
+// 9.5의 Python 독립 재검사는 이 스크립트가 tools/notice_check.py를 직접 실행해 읽는다(봉인 결과 뒤 손 입력 인자를 없앰, 통합 레드팀 1라운드).
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
@@ -8,7 +9,12 @@ import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
 const repo = path.resolve(__dirname, "..", "..");
 const argv = process.argv.slice(2);
 const tag = argv.includes("--tag") ? argv[argv.indexOf("--tag") + 1] : "sealed";
-const pyArg = argv.includes("--python-discrepancies") ? Number(argv[argv.indexOf("--python-discrepancies") + 1]) : null;
+const dirArg = tag === "sealed" ? "out/sealed/n1" : `out/n1/${tag}`;
+let pyArg: number | null = null;
+try {
+  const outp = execFileSync("python", ["-I", path.join(path.resolve(__dirname, "..", ".."), "tools", "notice_check.py"), dirArg], { cwd: path.resolve(__dirname, "..", ".."), encoding: "utf-8", env: { ...process.env, PYTHONIOENCODING: "utf-8" } });
+  pyArg = (JSON.parse(outp.trim().split(/\r?\n/).pop()!) as { discrepancies: number }).discrepancies;
+} catch (e) { const o = (e as { stdout?: string }).stdout; if (o) pyArg = (JSON.parse(o.trim().split(/\r?\n/).pop()!) as { discrepancies: number }).discrepancies; }
 const dir = tag === "sealed" ? path.join(repo, "out", "sealed", "n1") : path.join(repo, "out", "n1", tag);
 const raw = readFileSync(path.join(dir, "summary.json"), "utf-8");
 type R = { k: number; n: number; rate: number | null; wilson95: number[] | null };

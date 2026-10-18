@@ -9,7 +9,7 @@
 import { RESOURCE_NOUN, type NoticeFacts } from "./facts";
 
 export type Role = "BATTERY_T" | "CYL_T" | "ARRIVAL_T" | "T119" | "CHARGE_H" | "CHARGE_LT" | "CYL_H";
-const FLIP = ["못", "않", "이후", "지나", "넘어", "뒤에", "후에", "부터"];
+const FLIP = ["못", "않", "이후", "지나", "넘어", "넘게", "넘는", "뒤에", "후에", "부터", "보다", "이상", "늦게", "전에", "안에"];
 export const ROLE_WORDS: Record<Role, readonly string[]> = {
   BATTERY_T: ["배터리"], CYL_T: ["산소통"], ARRIVAL_T: ["도착"], T119: ["구급"], CHARGE_H: ["충전"], CHARGE_LT: ["충전"], CYL_H: ["산소통"],
 };
@@ -19,7 +19,7 @@ export const ROLE_FORBID: Record<Role, readonly string[]> = {
   CYL_T: ["도착", "배터리", ...FLIP],
   ARRIVAL_T: FLIP,
   T119: FLIP,
-  CHARGE_H: ["도착", "산소통", ...FLIP],
+  CHARGE_H: ["도착", "산소통", "없이", "안 해도", "않아도", ...FLIP],
   CHARGE_LT: ["도착", "산소통"], // 「30분을 못 버팁니다」는 부정문이 맞다
   CYL_H: ["도착", "배터리", "충전", ...FLIP],
 };
@@ -66,10 +66,12 @@ export function requirements(f: NoticeFacts): Requirements {
   if (p?.type === "CALL119") {
     sent(["구급", "연결"], "구급대와 연결했다");
     if (p.doneBy) must(p.doneBy, "T119");
+    else if (p.etaPassed) sent(["구급", "지나"], "구급대 이송 예정 시각이 지나 담당자가 확인 중이다");
     else sent(["구급", "아직"], "구급대가 언제 올지는 아직 정해지지 않았다");
     if (p.late) sent(["늦"], "구급대 출동이 늦어질 수 있다");
   }
   if (p?.type === "SHELTER") sent(["쉼터"], "가까운 쉼터로 옮기도록 담당자가 연락한다");
+  if (f.kind === "OUTAGE") sent(["정전"], "정전으로 기기 전원이 끊겼다");
   for (const a of f.actions) {
     if (a === "KEEP_PHONE") sent(["전화"], "연락을 받을 수 있게 전화를 곁에 둔다");
     if (a === "FOLLOW_STAFF") sent(["안내", "따"], "연락이 오면 안내를 따른다");
@@ -83,12 +85,14 @@ export function requirements(f: NoticeFacts): Requirements {
 }
 
 // ---------- 금지 표현 ----------
-export const BANNED: Record<"GUARANTEE" | "VAGUE_TIME" | "MEDICAL" | "RISKY" | "JARGON", readonly string[]> = {
+export const BANNED: Record<"GUARANTEE" | "VAGUE_TIME" | "MEDICAL" | "RISKY" | "JARGON" | "STATE", readonly string[]> = {
   GUARANTEE: ["안전합니다", "안전해요", "안전하", "안심", "걱정하지", "걱정 마", "걱정 없", "걱정은", "괜찮", "문제없", "문제 없", "반드시", "확실", "보장", "틀림없", "꼭 도착", "충분"],
   VAGUE_TIME: ["곧", "금방", "잠시", "조금만", "한참", "머지않아", "얼마 뒤", "얼마 후", "언제든"],
   MEDICAL: ["설정", "유량", "산소량", "농도", "복용", "진단", "처방", "숨", "호흡이", "증상", "의식", "맥박", "심폐"],
   RISKY: ["시동", "발전", "연장선", "콘센트", "멀티탭", "이웃", "촛불", "가스", "차에", "차량", "엘리베이터", "직접 운전", "직접 모시"],
   JARGON: ["하한", "잔여", "배정", "레인", "슬랙", "분위", "수동검토", "알고리즘", "시뮬레이션", "모의", "인공지능", "보수적"],
+  // 정전 상황을 뒤집는 말(정전 중 안내에서만 검사)
+  STATE: ["복구", "다시 들어", "돌아왔", "정전이 끝", "전기가 들어", "전원이 들어"],
 };
 /** 기기 조작(끄기·뽑기·조절·아끼기) 어간과 기기 낱말이 한 문장에 함께 있으면 의료·기기 지시로 본다 */
 const DEVICE_OP = /(끄|꺼|끈|뽑|빼|멈추|조절|낮추|줄이|높이|아끼|아껴)/;
@@ -170,7 +174,10 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
       const roleOk = (r: Role) => ROLE_WORDS[r].some((w) => r0.includes(w)) && !ROLE_FORBID[r].some((w) => r0.includes(w));
       if (!h.roles.some(roleOk)) v.push({ code: "ROLE_MISMATCH", detail: `「${h.text}」(${h.roles.map((r) => ROLE_KO[r]).join("/")})의 뜻 낱말이 맞지 않음`, sentence: s });
     }
-    for (const [cat, list] of Object.entries(BANNED)) for (const w of list) if (s.includes(w) && !(res && res.includes(w))) v.push({ code: "BANNED", detail: `${cat}: 「${w}」`, sentence: s });
+    for (const [cat, list] of Object.entries(BANNED)) {
+      if (cat === "STATE" && f.kind !== "OUTAGE") continue;
+      for (const w of list) if (s.includes(w) && !(res && res.includes(w))) v.push({ code: "BANNED", detail: `${cat}: 「${w}」`, sentence: s });
+    }
     if (DEVICE_OP.test(s) && DEVICE_WORD.test(s)) v.push({ code: "BANNED", detail: `MEDICAL: 기기 조작 「${s.match(DEVICE_OP)![0]}」`, sentence: s });
     for (const w of unsup) if (s.includes(w)) v.push({ code: "UNSUPPORTED", detail: `정하지 않은 수단 「${w}」`, sentence: s });
   }
@@ -191,11 +198,14 @@ export function josa(word: string, pair: "이가" | "은는"): string {
   return word + (pair === "이가" ? (has ? "이" : "가") : (has ? "은" : "는"));
 }
 
-/** 코드가 늘 붙이는 연락처 문장(AI가 쓰지 않는다) */
+/**
+ * 코드가 늘 붙이는 고정 문장(AI가 쓰지 않는다): 119·123 연락, 평시에는 원안의 「대체장소」「절전 가능 여부」.
+ * 절전(기기 설정)은 의료 판단이라 안내하지 않고 담당 의료진·대여업체 확인으로 넘긴다.
+ */
 export function tailSentences(f: NoticeFacts): string[] {
   return f.kind === "OUTAGE"
     ? ["위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
-    : ["정전되면 한전 123에 알리세요.", "위급하면 바로 119에 전화하세요."];
+    : ["정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요.", "절전 기능이 있는지는 담당 의료진이나 대여업체에 물어 두고, 설정은 혼자 바꾸지 마세요.", "정전되면 한전 123에 알리세요.", "위급하면 바로 119에 전화하세요."];
 }
 
 /** 고정 문안 본문(1차 검사를 늘 통과 — rules.test.ts에서 모든 조합 시험). 같은 사실·할 일을 AI 글과 똑같이 담는다 */
@@ -222,7 +232,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     if (f.warnRunOutFirst) out.push(f.cylinder ? "그 전에 산소통이 먼저 떨어질 수 있습니다." : "그 전에 배터리가 먼저 떨어질 수 있습니다.");
     if (p?.type === "CALL119") {
       out.push("구급대와 연결했습니다.");
-      out.push(p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 드릴 예정입니다.` : "구급대가 언제 올지는 아직 정해지지 않았습니다.");
+      out.push(p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 드릴 예정입니다.` : p.etaPassed ? "구급대 이송 예정 시각이 지나 담당자가 확인하고 있습니다." : "구급대가 언제 올지는 아직 정해지지 않았습니다.");
       if (p.late) out.push("구급대 출동이 늦어질 수 있습니다.");
     }
     if (p?.type === "SHELTER") out.push("가까운 쉼터로 옮기도록 담당자가 연락드립니다.");

@@ -10,7 +10,8 @@ import { requirements } from "@/lib/notice/rules";
 export function NoticePanel({ input, title }: { input: NoticeInputT; title: string }) {
   const facts = useMemo(() => buildFacts(input), [input]);
   const req = useMemo(() => requirements(facts), [facts]);
-  const key = JSON.stringify(input);
+  // 사실 묶음(10분 단위 표기)이 바뀔 때만 이전 결과를 버린다 — 모의 시계가 흘러도 같은 사실이면 AI 글이 유지된다
+  const key = JSON.stringify(facts);
   const [state, setState] = useState<{ key: string; composed: Composed; rejected?: string[]; source: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [msgState, setMsg] = useState<{ key: string; text: string } | null>(null);
@@ -57,12 +58,13 @@ export function NoticePanel({ input, title }: { input: NoticeInputT; title: stri
         </div>
         <div>
           <p className="font-semibold">
-            보낼 글 {cur.composed.source === "ai" ? <AiTag kind="생성" note="검증 통과" /> : <span className="rounded border border-line px-1.5 py-0.5 text-[12px]">고정 문안</span>}
+            보낼 글 {cur.composed.source === "ai" ? <AiTag kind="생성" note="검사 통과·담당자 확인 필요" /> : <span className="rounded border border-line px-1.5 py-0.5 text-[12px]">고정 문안</span>}
           </p>
           <ol className="mt-1 space-y-0.5 text-[16px] leading-7" data-testid="notice-text">
             {cur.composed.sentences.map((s, i) => <li key={i}>{s}</li>)}
           </ol>
-          <p className="mt-1 text-[12px] text-muted">{cur.composed.footer} · {cur.source}</p>
+          <p className="mt-1 text-[12px] text-muted">{cur.composed.footer}</p>
+          <p className="mt-1 text-[12px] text-muted">(운영자용) {cur.source}{cur.composed.source === "ai" ? " · 1차 규칙 검사 + 2차 다른 AI 역추출 대조 통과. 시연용이며 담당자가 확인한 뒤 보낸다는 전제(실제 발송 기능 없음)" : ""}</p>
         </div>
       </div>
       {cur.composed.violations.length > 0 && (

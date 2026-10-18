@@ -5,9 +5,10 @@ import type { NoticeFacts } from "./facts";
 import { splitSentences, tailSentences, templateSentences, verify, type Violation } from "./rules";
 
 export const FOOTER = {
-  ai: "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
-  fallback: "※ AI 문장이 검사를 통과하지 못해 고정 문안을 보냅니다 · 결정은 담당자 · 시연용 모의 안내",
-  template: "※ 고정 문안 · 결정은 담당자 · 시연용 모의 안내",
+  // 보호자가 읽는 꼬리말은 짧고 쉽게(검사 설명은 운영자 화면에만)
+  ai: "※ AI가 쓴 글입니다. 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
+  fallback: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
+  template: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
 } as const;
 
 /** 2차 검사 결과: 뽑은 주장, 또는 검사 실패(실패 시 닫힘) */

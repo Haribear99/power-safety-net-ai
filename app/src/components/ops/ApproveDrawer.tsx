@@ -113,6 +113,7 @@ function DecidedNotice({ householdId }: { householdId: string }) {
   }), [hh, s.preset, s.nowS, d]);
   if (!input) return null;
   // 재검토 표시가 뜬 결정(도착 전 소진 등)은 낡은 결정이라 알림을 만들지 않는다
+  if (s.purged119Ids.includes(householdId)) return <p className="mt-3 rounded bg-gap-soft p-2 text-[14px] text-gap" data-testid="notice-blocked">보호자 알림 없음: 119 표시분을 파기한(대응 종료) 가구입니다.</p>;
   if (s.flagged[householdId]) return <p className="mt-3 rounded bg-gap-soft p-2 text-[14px] text-gap" data-testid="notice-blocked">보호자 알림 보류: 이 결정은 재검토가 필요합니다. 대안을 승인하거나 수정한 뒤 알림을 만드세요.</p>;
   return <NoticePanel input={input} title="보호자 알림(쉬운 글·음성)" />;
 }

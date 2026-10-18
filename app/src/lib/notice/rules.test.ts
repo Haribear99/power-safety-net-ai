@@ -40,17 +40,25 @@ function allInputs(): NoticeInputT[] {
 function truthClaims(f: NoticeFacts): ClaimsT {
   const b = f.battery, c = f.cylinder, p = f.plan;
   const bk = { UNTIL: "lasts_until", HOURS: "lasts_for", UNDER30: "less_than", NONE: "no_battery_stops", MAYBE_OUT: "maybe_already_out", UNKNOWN: "unknown_being_checked" } as const;
+  const promises: ClaimsT["staffPromises"] = [];
+  if (p?.type === "ASSIGN" || p?.type === "GAP") promises.push({ kind: "send_equipment", quote: "" });
+  if (p?.type === "CALL119") promises.push({ kind: "ambulance_transport", quote: "" });
+  if (p?.type === "SHELTER") promises.push({ kind: "shelter_contact", quote: "" });
+  if (p && "etaPassed" in p && p.etaPassed) promises.push({ kind: "checking_eta", quote: "" });
+  if (b.state === "UNKNOWN") promises.push({ kind: "checking_battery", quote: "" });
   return {
+    situation: f.kind === "OUTAGE" ? "outage_now" : "before_outage",
+    staffPromises: promises,
     device: f.device,
-    battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null },
+    battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null, condition: b.state === "HOURS" || b.state === "UNDER30" ? "full_charge" : "unspecified" },
     cylinder: !c ? { kind: "not_mentioned", time: null } : c.state === "MAYBE_OUT" ? { kind: "maybe_already_out", time: null } : { kind: c.state === "UNTIL" ? "lasts_until" : "lasts_for", time: c.text },
     means: !p ? { kind: "none", name: null, time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
-      : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
+      : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : p.etaPassed ? "passed_being_checked" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
-    actions: f.actions.map((kind) => ({ kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : "now" as const, quote: "" })),
+    actions: f.actions.map((kind) => ({ kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : "now" as const, negated: false, quote: "" })),
     otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
   };
 }
@@ -70,8 +78,8 @@ describe("고정 문안", () => {
     const f = buildFacts(inputs[0]);
     const c = compose(f, null);
     expect(c.source).toBe("template");
-    expect(c.sentences.slice(-2)).toEqual(tailSentences(f));
-    expect(c.footer).toContain("고정 문안");
+    expect(c.sentences.slice(-tailSentences(f).length)).toEqual(tailSentences(f));
+    expect(c.footer).not.toContain("AI");
   });
 });
 
@@ -198,11 +206,47 @@ describe("1차 검사가 잡아야 하는 우회 문장(레드팀 10/18)", () =>
   }
 });
 
+describe("통합 레드팀 1라운드 회귀", () => {
+  it("119 이송 예정 시각이 지나면 '아직 정해지지 않았다'가 아니라 '지나 확인 중'", () => {
+    const f = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, nowS: 5000, batteryEndS: 9000, etaS: 4000 }));
+    expect(f.plan).toMatchObject({ type: "CALL119", doneBy: null, etaPassed: true });
+    const t = templateSentences(f).join(" ");
+    expect(t).toContain("지나 담당자가 확인");
+    expect(t).not.toContain("아직 정해지지");
+  });
+  it("「수정」 119(시각 없음)는 늦음·먼저 소진을 보수적으로 경고", () => {
+    const f = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, etaS: null, late119: false }));
+    expect(f.plan).toMatchObject({ late: true });
+    expect(f.warnRunOutFirst).toBe(true);
+  });
+  it("정전 중 안내에 '정전이 끝났다'·'전기가 다시 들어왔다'를 쓰면 1차 거부", () => {
+    const r = verify(shelter, [...templateSentences(shelter), "이제 전기가 다시 들어왔습니다."]);
+    expect(r.violations.map((v) => v.code)).toContain("BANNED");
+  });
+  it("평시 안내에는 대체장소·절전(의료진 확인) 고정 문장이 붙는다", () => {
+    const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "VENT_3H", batteryS: 9000, cylinderS: 0, extDeclared: false });
+    const t = tailSentences(f).join(" ");
+    expect(t).toContain("갈 곳");
+    expect(t).toContain("절전");
+  });
+  it("산소통 가구 재신고: 배터리 끝이 직전보다 늘지 않는다", () => {
+    const base: HouseholdView = {
+      id: "H2", pseudonym: "H-002", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      device: { specId: "PERFECTO2", specBy: "db_exact", batteryAgeY: 1, charge: { value: 100, source: "device_screen" } },
+      ext: [], cylinder: { declared: true, opVerified: { count: 1, hoursLo: 10, auditId: "A1" } },
+    };
+    const a = outageInput({ hh: base, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    const b = outageInput({ hh: { ...base, tReport: 2, lEndPrev: 10 }, baseIso: BASE, nowS: 7200, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    if (a.kind !== "OUTAGE" || b.kind !== "OUTAGE") throw new Error();
+    expect((b.batteryEndS ?? 0)).toBeLessThanOrEqual(Math.max(a.batteryEndS ?? 0, 0));
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [
     ["배터리 시각 다름", (c) => ({ ...c, battery: { ...c.battery, time: "내일 오전 0시 10분" } })],
-    ["배터리 뜻 뒤집기", (c) => ({ ...c, battery: { kind: "other", time: null } })],
+    ["배터리 뜻 뒤집기", (c) => ({ ...c, battery: { kind: "other", time: null, condition: "unspecified" } })],
     ["도착이 '이후'", (c) => ({ ...c, means: { ...c.means, timeMeaning: "after" } })],
     ["수단 바뀜", (c) => ({ ...c, means: { ...c.means, kind: "ambulance" } })],
     ["수단 이름 다름", (c) => ({ ...c, means: { ...c.means, name: "대용량 전원 장치" } })],
@@ -211,10 +255,13 @@ describe("2차 검사 대조(compareClaims)", () => {
     ["기기 이름 틀림", (c) => ({ ...c, device: "산소발생기" })],
     ["수단 덧붙임", (c) => ({ ...c, means: { ...c.means, extraDetails: ["산소통을 싣고 온다"] } })],
     ["구급대 연결 지어냄", (c) => ({ ...c, means: { ...c.means, connected: "yes" } })],
-    ["산소통 바꿔 쓰기를 도착 뒤로", (c) => ({ ...c, actions: [...c.actions, { kind: "SWITCH_TO_CYLINDER", when: "after_condition", quote: "도착하면 바꿔 쓰세요" }] })],
-    ["정하지 않은 지시", (c) => ({ ...c, actions: [...c.actions, { kind: "OTHER", when: "now", quote: "119에는 전화하지 마세요" }] })],
+    ["산소통 바꿔 쓰기를 도착 뒤로", (c) => ({ ...c, actions: [...c.actions, { kind: "SWITCH_TO_CYLINDER", when: "after_condition", negated: false, quote: "도착하면 바꿔 쓰세요" }] })],
+    ["정전이 끝났다고 함", (c) => ({ ...c, situation: "power_restored" })],
+    ["하지 말라는 지시", (c) => ({ ...c, actions: c.actions.map((a, i) => (i === 0 ? { ...a, negated: true } : a)) })],
+    ["사실에 없는 기관 약속", (c) => ({ ...c, staffPromises: [...c.staffPromises, { kind: "other", quote: "확인이 끝나면 다시 알려 드립니다" }] })],
+    ["정하지 않은 지시", (c) => ({ ...c, actions: [...c.actions, { kind: "OTHER", when: "now", negated: false, quote: "다른 곳으로 옮기세요" }] })],
     ["할 일 빠짐", (c) => ({ ...c, actions: c.actions.slice(1) })],
-    ["다른 할 일", (c) => ({ ...c, actions: [...c.actions, { kind: "CHARGE_DEVICE", when: "now", quote: "" }] })],
+    ["다른 할 일", (c) => ({ ...c, actions: [...c.actions, { kind: "CHARGE_DEVICE", when: "now", negated: false, quote: "" }] })],
     ["표기 밖 시간", (c) => ({ ...c, otherTimesOrDurations: ["이틀"] })],
     ["안심", (c) => ({ ...c, reassuranceOrPromise: true })],
     ["위험 행동", (c) => ({ ...c, medicalOrDeviceOrRiskyInstruction: true })],
@@ -223,7 +270,7 @@ describe("2차 검사 대조(compareClaims)", () => {
   it("정답 주장이면 AI 본문이 나간다", () => {
     const c = compose(gap, { sentences: templateSentences(gap), check: { claims: ok } });
     expect(c.source).toBe("ai");
-    expect(c.sentences.slice(-2)).toEqual(tailSentences(gap));
+    expect(c.sentences.slice(-tailSentences(gap).length)).toEqual(tailSentences(gap));
   });
   for (const [name, m] of mut) {
     it(`거부: ${name}`, () => {

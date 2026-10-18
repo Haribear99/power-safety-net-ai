@@ -238,12 +238,14 @@ const n1 = take("out/n1_sealed.json") as {
 } | null;
 if (n1) {
   const r = (x: RateN) => ({ k: x.k, n: x.n, lo: x.wilson95?.[0] ?? null, hi: x.wilson95?.[1] ?? null });
+  const n1Scored = n1.prereg.items.filter((x) => x.id !== "9.5" && x.hit != null);
   out.n1 = {
     aiSent: r(n1.notices.aiSent), templateFalseReject: r(n1.notices.templateFalseReject),
     badMissed: r(n1.corpus.badMissed), badCaughtGate1: r(n1.corpus.badCaughtGate1), badCaughtGate2: r(n1.corpus.badCaughtGate2), goodFalseReject: r(n1.corpus.goodFalseReject),
     missedCategories: Object.entries(n1.corpus.byCategory).filter(([, v]) => v.caught < v.n).map(([k, v]) => ({ category: k, missed: v.n - v.caught, n: v.n })),
     judge: n1.notices.judge, latencyP50: n1.notices.latencyE2E.p50,
-    prereg: { hit: n1.prereg.hit, total: n1.prereg.total, missed: n1.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
+    // 9.5(보낸 글 1차 위반 0)는 구조상 보장되는 확인 항목이라 적중 집계에서 뺀다(통합 레드팀 1라운드)
+    prereg: { hit: n1Scored.filter((x) => x.hit).length, total: n1Scored.length, structural: n1.prereg.items.filter((x) => x.id === "9.5").map((x) => ({ id: x.id, text: x.text, value: x.value, hit: x.hit })), missed: n1Scored.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
 }
 
@@ -256,7 +258,7 @@ if (n1) {
     ...(e4?.prereg.items ?? []),
     ...(e5?.prereg.items ?? []),
     ...(e6?.prereg.items ?? []),
-    ...(n1?.prereg.items ?? []),
+    ...(n1?.prereg.items ?? []).filter((x) => x.id !== "9.5"),
   ];
   const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
   // 9.x(N1)는 dev를 보고 문턱을 정했으므로 '확인' 쪽(predictions_n1.md에 공개)

@@ -8,6 +8,7 @@ import { z } from "zod";
 import type { DeviceClass, HouseholdView, Lane, ResourceKind } from "../domain/types";
 import { computeLowerBoundDetail, DEFAULT_DB, type EngineDb } from "../engine/lowerBound";
 import { mockIso } from "../alloc/project119";
+import { qT } from "../engine/quantize";
 
 const DEVICE_CLASSES = ["O2_STAT", "O2_STAT_CYL", "VENT_1H", "VENT_3H", "O2_PORT", "VENT_8H", "VENT_8H_EXT2", "INTERMITTENT", "UNKNOWN"] as const;
 const RESOURCE_KINDS = ["ESS_S", "ESS_L", "MOBILE_GEN", "RENTAL_EXT", "O2_CYL_DELIVERY", "EV_V2L"] as const;
@@ -80,7 +81,7 @@ export type BatteryState =
 export type Cylinder = { state: "UNTIL" | "HOURS"; text: string } | { state: "MAYBE_OUT" };
 export type Plan =
   | { type: "ASSIGN" | "GAP"; resource: string; arriveBy: string | null; etaPassed: boolean }
-  | { type: "CALL119"; doneBy: string | null; late: boolean }
+  | { type: "CALL119"; doneBy: string | null; late: boolean; etaPassed: boolean }
   | { type: "SHELTER" };
 /** 읽는 사람이 할 일(코드가 정한다. AI 글도 고정 문안도 정확히 이 목록만 말한다) */
 export type Action = "KEEP_PHONE" | "FOLLOW_STAFF" | "SWITCH_TO_CYLINDER" | "CHARGE_DEVICE" | "CHARGE_EXT" | "CHECK_CYLINDER" | "PLAN_WITH_STAFF";
@@ -212,8 +213,9 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
       break;
     }
     case "FALLBACK_119":
-      plan = { type: "CALL119", doneBy: eta, late: input.late119 };
-      warnRunOutFirst = helpLate;
+      // 이송 완료 예상 시각이 없으면(「수정」으로 119를 고른 경우 등) 늦음·먼저 소진을 보수적으로 경고한다
+      plan = { type: "CALL119", doneBy: eta, late: input.late119 || input.etaS == null, etaPassed: input.etaS != null && input.etaS <= nowS };
+      warnRunOutFirst = helpLate || (input.etaS == null && supplyShownS != null);
       break;
     case "FALLBACK_SHELTER":
       plan = { type: "SHELTER" };
@@ -258,7 +260,9 @@ export function outageInput(args: {
   if (!(NOTICE_LANES as readonly string[]).includes(args.lane)) return null;
   const { all, noCyl, cylS } = split(args.hh, args.db ?? DEFAULT_DB);
   // 배터리 끝은 직전 신고 단조 규칙(lEndPrev)을 반영한 전체 끝을 넘지 않는다
-  const batteryEndS = all.endS == null || noCyl.endS == null ? null : Math.min(all.endS, noCyl.endS);
+  let batteryEndS = all.endS == null || noCyl.endS == null ? null : Math.min(all.endS, noCyl.endS);
+  // 재신고 단조(정전 중 비증가): 직전 끝(lEndPrev)은 산소통을 포함하므로, 산소통 몫을 뺀 값을 배터리 끝의 상한으로 둔다(늘어나지 않게)
+  if (batteryEndS != null && args.hh.lEndPrev != null && cylS > 0) batteryEndS = Math.min(batteryEndS, qT(args.hh.lEndPrev) - cylS);
   return {
     kind: "OUTAGE", caregiver: args.hh.caregiver, deviceCls: deviceClassOf(args.hh, args.db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs: noCyl.Ls, cylinderEndS: cylS > 0 ? all.endS : null,

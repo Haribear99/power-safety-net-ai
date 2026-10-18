@@ -149,14 +149,15 @@ function LowerBoundForm({ specId }: { specId: string }) {
   const [src, setSrc] = useState<"device_screen" | "user" | "unknown">("unknown");
   const [pct, setPct] = useState(100);
   const [ext, setExt] = useState(0);
+  const [cg, setCg] = useState(true);
   const { d, prep } = useMemo(() => {
     const hh: HouseholdView = {
-      id: "W", pseudonym: "W", cell: { x: 0, y: 0 }, floor: 1, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      id: "W", pseudonym: "W", cell: { x: 0, y: 0 }, floor: 1, mobilityNeed: false, caregiver: cg, tReport: 0, lEndPrev: null,
       device: { specId, specBy: "ai_label_user_confirmed", batteryAgeY: null, charge: { value: src === "unknown" ? null : pct, source: src } },
       ext: ext > 0 ? [{ extSpecId: null, declaredCount: ext, opVerified: null }] : [],
     };
     return { d: computeLowerBoundDetail(hh, DEFAULT_DB), prep: prepInput(hh, DEFAULT_DB) };
-  }, [specId, src, pct, ext]);
+  }, [specId, src, pct, ext, cg]);
   const lb = d.lb;
   return (
     <div className="mt-3 rounded-lg border border-line bg-white p-3 text-ink" data-testid="lb-form">
@@ -175,7 +176,8 @@ function LowerBoundForm({ specId }: { specId: string }) {
       </ul>
       {lb.flags.length ? <p className="mt-1 text-[13px] text-warn">{lb.flags.map((f) => FLAG_KO[f]).join(" · ")}</p> : null}
       <p className="mt-2 text-[13px] text-muted">입력해도 하한은 제조사 사양의 90%(+운영자 확인분)를 넘지 못합니다 · 충전량 입력은 현재 상태 갱신용 · AI 판독 기종은 운영자 「기종 확인」 전까지 이웃 기종 최소값으로 계산합니다</p>
-      <NoticePanel input={prep} title="보호자 대비 안내(쉬운 글·음성): 완충·외장배터리·연락처" />
+      <label className="mt-3 flex gap-2 text-[14px]"><input type="checkbox" checked={cg} onChange={(e) => setCg(e.target.checked)} />보호자가 있음(없으면 본인에게 쓰는 안내)</label>
+      <NoticePanel input={prep} title="대비 안내(쉬운 글·음성): 완충·외장배터리·갈 곳·연락처" />
     </div>
   );
 }
