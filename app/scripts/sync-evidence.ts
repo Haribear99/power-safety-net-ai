@@ -229,6 +229,45 @@ if (e6) {
 }
 
 // ---- N1: 보호자 알림 AI 문장 + 두 단계 검사(S9 봉인 실행, scripts/n1-analyze.ts) ----
+/** 봉인 당시 고정 문안이 스스로 모순이던 쌍(119 경고, 또는 경고가 붙었는데 표시 도착 ≤ 표시 보호 끝)을 빼고 본 쌍 비교(통합 레드팀 3·4라운드) */
+function n1JudgeSplit() {
+  const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
+  if (!existsSync(dir)) return {};
+  const mins = (t: string | null | undefined): number | null => {
+    if (!t) return null;
+    const d = t.startsWith("내일") ? 1 : t.startsWith("모레") ? 2 : 0;
+    const m = /(오전|오후) (\d+)시(?: (\d+)분)?/.exec(t);
+    if (!m) return null;
+    let h = Number(m[2]);
+    if (m[1] === "오후" && h !== 12) h += 12;
+    if (m[1] === "오전" && h === 12) h = 0;
+    return d * 1440 + h * 60 + Number(m[3] ?? 0);
+  };
+  const split = { contradiction: { n: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 } };
+  for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { facts: Record<string, unknown> & { plan: { type: string; arriveBy?: string | null } | null; battery: { text?: string }; cylinder: { text?: string } | null }; judged: { pick?: "ai" | "template" | "same" } | null };
+    const F = r.facts;
+    const warn = Boolean(F.warnBatteryFirst ?? F.warnRunOutFirst);
+    const sup = F.cylinder ? F.cylinder.text : F.battery.text;
+    const p = F.plan;
+    const c = warn && (p?.type === "CALL119" || ((p?.type === "ASSIGN" || p?.type === "GAP") && p.arriveBy != null && sup != null && (mins(p.arriveBy) ?? 0) <= (mins(sup) ?? 0)));
+    if (c) split.contradiction.n++;
+    const pick = r.judged?.pick;
+    if (pick) (c ? split.contradiction : split.rest)[pick]++;
+  }
+  return { judgeSplit: split };
+}
+/** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
+function n1Cost() {
+  const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
+  if (!existsSync(dir)) return null;
+  const xs = readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x)).map((f) => {
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { meta?: { costUsd?: number }; gate2?: { cost?: number } | null };
+    return (r.meta?.costUsd ?? 0) + (r.gate2?.cost ?? 0);
+  });
+  return xs.length ? { mean: Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 1e4) / 1e4, max: Math.round(Math.max(...xs) * 1e4) / 1e4 } : null;
+}
+
 /** 봉인 실행에서 AI 글이 나간 항목 중 대표 예시(경고 있는 전원 배정·산소통·119·평시) — 실시간 생성 한도에 걸려도 AI 글을 볼 수 있게 */
 function n1Examples() {
   const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
@@ -260,6 +299,8 @@ if (n1) {
     judge: n1.notices.judge, latencyP50: n1.notices.latencyE2E.p50,
     // 9.5(보낸 글 1차 위반 0)는 구조상 보장되는 확인 항목이라 적중 집계에서 뺀다(통합 레드팀 1라운드)
     examples: n1Examples(),
+    ...n1JudgeSplit(),
+    costPerNotice: n1Cost(),
     prereg: { hit: n1Scored.filter((x) => x.hit).length, total: n1Scored.length, structural: n1.prereg.items.filter((x) => x.id === "9.5").map((x) => ({ id: x.id, text: x.text, value: x.value, hit: x.hit })), missed: n1Scored.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
 }

@@ -9,7 +9,7 @@
 import { RESOURCE_NOUN, type NoticeFacts } from "./facts";
 
 export type Role = "BATTERY_T" | "CYL_T" | "ARRIVAL_T" | "T119" | "CHARGE_H" | "CHARGE_LT" | "CYL_H";
-const FLIP = ["못", "않", "이후", "지나", "넘어", "넘게", "넘는", "뒤에", "후에", "부터", "보다", "이상", "늦게", "전에", "안에"];
+const FLIP = ["못", "않", "이후", "지나", "넘어", "넘게", "넘는", "뒤에", "뒤로", "후에", "후로", "부터", "보다", "이상", "늦게", "전에", "안에"];
 export const ROLE_WORDS: Record<Role, readonly string[]> = {
   BATTERY_T: ["배터리"], CYL_T: ["산소통"], ARRIVAL_T: ["도착"], T119: ["구급"], CHARGE_H: ["충전"], CHARGE_LT: ["충전"], CYL_H: ["산소통"],
 };
@@ -17,8 +17,9 @@ export const ROLE_WORDS: Record<Role, readonly string[]> = {
 export const ROLE_FORBID: Record<Role, readonly string[]> = {
   BATTERY_T: ["도착", "산소통", ...FLIP],
   CYL_T: ["도착", "배터리", ...FLIP],
-  ARRIVAL_T: FLIP,
-  T119: FLIP,
+  // 도착·이송 시각 문장에 '배터리'·'산소통'이 있으면(정해진 수단 이름 안의 낱말은 빼고 본다) 그 시각을 배터리 시각처럼 쓴 것으로 본다(통합 레드팀 4라운드)
+  ARRIVAL_T: ["배터리", "산소통", ...FLIP],
+  T119: ["배터리", "산소통", ...FLIP],
   CHARGE_H: ["도착", "산소통", "없이", "안 해도", "않아도", ...FLIP],
   CHARGE_LT: ["도착", "산소통"], // 「30분을 못 버팁니다」는 부정문이 맞다
   CYL_H: ["도착", "배터리", "충전", ...FLIP],
@@ -40,7 +41,7 @@ export function requirements(f: NoticeFacts): Requirements {
   const mustInclude: Requirements["mustInclude"] = [];
   const mustSentences: SentenceReq[] = [];
   const forbidSentences: SentenceReq[] = [];
-  const NEG = ["않", "말고", "마세", "필요 없", "필요가 없"];
+  const NEG = ["않", "말고", "마세", "마십", "마시", "필요 없", "필요가 없", "안 되", "안 돼", "금지", "삼가", "아닙", "아니"];
   const must = (text: string, role: Role) => {
     const a = allowed.find((x) => x.text === text);
     if (a) { if (!a.roles.includes(role)) a.roles.push(role); } else allowed.push({ text, roles: [role] });
@@ -66,7 +67,9 @@ export function requirements(f: NoticeFacts): Requirements {
     if (p.etaPassed) sent([p.resource, "지나"], `${p.resource} 도착 예정 시각이 지나 담당자가 확인 중이다`);
     else sent([p.resource, "도착"], `${josa(p.resource, "이가")} 집에 도착한다`);
   }
-  if (f.warnRunOutFirst) sent(f.cylinder ? ["산소통", "먼저"] : ["배터리", "먼저"], f.cylinder ? "도움이 오기 전에 산소통이 먼저 떨어질 수 있다" : "도움이 오기 전에 배터리가 먼저 떨어질 수 있다");
+  const supplyW = f.cylinder ? "산소통" : "배터리";
+  if (f.warnRunOutFirst && f.warnSameTime) sent([supplyW, "먼저", "늦어지면"], `도착이 늦어지면 ${supplyW}가 먼저 떨어질 수 있다(표시 시각이 같음)`);
+  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`);
   if (p?.type === "CALL119") {
     sent(["구급", "연결"], "구급대와 연결했다");
     if (p.doneBy) must(p.doneBy, "T119");
@@ -87,7 +90,7 @@ export function requirements(f: NoticeFacts): Requirements {
     if (a === "CHARGE_DEVICE") sent(["충전"], "평소에 배터리를 늘 충전해 둔다");
     if (a === "CHARGE_EXT") sent(["외장", "충전"], "외장 배터리도 충전해 둔다");
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");
-    if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법과 갈 곳을 담당자와 미리 정해 둔다");
+    if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다");
   }
   return { allowed, mustInclude, mustSentences, forbidSentences };
 }
@@ -100,7 +103,7 @@ export const BANNED: Record<"GUARANTEE" | "VAGUE_TIME" | "MEDICAL" | "RISKY" | "
   RISKY: ["시동", "발전", "연장선", "콘센트", "멀티탭", "이웃", "촛불", "가스", "차에", "차량", "엘리베이터", "직접 운전", "직접 모시"],
   JARGON: ["하한", "잔여", "배정", "레인", "슬랙", "분위", "수동검토", "알고리즘", "시뮬레이션", "모의", "인공지능", "보수적"],
   // 정전 상황을 뒤집는 말(정전 중 안내에서만 검사)
-  STATE: ["복구", "다시 들어", "돌아왔", "정전이 끝", "전기가 들어", "전원이 들어"],
+  STATE: ["복구", "다시 들어", "돌아왔", "정전이 끝", "전기가 들어", "전원이 들어", "풀렸", "풀리", "켜졌", "켜지", "해결", "끝났", "들어왔", "들어옵", "전기가 옵"],
 };
 /** 기기 조작(끄기·뽑기·조절·아끼기) 어간과 기기 낱말이 한 문장에 함께 있으면 의료·기기 지시로 본다 */
 const DEVICE_OP = /(끄|꺼|끈|뽑|빼|멈추|조절|낮추|줄이|높이|아끼|아껴)/;
@@ -108,7 +111,7 @@ const DEVICE_WORD = /(기기|전원|플러그|산소|호흡기|발생기|흡인�
 
 const NATIVE_TIME = /(?:한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|열한|열두|스무|반)\s?(?:시간|시(?=[\s,.에까부쯤반경]|$))/;
 const SINO_TIME = /(?:[일이삼사오육칠팔구]?십[일이삼사오육칠팔구]?|[삼사오육칠팔구])\s?(?:분|시간)(?![가-힣])/;
-const TIME_WORD = /(오전|오후|새벽|아침|저녁|한밤|자정|정오|이틀|사흘|며칠|하루|반나절|밤새|내일|모레|오늘\s?밤|몇\s?(?:시|분))/;
+const TIME_WORD = /(오전|오후|새벽|아침|저녁|한밤|자정|정오|이틀|사흘|며칠|하루|하룻|반나절|밤새|내일|모레|다음\s?날|한동안|당분간|오랫동안|오래|수\s?시간|수십\s?분|오늘\s?밤|몇\s?(?:시|분))/;
 
 export type ViolationCode =
   | "FORMAT_COUNT" | "FORMAT_LEN" | "FORMAT_TOTAL" | "LATIN" | "MULTI_TIME"                  // 형식
@@ -179,7 +182,7 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
     if (hits.length > 1) v.push({ code: "MULTI_TIME", detail: `시각·시간 ${hits.length}개`, sentence: s });
     for (const h of hits) {
       // 「정전에」「집 안에」 같은 말의 '전에'·'안에'는 뜻 뒤집기가 아니다
-      const r0 = strip(s, [h]).rest.replace(/정전\s?(전)?에|집\s?안에/g, "");
+      const r0 = strip(s, [h]).rest.replace(/정전\s?(전)?에|집\s?안에/g, "").split(res ?? "\u0001").join("");
       const roleOk = (r: Role) => ROLE_WORDS[r].some((w) => r0.includes(w)) && !ROLE_FORBID[r].some((w) => r0.includes(w));
       if (!h.roles.some(roleOk)) v.push({ code: "ROLE_MISMATCH", detail: `「${h.text}」(${h.roles.map((r) => ROLE_KO[r]).join("/")})의 뜻 낱말이 맞지 않음`, sentence: s });
     }
@@ -216,8 +219,8 @@ export function tailSentences(f: NoticeFacts): string[] {
   return f.kind === "OUTAGE"
     ? ["위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
     : [
-      // 갈 곳: PLAN_WITH_STAFF 문장에 이미 있으면 빼고, 절전: 배터리 없는 기기면 뺀다(통합 레드팀 2라운드). 한 문장 45자 이내
-      ...(f.actions.includes("PLAN_WITH_STAFF") ? [] : ["정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요."]),
+      // 갈 곳: 늘 붙인다(원안 '대체장소', 통합 레드팀 4라운드). 절전: 배터리 없는 기기면 뺀다. 한 문장 45자 이내
+      "정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요.",
       ...(f.battery.state === "NONE" ? [] : ["절전 기능이 있는지 담당 의료진에게 물어 두세요.", "기기 설정은 혼자 바꾸지 마세요."]),
       "위급하면 바로 119에 전화하세요.", "정전되면 한전 123에 알리세요.",
     ];
@@ -246,12 +249,13 @@ export function templateSentences(f: NoticeFacts): string[] {
     }
     // 경고는 수단 문장 뒤에, 무엇이 오기 전인지 주어를 밝혀 쓴다(앞 문장의 '적어도 …까지'와 모순되지 않게)
     const supply = f.cylinder ? "산소통" : "배터리";
-    if (f.warnRunOutFirst && (p?.type === "ASSIGN" || p?.type === "GAP")) out.push(`${josa(p.resource, "이가")} 오기 전에 ${supply}${supply === "산소통" ? "이" : "가"} 먼저 떨어질 수 있습니다.`);
+    const supplyJ = josa(supply, "이가");
+    if (f.warnRunOutFirst && (p?.type === "ASSIGN" || p?.type === "GAP")) out.push(f.warnSameTime ? `도착이 늦어지면 ${supplyJ} 먼저 떨어질 수 있습니다.` : `${josa(p.resource, "이가")} 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
     if (p?.type === "CALL119") {
       out.push("구급대와 연결했습니다.");
       out.push(p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 드릴 예정입니다.` : p.etaPassed ? "구급대 이송 예정 시각이 지나 담당자가 확인하고 있습니다." : "구급대가 언제 올지는 아직 정해지지 않았습니다.");
       if (p.late) out.push("구급대 출동이 늦어질 수 있습니다.");
-      if (f.warnRunOutFirst) out.push(`구급대가 오기 전에 ${supply}${supply === "산소통" ? "이" : "가"} 먼저 떨어질 수 있습니다.`);
+      if (f.warnRunOutFirst) out.push(f.warnSameTime ? `구급대가 늦어지면 ${supplyJ} 먼저 떨어질 수 있습니다.` : `구급대가 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
     }
     if (p?.type === "SHELTER") out.push("가까운 쉼터로 옮기도록 담당자가 연락드립니다.");
     out.push("연락을 받을 수 있게 전화를 곁에 두세요.");
@@ -268,7 +272,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     if (a === "CHARGE_DEVICE") out.push("평소에 기기 배터리를 늘 충전해 두세요.");
     if (a === "CHARGE_EXT") out.push("외장 배터리도 늘 충전해 두세요.");
     if (a === "CHECK_CYLINDER") out.push("산소통을 미리 확인해 두세요.");
-    if (a === "PLAN_WITH_STAFF") out.push("정전 때 쓸 다른 방법과 갈 곳을 담당자와 정해 두세요.");
+    if (a === "PLAN_WITH_STAFF") out.push("정전 때 쓸 다른 방법을 담당자와 미리 정해 두세요.");
   }
   return out;
 }

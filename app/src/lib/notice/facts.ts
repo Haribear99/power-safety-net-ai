@@ -95,7 +95,7 @@ export const ACTION_KO: Record<Action, string> = {
   CHARGE_DEVICE: "평소에 기기 배터리를 늘 충전해 둔다",
   CHARGE_EXT: "외장 배터리도 충전해 둔다",
   CHECK_CYLINDER: "산소통을 미리 확인해 둔다",
-  PLAN_WITH_STAFF: "정전 때 쓸 다른 방법과 갈 곳을 담당자와 미리 정해 둔다",
+  PLAN_WITH_STAFF: "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다",
 };
 
 export interface NoticeFacts {
@@ -105,8 +105,10 @@ export interface NoticeFacts {
   battery: BatteryState;
   cylinder: Cylinder | null;
   plan: Plan | null;          // PREP은 null
-  /** 도움(전원 도착·119 이송 완료, 표시 시각)이 보호 수단(산소통이 있으면 산소통, 없으면 배터리)의 끝(표시 시각)보다 늦거나 같거나, 공백 단축 배정이면 경고 */
+  /** 도움(전원 도착·119 이송 완료, 표시 시각)이 보호 수단(산소통이 있으면 산소통, 없으면 배터리)의 끝(표시 시각)보다 늦거나 같거나, 예정이 지났으면 경고 */
   warnRunOutFirst: boolean;
+  /** 경고가 '표시 시각이 같음' 때문이면 true: 「적어도 X까지 / X까지 도착 / 먼저 떨어짐」 모순을 피해 「도착이 늦어지면 먼저 떨어질 수 있다」로 쓴다 */
+  warnSameTime: boolean;
   extDeclared: boolean;       // PREP만 의미
   actions: Action[];
 }
@@ -177,7 +179,7 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
     if (input.extDeclared) actions.push("CHARGE_EXT");
     if (cylinder) actions.push("CHECK_CYLINDER");
     if (battery.state === "NONE" && !cylinder) actions.push("PLAN_WITH_STAFF");
-    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, extDeclared: input.extDeclared, actions };
+    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, warnSameTime: false, extDeclared: input.extDeclared, actions };
   }
   const { baseIso, nowS } = input;
   // 표시 시각(내림)이 지금부터 10분 안이면 '이미 떨어졌을 수 있음'
@@ -216,8 +218,9 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
       const resource = input.resourceKind ? RESOURCE_NOUN[input.resourceKind] : RESOURCE_UNKNOWN_NOUN;
       const passed = input.etaS != null && input.etaS <= nowS;
       plan = { type: input.lane === "PROPOSE_ASSIGN" ? "ASSIGN" : "GAP", resource, arriveBy: eta, etaPassed: passed };
-      // 보호 수단 끝이 보이는 경우만: 공백 단축 배정, 표시 도착 ≥ 표시 보호 끝(반올림 역전 포함), 도착 예정이 지남(보수)
-      warnRunOutFirst = supplyShownS != null && (input.lane === "GAP_REDUCE" || helpLate || passed);
+      // 보호 수단 끝이 보이는 경우만: 표시 도착 ≥ 표시 보호 끝(반올림 역전 포함), 도착 예정이 지남(보수).
+      // 공백 단축 배정이라도 표시 도착이 보호 끝보다 이르면 경고하지 않는다(「적어도 4시 / 3시 도착 / 먼저 떨어짐」 모순, 통합 레드팀 4라운드)
+      warnRunOutFirst = supplyShownS != null && (helpLate || passed);
       break;
     }
     case "FALLBACK_119":
@@ -234,7 +237,8 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   const actions: Action[] = [];
   if (cylinder) actions.push(switchNow ? "SWITCH_TO_CYLINDER" : "SWITCH_AFTER_BATTERY");
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, extDeclared: false, actions };
+  const warnSameTime = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS === supplyShownS;
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
@@ -277,15 +281,24 @@ export function outageInput(args: {
   hh: HouseholdView; baseIso: string; nowS: number; lane: Lane; resourceKind: ResourceKind | null; etaS: number | null; late119: boolean; db?: EngineDb;
 }): NoticeInputT | null {
   if (!(NOTICE_LANES as readonly string[]).includes(args.lane)) return null;
-  const { all, noCyl, cylS, engineCylS } = split(args.hh, args.db ?? DEFAULT_DB);
-  // 배터리 끝은 직전 신고 단조 규칙(lEndPrev)을 반영한 전체 끝을 넘지 않는다
-  let batteryEndS = all.endS == null || noCyl.endS == null ? null : Math.min(all.endS, noCyl.endS);
-  // 재신고 단조(정전 중 비증가): 직전 끝(lEndPrev)은 산소통을 포함하므로, 산소통 몫을 뺀 값을 배터리 끝의 상한으로 둔다(늘어나지 않게)
-  // 인공호흡기 등 산소통을 셈하지 않는 기기도 엔진의 직전 끝에는 산소통 몫이 들어 있으므로 그만큼 뺀다(통합 레드팀 3라운드)
-  if (batteryEndS != null && args.hh.lEndPrev != null && engineCylS > 0) batteryEndS = Math.min(batteryEndS, qT(args.hh.lEndPrev) - engineCylS);
+  const db = args.db ?? DEFAULT_DB;
+  const hh = args.hh;
+  const { noCyl, cylS, engineCylS } = split(hh, db);
+  // 배터리 끝: 배터리만의 단조 규칙(직전 배터리 끝 lEndPrevBattery). 재신고 때 세션이 따로 남긴다(통합 레드팀 4라운드).
+  // 산소통이 없으면 엔진의 직전 끝(lEndPrev)이 곧 배터리 끝이다. 산소통이 있는데 배터리 끝을 남기지 않은 예전 기록이면 보수적으로 직전 끝에서 엔진 산소통 몫을 뺀다.
+  const prevB = hh.lEndPrevBattery !== undefined ? hh.lEndPrevBattery : hh.cylinder ? null : hh.lEndPrev;
+  const bat = hh.cylinder || hh.lEndPrevBattery !== undefined ? computeLowerBoundDetail({ ...hh, cylinder: undefined, lEndPrev: prevB }, db) : noCyl;
+  let batteryEndS = bat.endS;
+  if (batteryEndS != null && hh.lEndPrevBattery === undefined && hh.cylinder && hh.lEndPrev != null && engineCylS > 0) batteryEndS = Math.min(batteryEndS, qT(hh.lEndPrev) - engineCylS);
+  // 배터리가 있는 기기인데 충전 0% 등으로 하한이 0이면 '배터리 없음'이 아니라 '거의 없음'으로(통합 레드팀 4라운드)
+  const spec = hh.device.specId != null ? db.devices.get(hh.device.specId) : undefined;
+  const hasBattery = (spec?.internalH.value ?? 0) > 0 || hh.ext.some((e) => e.declaredCount > 0);
+  const batteryLs = noCyl.Ls === 0 && hasBattery ? 1 : noCyl.Ls;
+  // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
+  const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;
   return {
-    kind: "OUTAGE", caregiver: args.hh.caregiver, deviceCls: deviceClassOf(args.hh, args.db), baseIso: args.baseIso, nowS: args.nowS,
-    batteryEndS, batteryLs: noCyl.Ls, cylinderEndS: cylS > 0 ? all.endS : null, cylinderS: cylS,
+    kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
+    batteryEndS, batteryLs, cylinderEndS, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119,
   };
 }

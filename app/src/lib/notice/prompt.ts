@@ -2,9 +2,9 @@
 // 119·123 문장은 AI가 쓰지 않는다(코드가 붙인다). 사용자 메시지는 사실 묶음(코드가 열거값·숫자로 만든 것)에서만 만든다.
 import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
-import { BANNED, LIMITS, requirements } from "./rules";
+import { BANNED, josa, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v10";
+export const NOTICE_PROMPT_VERSION = "n1-v11";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -72,7 +72,13 @@ export function noticeUser(f: NoticeFacts): string {
     배터리: batteryKo(f),
     ...(cyl ? { 산소통: cyl } : {}),
     ...(plan ? { 담당자결정: plan } : {}),
-    ...(f.warnRunOutFirst ? { 경고: `${f.plan?.type === "CALL119" ? "구급대" : f.plan && "resource" in f.plan ? f.plan.resource : "도움"}가 오기 전에 ${f.cylinder ? "산소통" : "배터리"}가 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다)` } : {}),
+    ...(f.warnRunOutFirst ? { 경고: (() => {
+      const help = f.plan?.type === "CALL119" ? "구급대" : f.plan && "resource" in f.plan ? f.plan.resource : "도움";
+      const sup = josa(f.cylinder ? "산소통" : "배터리", "이가");
+      return f.warnSameTime
+        ? `도착 시각과 ${f.cylinder ? "산소통" : "배터리"} 시각이 같다. '${help}${f.plan?.type === "CALL119" ? "가" : "의 도착이"} 늦어지면 ${sup} 먼저 떨어질 수 있다'로 쓴다(도움 수단 문장 뒤)`
+        : `${josa(help, "이가")} 오기 전에 ${sup} 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다)`;
+    })() } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),
     할일: f.actions.map((a) => ACTION_KO[a]),
     그대로써야할표기: req.mustInclude.map((m) => ({ 표기: m.text, 뜻: m.hint })),

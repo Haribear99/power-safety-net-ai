@@ -74,9 +74,9 @@ function NoticeLedger() {
         <div className="mt-1 text-[14px]">
           <p>담당자가 정한 시각·할 일을 AI가 쉬운 글로 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다. 아니면 고정 문안입니다. 시연용이며 실제 발송 기능은 없습니다.</p>
           <ul className="mt-1 list-disc pl-5">
-            <li>봉인 시험셋(봉인 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}</li>
-            <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
-            <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 약 $0.03. 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
+            <li>봉인 시험셋(봉인 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}(봉인 당시 모순 고정 문안 {n.judgeSplit?.contradiction.n ?? "—"}건도 통과시킨 값)</li>
+            <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
+            <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
           </ul>
           <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. <Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
         </div>

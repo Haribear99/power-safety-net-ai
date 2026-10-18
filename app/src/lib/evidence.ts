@@ -121,6 +121,9 @@ export interface N1Evidence {
   latencyP50: number | null;
   /** 봉인 실행에서 AI 글이 나간 대표 예시(sentences = 본문 + 고정 119·123 문장) */
   examples: { label: string; id: string; sentences: string[] }[];
+  /** 봉인 당시 고정 문안 모순 쌍과 나머지로 나눈 쌍 비교 */
+  judgeSplit?: { contradiction: { n: number; ai: number; template: number; same: number }; rest: { ai: number; template: number; same: number } };
+  costPerNotice?: { mean: number; max: number } | null;
   prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }
 export function n1Evidence(): N1Evidence | null {

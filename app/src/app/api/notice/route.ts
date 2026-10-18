@@ -17,7 +17,7 @@ import { NOTICE_PROMPT_VERSION, NOTICE_SYSTEM, NoticeOut, noticeUser } from "@/l
 import { verify } from "@/lib/notice/rules";
 import { accessCodeOk, codeKey, hit, hourKey, ipBucket } from "@/lib/vision/server";
 
-export const maxDuration = 60;
+export const maxDuration = 120; // 생성 20초(+재시도) + 검사 30초(+재시도)가 60초를 넘을 수 있다(통합 레드팀 4라운드)
 export const dynamic = "force-dynamic";
 
 const Body = z.object({ input: NoticeInput, accessCode: z.string().max(200).optional() }).strict();
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       if (accessCodeOk(code)) {
         pool = "notice_judge";
         // 알림 전용 심사 풀. 시간 20회·하루 40회(통합 레드팀 2·3라운드)
-        if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 20, 7200)) || !(await hit(be, `pl26:rl:judge:notice:day:${new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)}`, 40, 2 * 86400))) {
+        if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 20, 7200)) || !(await hit(be, `pl26:rl:judge:notice:day:${new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)}:${codeKey(code)}`, 40, 2 * 86400))) {
           return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 알림 한도(시간 20회·하루 40회)를 넘었습니다. 고정 문안은 계속 볼 수 있습니다" }, { status: 429 });
         }
       } else {

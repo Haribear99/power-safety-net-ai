@@ -37,6 +37,7 @@ export interface HouseholdView {
   floor: number; mobilityNeed: boolean; caregiver: boolean;
   tReport: number;                          // 신고(충전량 입력) 모의 시각 h. L_end = tReport + L, 재신고 시 비증가(3.9절)
   lEndPrev: number | null;                  // 직전 신고의 L_end. 재신고 단조 규칙용(3.9절)
+  lEndPrevBattery?: number | null;          // 직전 신고의 배터리만(산소통 제외) 끝. 보호자 알림 전용(엔진은 쓰지 않음, 10/18 N1)
   device: {
     specId: string | null; specBy: "db_exact" | "ai_label_user_confirmed" | "operator" | null;
       // operator = 수동검토 완료에서 DB 기종 선택(1.4절). ai_label_user_confirmed = AI 판독 정확 일치 + 가구 확인만(검증 사양 아님,

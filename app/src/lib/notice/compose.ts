@@ -31,11 +31,21 @@ export interface Composed {
   footer: string;
 }
 
+/** 꼬리말: 실제로 글에 있는 시각의 근거만 적는다(통합 레드팀 3·4라운드) */
+function footerFor(f: NoticeFacts, ai: boolean): string {
+  const head = ai ? "※ AI가 쓴 글입니다. " : "※ ";
+  if (f.kind === "PREP") {
+    const timed = f.battery.state === "HOURS" || f.battery.state === "UNDER30" || f.cylinder;
+    return `${head}${timed ? "시간은 기기 사양과 확인된 값으로 계산했습니다. " : ""}시연용 안내입니다.`;
+  }
+  const parts: string[] = [];
+  if (f.battery.state === "UNTIL") parts.push("배터리 시각은 기기 사양과 알려 주신 충전량으로 계산했고");
+  if (f.cylinder?.state === "UNTIL") parts.push("산소통 시각은 담당자가 확인한 값으로 계산했고");
+  return `${head}${parts.length ? `${parts.join(", ")}, ` : ""}도움 수단${f.plan && f.plan.type !== "SHELTER" ? "과 시각" : ""}은 담당자가 승인했습니다. 시연용 안내입니다.`;
+}
 const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">): Composed => ({
   ...rest,
-  footer: f.kind !== "PREP" ? rest.footer
-    : f.battery.state === "HOURS" || f.battery.state === "UNDER30" || f.cylinder ? (rest.source === "ai" ? FOOTER.prepAi : FOOTER.prep)
-    : rest.source === "ai" ? FOOTER.prepNoTimeAi : FOOTER.prepNoTime,
+  footer: footerFor(f, rest.source === "ai"),
   sentences: [...body, ...tailSentences(f)],
 });
 

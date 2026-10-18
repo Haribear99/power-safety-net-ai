@@ -304,8 +304,11 @@ export function reReport(s: Session, householdId: string, chargePct: number): Se
   if (idx < 0) return s;
   const hh = s.households[idx];
   const prevEnd = computeLowerBoundDetail(hh, DB).endS;
+  // 보호자 알림용: 배터리만의 끝도 같은 단조 규칙으로 따로 남긴다(산소통 확인값이 바뀌어도 배터리 끝이 늘지 않게)
+  const prevBatteryEnd = hh.cylinder ? computeLowerBoundDetail({ ...hh, cylinder: undefined, lEndPrev: hh.lEndPrevBattery ?? null }, DB).endS : prevEnd;
   const next: HouseholdView = {
     ...hh, tReport: sToH(s.nowS), lEndPrev: prevEnd != null ? sToH(prevEnd) : null,
+    lEndPrevBattery: prevBatteryEnd != null ? sToH(prevBatteryEnd) : null,
     device: { ...hh.device, charge: { value: Math.max(0, Math.min(100, Math.round(chargePct))), source: "user" } },
   };
   return recompute({ ...s, households: s.households.map((h, i) => (i === idx ? next : h)) });

@@ -297,6 +297,64 @@ describe("통합 레드팀 2라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 4라운드 회귀", () => {
+  it("표시 시각이 같으면 경고는 '도착이 늦어지면 …먼저'(적어도 X까지 / X까지 도착 / 먼저 떨어짐 모순 없음)", () => {
+    const f = buildFacts(IN({ batteryEndS: 3000, etaS: 2950 })); // 둘 다 22:50
+    expect(f).toMatchObject({ warnRunOutFirst: true, warnSameTime: true });
+    const t = templateSentences(f).join(" ");
+    expect(t).toContain("도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다");
+    expect(t).not.toContain("오기 전에");
+    const c = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, batteryEndS: 3000, etaS: 2950 }));
+    expect(templateSentences(c).join(" ")).toContain("구급대가 늦어지면 배터리가 먼저");
+  });
+  it("모든 조합에서 '오기 전에 먼저' 경고가 있으면 표시 도착이 보호 끝보다 늦거나 시각이 없다", () => {
+    for (const i of allInputs()) {
+      const f = buildFacts(i);
+      if (!f.warnRunOutFirst || f.warnSameTime) continue;
+      const p = f.plan;
+      const help = p && p.type !== "SHELTER" ? (p.type === "CALL119" ? p.doneBy : p.arriveBy) : null;
+      if (help == null) continue;
+      expect(f.battery.state === "UNTIL" || f.cylinder?.state === "UNTIL").toBe(true);
+    }
+  });
+  it("공백 단축이라도 표시 도착이 배터리 끝보다 이르면 경고하지 않는다", () => {
+    expect(buildFacts(IN({ lane: "GAP_REDUCE", batteryEndS: 9000, etaS: 3000 })).warnRunOutFirst).toBe(false);
+  });
+  const o2 = (over: Partial<HouseholdView>): HouseholdView => ({
+    id: "H4", pseudonym: "H-004", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "PERFECTO2", specBy: "db_exact", batteryAgeY: 1, charge: { value: 100, source: "device_screen" } },
+    ext: [], cylinder: { declared: true, opVerified: { count: 1, hoursLo: 10, auditId: "A1" } }, ...over,
+  });
+  it("산소통 확인값을 낮춰도(10h→2h) 배터리 끝이 늘지 않는다(직전 배터리 끝 기준)", () => {
+    const hh = o2({ tReport: 1, lEndPrev: 11, lEndPrevBattery: 1, cylinder: { declared: true, opVerified: { count: 1, hoursLo: 2, auditId: "A2" } } });
+    const i = outageInput({ hh, baseIso: BASE, nowS: 3 * 3600, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    if (i.kind !== "OUTAGE") throw new Error();
+    expect(i.batteryEndS!).toBeLessThanOrEqual(3600);
+    const f = buildFacts(i);
+    expect(f.actions).toContain("SWITCH_TO_CYLINDER");
+  });
+  it("재신고 뒤 산소통을 확인하면 산소통은 '이미 다 썼을 수 있다'가 아니다", () => {
+    const hh = o2({ tReport: 2, lEndPrev: 2, lEndPrevBattery: 2 });
+    const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 2 * 3600 + 600, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
+    expect(f.cylinder?.state).toBe("UNTIL");
+  });
+  it("배터리가 있는 기기의 충전 0%는 '배터리 없음'이 아니라 '거의 없음'", () => {
+    const hh: HouseholdView = { ...o2({}), device: { specId: "LTV1150", specBy: "db_exact", batteryAgeY: 1, charge: { value: 0, source: "device_screen" } }, cylinder: undefined };
+    const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
+    expect(f.battery.state).toBe("MAYBE_OUT");
+  });
+  it("배터리·산소통 없는 산소발생기의 평시 안내에도 '갈 곳' 고정 문장이 있다", () => {
+    const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "O2_STAT", batteryS: 0, cylinderS: 0, extDeclared: false });
+    expect(tailSentences(f).join(" ")).toContain("갈 곳");
+  });
+  it("도착 시각 문장에 '배터리'를 넣어 배터리 시각처럼 쓰면 1차 거부(수단 이름 속 낱말은 예외)", () => {
+    const a = buildFacts(IN({}));
+    expect(verify(a, templateSentences(a).map((s) => s.replace("휴대용 전원 장치가 오후 10시 50분까지 집에 도착합니다.", "배터리는 장치가 도착하는 오후 10시 50분까지 갑니다."))).ok).toBe(false);
+    const ext = buildFacts(IN({ resourceKind: "RENTAL_EXT" }));
+    expect(verify(ext, templateSentences(ext)).ok).toBe(true);
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [
