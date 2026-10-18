@@ -34,12 +34,13 @@ export function totalBudgetUsd(): number {
   return Number(process.env.CLAUDE_TOTAL_BUDGET_USD ?? 45);
 }
 
-/** 풀 상한(7.1절): dev 0.45, sealed 0.22, public 0.12, reserve 0.21 − judge $3.0 − notice $3.0 − notice_judge $1.5 */
+/** 풀 상한(7.1절): dev 0.55, sealed 0.12, public 0.12, reserve 0.21 − judge $3.0 − notice $3.0 − notice_judge $1.5.
+ *  10/18 통합 레드팀 9라운드 회귀 중 dev가 상한에 닿아, 봉인 실행이 끝나 남은 sealed 몫 0.10을 dev로 옮겼다(총액 그대로, sealed 사용 $2.77 < 새 상한 $5.40) */
 export function poolLimitUsd(pool: Pool): number {
   const t = totalBudgetUsd();
   switch (pool) {
-    case "dev": return t * 0.45;
-    case "sealed": return t * 0.22;
+    case "dev": return t * 0.55;
+    case "sealed": return t * 0.12;
     case "public": return t * 0.12;
     case "judge": return 3.0;
     case "notice": return 3.0;

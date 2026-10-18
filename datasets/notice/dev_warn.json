@@ -1,0 +1,125 @@
+{
+ "format": "pl26-n1-set/2",
+ "items": [
+  {
+   "id": "wn-00",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 7800,
+    "batteryLs": 7800,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 6600,
+    "late119": false
+   }
+  },
+  {
+   "id": "wn-01",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "본인",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": false,
+    "deviceCls": "VENT_3H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 5400,
+    "batteryLs": 5400,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "GAP_REDUCE",
+    "resourceKind": "MOBILE_GEN",
+    "etaS": 16200,
+    "late119": false
+   }
+  },
+  {
+   "id": "wn-02",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_1H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 3600,
+    "batteryLs": 3600,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 10800,
+    "late119": false
+   }
+  },
+  {
+   "id": "wn-03",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 9000,
+    "batteryLs": 9000,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "GAP_REDUCE",
+    "resourceKind": "ESS_L",
+    "etaS": 7800,
+    "late119": false
+   }
+  },
+  {
+   "id": "wn-04",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "본인",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": false,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 20000,
+    "batteryLs": 20000,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 5400,
+    "late119": false
+   }
+  },
+  {
+   "id": "wn-05",
+   "stratum": "OUTAGE:UNTIL:warn-margin",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_3H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 6000,
+    "batteryLs": 6000,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 5000,
+    "late119": true
+   }
+  }
+ ]
+}

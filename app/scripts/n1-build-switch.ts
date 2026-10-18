@@ -1,6 +1,6 @@
 // 통합 레드팀 7·8라운드: '배터리가 떨어지면 산소통으로 바꿔 쓰기'(SWITCH_AFTER_BATTERY) 경로와 확인 외장 합산 시간(8라운드) 회귀 셋.
 // dev 셋에 이 경로가 없어서(5라운드 지적) 따로 만든다. 봉인 측정이 아니라 회귀용이다.
-//   npx tsx scripts/n1-build-switch.ts   → datasets/notice/dev_switch.json, adversarial_dev_switch.json, dev_ext.json, adversarial_dev_ext.json
+//   npx tsx scripts/n1-build-switch.ts   → datasets/notice/dev_switch.json, adversarial_dev_switch.json, dev_ext.json, adversarial_dev_ext.json, dev_warn.json, adversarial_dev_warn.json
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { buildFacts, outageInput, prepInput, type NoticeInputT } from "../src/lib/notice/facts";
@@ -88,11 +88,13 @@ for (const c of extCases.slice(0, 4)) {
   const until = f.kind === "OUTAGE";
   const put = (s: string) => [...t.slice(0, k), ...s.split(/(?<=\.)\s+/), ...t.slice(k + 1)];
   const BADX = [
-    ["ext_as_internal", until ? `인공호흡기 배터리는 적어도 ${b}까지 버팁니다.` : `인공호흡기 배터리는 완전히 충전하면 적어도 ${b} 버팁니다.`],
-    ["ext_added_on_top", until ? `배터리만으로 적어도 ${b}까지 버팁니다. 외장 배터리는 그 위에 더 쓸 수 있습니다.` : `내장 배터리만으로 완전히 충전하면 적어도 ${b} 버팁니다. 외장 배터리는 그 위에 더 쓸 수 있습니다.`],
+    ["ext_as_internal", until ? `인공호흡기 배터리는 계산상 ${b}까지 버팁니다.` : `인공호흡기 배터리는 완전히 충전하면 계산상 ${b} 버팁니다.`],
+    ["ext_added_on_top", until ? `배터리만으로 계산상 ${b}까지 버팁니다. 외장 배터리는 그 위에 더 쓸 수 있습니다.` : `내장 배터리만으로 완전히 충전하면 계산상 ${b} 버팁니다. 외장 배터리는 그 위에 더 쓸 수 있습니다.`],
+    // 9라운드: '외장' 낱말은 두고 뜻을 뒤집음
+    ["ext_negated", until ? `외장 배터리 없이도 계산상 ${b}까지 버팁니다.` : `외장 배터리 없이도 완전히 충전하면 계산상 ${b} 버팁니다.`],
   ] as const;
   const GOODX = [
-    ["paraphrase", until ? `외장 배터리까지 모두 쓰면 적어도 ${b}까지 버팁니다.` : `외장 배터리까지 합치면 완전히 충전했을 때 적어도 ${b} 버팁니다.`],
+    ["paraphrase", until ? `외장 배터리까지 모두 쓰면 계산상 ${b}까지 버팁니다.` : `외장 배터리까지 합치면 완전히 충전했을 때 계산상 ${b} 버팁니다.`],
   ] as const;
   BADX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-b${j}`, input: c.input, label: "bad", category: cat, sentences: put(s) }));
   GOODX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-g${j}`, input: c.input, label: "good", category: cat, sentences: put(s) }));
@@ -101,3 +103,36 @@ writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"),
   format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장만 바꿨다.", items: extItems,
 }, null, 1));
 console.log(`dev_ext ${extCases.length}건, adversarial_dev_ext ${extItems.length}건`);
+
+// ---- 9라운드: 경고 여유 30분·조건 없는 경고·'적어도' 단정 ----
+const warnCases: { id: string; input: NoticeInputT }[] = [
+  { id: "wn-00", input: { kind: "OUTAGE", caregiver: true, deviceCls: "VENT_8H", baseIso: BASE, nowS: 0, batteryEndS: 7800, batteryLs: 7800, cylinderEndS: null, cylinderS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 6600, late119: false } },
+  { id: "wn-01", input: { kind: "OUTAGE", caregiver: false, deviceCls: "VENT_3H", baseIso: BASE, nowS: 0, batteryEndS: 5400, batteryLs: 5400, cylinderEndS: null, cylinderS: 0, lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 5400 + 3 * 3600, late119: false } },
+  { id: "wn-02", input: { kind: "OUTAGE", caregiver: true, deviceCls: "VENT_1H", baseIso: BASE, nowS: 0, batteryEndS: 3600, batteryLs: 3600, cylinderEndS: null, cylinderS: 0, lane: "FALLBACK_119", resourceKind: null, etaS: 3 * 3600, late119: false } },
+  { id: "wn-03", input: { kind: "OUTAGE", caregiver: true, deviceCls: "VENT_8H", baseIso: BASE, nowS: 0, batteryEndS: 9000, batteryLs: 9000, cylinderEndS: null, cylinderS: 0, lane: "GAP_REDUCE", resourceKind: "ESS_L", etaS: 7800, late119: false } },
+  { id: "wn-04", input: { kind: "OUTAGE", caregiver: false, deviceCls: "VENT_8H", baseIso: BASE, nowS: 0, batteryEndS: 20000, batteryLs: 20000, cylinderEndS: null, cylinderS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 5400, late119: false } },
+  { id: "wn-05", input: { kind: "OUTAGE", caregiver: true, deviceCls: "VENT_3H", baseIso: BASE, nowS: 0, batteryEndS: 6000, batteryLs: 6000, cylinderEndS: null, cylinderS: 0, lane: "FALLBACK_119", resourceKind: null, etaS: 5000, late119: true } },
+];
+writeFileSync(path.join(repo, "datasets", "notice", "dev_warn.json"), JSON.stringify({
+  format: "pl26-n1-set/2",
+  items: warnCases.map((c) => ({ id: c.id, stratum: "OUTAGE:UNTIL:warn-margin", audience: c.input.caregiver ? "보호자" : "본인", input: c.input })),
+}, null, 1));
+const warnItems: unknown[] = [];
+for (const c of warnCases) {
+  const f = buildFacts(c.input);
+  const t = templateSentences(f);
+  const bt = f.battery.state === "UNTIL" ? f.battery.text : "";
+  const ki = t.findIndex((s) => s.includes(bt) && s.includes("계산상"));
+  const atLeast = t.map((s, i) => (i === ki ? s.replace("계산상", "적어도") : s));
+  warnItems.push({ id: `${c.id}-b0`, input: c.input, label: "bad", category: "at_least_guarantee", sentences: atLeast });
+  if (f.warnRunOutFirst && !f.warnSameTime) {
+    const kw = t.findIndex((s) => s.includes("먼저 떨어질"));
+    const help = f.plan?.type === "CALL119" ? "구급대가" : "도착이";
+    warnItems.push({ id: `${c.id}-b1`, input: c.input, label: "bad", category: "warning_conditional", sentences: t.map((s, i) => (i === kw ? `${help} 늦어지면 배터리가 먼저 떨어질 수 있습니다.` : s)) });
+    warnItems.push({ id: `${c.id}-g0`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === kw ? "도움이 오기 전에 배터리가 먼저 다 떨어질 수 있습니다." : s)) });
+  }
+}
+writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_warn.json"), JSON.stringify({
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 9라운드 회귀용(개발자 작성, 측정 아님). 경고 조건·'적어도' 단정만 바꿨다.", items: warnItems,
+}, null, 1));
+console.log(`dev_warn ${warnCases.length}건, adversarial_dev_warn ${warnItems.length}건`);

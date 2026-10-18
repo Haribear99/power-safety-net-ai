@@ -58,6 +58,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
       : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : p.etaPassed ? "passed_being_checked" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
+    warningOnlyIfHelpLate: Boolean(f.warnSameTime),
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
     actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, negated: false, quote: "" })),
@@ -117,7 +118,9 @@ describe("사실 묶음 표기·경계", () => {
   it("반올림 때문에 도착 표시가 배터리 표시보다 늦거나 같으면 배정이어도 경고", () => {
     const f = buildFacts(IN({ batteryEndS: 3000, etaS: 2950 })); // 배터리 22:50(내림), 도착 22:50(올림)
     expect(f.warnRunOutFirst).toBe(true);
-    expect(assign.warnRunOutFirst).toBe(false);
+    // 경고 여유 30분(통합 레드팀 9라운드): 도착 22:50·배터리 23:20은 경고, 도착 22:40이면 경고 없음
+    expect(assign.warnRunOutFirst).toBe(true);
+    expect(buildFacts(IN({ etaS: 2350 })).warnRunOutFirst).toBe(false);
   });
   it("도착 예정 시각이 지났으면 시각을 지어내지 않고 '지나 확인 중'", () => {
     const f = buildFacts(IN({ nowS: 4000, batteryEndS: 9000, etaS: 3000 }));
@@ -167,7 +170,7 @@ describe("산소통은 배터리와 따로(레드팀 C1 회귀)", () => {
 describe("1차 검사가 잡아야 하는 우회 문장(레드팀 10/18)", () => {
   const H = "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.";
   const ACT = ["연락을 받을 수 있게 전화를 곁에 두세요.", "연락이 오면 안내를 따라 주세요."];
-  const SH = [H, "배터리는 적어도 오후 11시 20분까지 버팁니다.", "가까운 쉼터로 옮기도록 담당자가 연락합니다.", ...ACT];
+  const SH = [H, "배터리는 계산상 오후 11시 20분까지 버팁니다.", "가까운 쉼터로 옮기도록 담당자가 연락합니다.", ...ACT];
   const good = (f: NoticeFacts) => templateSentences(f);
   it("정답 글은 통과", () => {
     expect(verify(shelter, SH).ok).toBe(true);
@@ -176,7 +179,7 @@ describe("1차 검사가 잡아야 하는 우회 문장(레드팀 10/18)", () =>
   const cases: [string, NoticeFacts, string[], string][] = [
     ["B1 119 금지(AI 본문에 119)", shelter, [...SH, "숨이 차도 119에는 전화하지 마세요."], "STRAY_NUMBER"],
     ["B2 위급 시 123", shelter, [...SH, "위급하면 한전 123에 먼저 전화하세요."], "STRAY_NUMBER"],
-    ["B10 날짜 하루 밀기", shelter, SH.map((s) => s.replace("적어도 오후", "적어도 내일 오후")), "NUMBER_WORD"],
+    ["B10 날짜 하루 밀기", shelter, SH.map((s) => s.replace("계산상 오후", "계산상 내일 오후")), "NUMBER_WORD"],
     ["B11 이틀", shelter, [...SH, "그 뒤에도 배터리는 이틀은 더 갑니다."], "NUMBER_WORD"],
     ["B11b 밤새", shelter, [...SH, "배터리는 밤새 쓰셔도 됩니다."], "NUMBER_WORD"],
     ["B12 전각 숫자", shelter, [...SH, "배터리는 오후 １１시까지 갑니다."], "STRAY_NUMBER"],
@@ -393,7 +396,7 @@ describe("통합 레드팀 6라운드 회귀", () => {
   it("정전 중 시각: '완전히 충전하면 …까지'는 1·2차 모두 거부", () => {
     const f = buildFacts(IN({}));
     const t = templateSentences(f);
-    const bad = t.map((s) => (s.includes("배터리") && s.includes("적어도") ? s.replace("배터리는", "완전히 충전하면 배터리는") : s));
+    const bad = t.map((s) => (s.includes("배터리") && s.includes("계산상") ? s.replace("배터리는", "완전히 충전하면 배터리는") : s));
     expect(bad.join(" ")).toContain("충전하면");
     expect(verify(f, bad).ok).toBe(false);
     const c = truthClaims(f);
@@ -457,6 +460,56 @@ describe("통합 레드팀 8라운드 회귀", () => {
     const swap = (to: string) => templateSentences(f).map((s) => (s.includes("산소통으로 바꿔") ? to : s));
     for (const bad of ["배터리가 떨어지면 전원 장치를 기다렸다가 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 장치가 닿은 뒤에 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 안내를 받고 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 허락을 받은 다음 산소통으로 바꿔 쓰세요."])
       expect(verify(f, swap(bad)).ok, bad).toBe(false);
+  });
+});
+
+describe("통합 레드팀 9라운드 회귀", () => {
+  it("배터리·산소통 시각이 있으면 코드가 '계산값이라 더 일찍 떨어질 수 있다'를 붙이고, 본문 '적어도'는 1차 거부", () => {
+    const f = buildFacts(IN({}));
+    expect(tailSentences(f)[0]).toBe("배터리 시각은 계산값이라 더 일찍 떨어질 수 있습니다.");
+    const t = templateSentences(f);
+    expect(t.join(" ")).not.toContain("적어도");
+    expect(verify(f, t.map((s) => s.replace("계산상", "적어도"))).ok).toBe(false);
+    const p = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "VENT_8H", batteryS: 7 * 3600, cylinderS: 0, extDeclared: false });
+    expect(tailSentences(p)[0]).toBe("배터리 시간은 계산값이라 더 짧을 수 있습니다.");
+    expect(tailSentences(buildFacts(IN({ batteryEndS: null, batteryLs: null })))[0]).toBe("위급하면 바로 119에 전화하세요.");
+  });
+  it("표시 시각이 같지 않은 경고를 '늦어지면'에 달면 1·2차 거부", () => {
+    const f = buildFacts(IN({ lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 4800 + 3 * 3600 }));
+    expect(f).toMatchObject({ warnRunOutFirst: true, warnSameTime: false });
+    const t = templateSentences(f);
+    expect(verify(f, t).ok).toBe(true);
+    expect(verify(f, t.map((s) => (s.includes("먼저 떨어질") ? "도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다." : s))).ok).toBe(false);
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    expect(compareClaims(f, { ...c, warningOnlyIfHelpLate: true }).length).toBeGreaterThan(0);
+  });
+  it("외장 합산 문장에 '외장 없이·말고·만으로·내장'을 쓰면 1차 거부", () => {
+    const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "VENT_8H", batteryS: 40000, cylinderS: 0, extDeclared: true, batteryExtS: 20000 });
+    const b = f.battery.state === "HOURS" ? f.battery.text : "";
+    for (const bad of [`외장 배터리 없이도 완전히 충전하면 계산상 ${b} 버팁니다.`, `내장 배터리만으로 외장 없이 계산상 ${b} 버팁니다.`])
+      expect(verify(f, templateSentences(f).map((s) => (s.includes(b) ? bad : s))).ok, bad).toBe(false);
+  });
+  it("어림 수사·때 표현('서너 시간'·'한나절'·'동틀 무렵')은 표기 밖 시간으로 1차 거부", () => {
+    const f = buildFacts(IN({ lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null }));
+    const t = templateSentences(f);
+    expect(verify(f, t).ok).toBe(true);
+    for (const x of ["서너 시간 안에 연락이 갑니다.", "한나절 안에 연락이 갑니다.", "동틀 무렵 연락이 갑니다."]) expect(verify(f, [...t, x]).ok, x).toBe(false);
+  });
+  it("확인 산소통과 확인 외장이 함께면 외장 몫을 빼고 셈한다(산소통 끝이 내장 소진 기준)", () => {
+    const hh: HouseholdView = {
+      id: "H9", pseudonym: "H-009", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 100, source: "device_screen" } },
+      ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A9" } }],
+      cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C9" } },
+    };
+    const i = outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    if (i.kind !== "OUTAGE") throw new Error();
+    expect(i.batteryExtS).toBeUndefined();
+    const inner = outageInput({ hh: { ...hh, ext: [] }, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    if (inner.kind !== "OUTAGE") throw new Error();
+    expect(i.batteryEndS).toBe(inner.batteryEndS);
+    expect(i.cylinderEndS).toBe(inner.cylinderEndS);
   });
 });
 

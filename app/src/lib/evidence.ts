@@ -133,7 +133,13 @@ export interface N1Evidence {
     atLeastDropped: { k: number; n: number };
     /** 쌍 비교 부호검정 양측 p(같음 제외) */
     signP: number;
+    /** 모순 고정 문안 가운데 실제로 나간 것(AI 글 탈락) */
+    sentContradiction: number;
   };
+  /** 나간 AI 글 가운데 확인 외장 합산을 말하지 않은 것(사후 집계, 통합 레드팀 9라운드) */
+  extUndisclosed?: { k: number; ai: number; ids: string[] } | null;
+  /** 나간 글 가운데 봉인 뒤 결함으로 판정된 수(같은 시각 모순 AI + 모순 고정 문안 + 외장 미표기) */
+  sentDefects?: number;
   costPerNotice?: { mean: number; max: number } | null;
   prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }

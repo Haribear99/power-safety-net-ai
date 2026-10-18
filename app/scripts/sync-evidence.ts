@@ -286,7 +286,12 @@ function n1JudgeSplit() {
   let tail = 0, c = 1;
   for (let i = 0; i <= m; i++) { if (i > 0) c = (c * (m - i + 1)) / i; if (i <= Math.min(a, b)) tail += c; }
   const signP = Math.min(1, (2 * tail) / 2 ** m);
-  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000 } };
+  // 나간 글 중 봉인 뒤 결함 판정: 모순 고정 문안 가운데 AI 글이 탈락해 실제로 나간 것(쌍 비교 없음), 외장 합산 미표기(사후 집계 scripts/n1-ext-sealed.ts)
+  const extF = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "n1_ext_sealed.json");
+  const ext = existsSync(extF) ? (JSON.parse(readFileSync(extF, "utf-8")) as { undisclosed: { k: number; ai: number; ids: string[] } }).undisclosed : null;
+  const sentContradiction = split.contradiction.n - split.contradiction.judged;
+  const sentDefects = split.aiSameTime.n + sentContradiction + (ext?.k ?? 0);
+  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, sentDefects };
 }
 /** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
 function n1Cost() {

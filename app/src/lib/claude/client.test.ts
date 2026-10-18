@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { keys, MemoryBackend, MICRO, reserve, type Pool } from "./budget";
+import { keys, MemoryBackend, MICRO, poolLimitUsd, reserve, type Pool } from "./budget";
 import { buildUserContent, callStructured, type SpendRow } from "./client";
 
 const schema = z.object({ a: z.string() });
@@ -66,7 +66,7 @@ describe("호출 규칙(7.1절)", () => {
   });
   it("예산 거부면 SDK를 부르지 않는다", async () => {
     const be = new MemoryBackend(); const log: SpendRow[] = [];
-    be.m.set(keys.pool("dev"), 20.25 * MICRO);
+    be.m.set(keys.pool("dev"), poolLimitUsd("dev") * MICRO);
     const f = fakeSdk([() => okRes()]);
     const r = await callStructured(base(be, f.sdk, log), schema);
     expect(r.ok).toBe(false);

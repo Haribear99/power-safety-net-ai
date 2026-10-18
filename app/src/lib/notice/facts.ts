@@ -170,6 +170,9 @@ export function durationText(s: number): string | null {
   return h === 0 ? "30분" : `${h}시간${m ? " 30분" : ""}`;
 }
 
+/** 경고 여유: 표시 도착이 표시 보호 끝보다 이만큼 이르지 않으면 '먼저 떨어질 수 있다'를 붙인다 */
+export const WARN_MARGIN_S = 30 * 60;
+
 /** NoticeInput → 표기가 정해진 사실 묶음 */
 export function buildFacts(input: NoticeInputT): NoticeFacts {
   const audience = input.caregiver ? "보호자" : "본인";
@@ -221,7 +224,8 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   const etaShownS = input.etaS == null || input.etaS <= nowS ? null : round10(baseIso, input.etaS, "ceil");
   const eta = etaShownS == null ? null : clockLabel(baseIso, etaShownS, nowS);
   let plan: Plan;
-  const helpLate = etaShownS != null && supplyShownS != null && etaShownS >= supplyShownS;
+  // 표시 하한은 넘칠 수 있다(봉인 E2 사후 집계 14.9%, 넘친 폭 중앙값 16분). 표시 도착이 보호 끝 30분 전 이내면 경고한다(통합 레드팀 9라운드)
+  const helpLate = etaShownS != null && supplyShownS != null && etaShownS >= supplyShownS - WARN_MARGIN_S;
   let warnRunOutFirst = false;
   switch (input.lane) {
     case "PROPOSE_ASSIGN":
@@ -229,7 +233,7 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
       const resource = input.resourceKind ? RESOURCE_NOUN[input.resourceKind] : RESOURCE_UNKNOWN_NOUN;
       const passed = input.etaS != null && input.etaS <= nowS;
       plan = { type: input.lane === "PROPOSE_ASSIGN" ? "ASSIGN" : "GAP", resource, arriveBy: eta, etaPassed: passed };
-      // 보호 수단 끝이 보이는 경우만: 표시 도착 ≥ 표시 보호 끝(반올림 역전 포함), 도착 예정이 지남(보수).
+      // 보호 수단 끝이 보이는 경우만: 표시 도착 ≥ 표시 보호 끝 − 30분(반올림 역전 포함), 도착 예정이 지남(보수).
       // 공백 단축 배정이라도 표시 도착이 보호 끝보다 이르면 경고하지 않는다(「적어도 4시 / 3시 도착 / 먼저 떨어짐」 모순, 통합 레드팀 4라운드)
       warnRunOutFirst = supplyShownS != null && (helpLate || passed);
       break;
@@ -314,6 +318,11 @@ export function outageInput(args: {
   const spec = hh.device.specId != null ? db.devices.get(hh.device.specId) : undefined;
   const hasBattery = (spec?.internalH.value ?? 0) > 0 || hh.ext.some((e) => e.declaredCount > 0);
   const batteryLs = noCyl.Ls === 0 && hasBattery ? 1 : noCyl.Ls;
+  // 확인 산소통이 있으면 외장 배터리 몫은 빼고 셈한다: '배터리가 떨어지면 산소통으로'가 내장 소진 때 바꿔 쓰는 경우에도 산소통 끝·경고가 맞게(보수, 통합 레드팀 9라운드)
+  const extS0 = extShare(hh, noCyl.Ls, db);
+  const dropExt = cylS > 0 && extS0 > 0;
+  if (dropExt && batteryEndS != null) batteryEndS = Math.max(args.nowS, batteryEndS - extS0);
+  const batteryLsOut = dropExt && batteryLs != null ? Math.max(batteryLs > 0 ? 1 : 0, batteryLs - extS0) : batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
   const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;
   // 꼬리말 근거: 엔진 표지 그대로(충전량을 알리지 않은 집에 '알려 주신 충전량'을 쓰지 않는다, 통합 레드팀 5라운드)
@@ -321,9 +330,9 @@ export function outageInput(args: {
   const batteryBasis = fl.includes("OPERATOR_LOWER") ? "operator" as const : fl.includes("SCREEN_CAPPED") ? "screen" as const : fl.includes("CHARGE_UNKNOWN") ? "chargeUnknown" as const : "charge" as const;
   return {
     kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
-    batteryEndS, batteryLs, cylinderEndS, cylinderS: cylS,
+    batteryEndS, batteryLs: batteryLsOut, cylinderEndS, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119, batteryBasis,
-    ...(extShare(hh, noCyl.Ls, db) > 0 ? { batteryExtS: extShare(hh, noCyl.Ls, db) } : {}),
+    ...(!dropExt && extS0 > 0 ? { batteryExtS: extS0 } : {}),
   };
 }
 

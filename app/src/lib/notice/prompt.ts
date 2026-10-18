@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
 import { BANNED, josa, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v11";
+export const NOTICE_PROMPT_VERSION = "n1-v12";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -16,7 +16,7 @@ export const NOTICE_SYSTEM = `너는 정전 때 전기로 움직이는 의료기
 1. 사실표에 있는 것만 쓴다. 사실·수단·할 일을 더하거나 빼지 않는다. 기기 상태를 짐작하지 않는다. 담당자·기관이 하겠다는 약속(다시 알려 드림 등)을 사실표에 없는데 더하지 않는다. 정전 중 안내에서 '복구', '전기가 다시 들어온다', '정전이 끝났다'를 쓰지 않는다. '~하지 마세요' 같은 금지 지시를 쓰지 않는다. 사실표의 '할일' 말고 다른 지시를 하지 않는다.
 2. 119·123 같은 전화번호와 '위급하면 전화하라'는 문장은 쓰지 않는다. 시스템이 글 끝에 따로 붙인다.
 3. '그대로 써야 할 표기'의 시각·시간은 글자 하나 바꾸지 않고 그대로 쓴다. 다른 숫자, 날짜 말('내일', '아침', '이틀'), 숫자 낱말('세 시', '삼십 분', '몇 시간')은 쓰지 않는다.
-4. 한 문장에는 시각·시간을 하나만 쓴다. 그 문장에는 뜻 낱말을 함께 쓴다: 배터리 시각 → '배터리', 산소통 시각 → '산소통', 도착 시각 → '도착', 구급대 시각 → '구급대', 완충 시간 → '충전'. 시각이 든 문장에는 '못', '않', '이후', '지나', '부터'를 쓰지 않는다(30분을 못 버틴다는 문장만 예외). 시각은 '~까지'로 쓴다.
+4. 한 문장에는 시각·시간을 하나만 쓴다. 그 문장에는 뜻 낱말을 함께 쓴다: 배터리 시각 → '배터리', 산소통 시각 → '산소통', 도착 시각 → '도착', 구급대 시각 → '구급대', 완충 시간 → '충전'. 시각이 든 문장에는 '못', '않', '이후', '지나', '부터'를 쓰지 않는다(30분을 못 버틴다는 문장만 예외). 시각은 '~까지'로 쓴다. 배터리·산소통 시각·시간에는 '적어도'를 붙이지 않는다(계산값이라 더 일찍 떨어질 수 있다. 그 단서 문장은 시스템이 붙인다). 사실표의 배터리가 '외장 배터리까지 합쳐'이면 그 시각·시간 문장에 '외장 배터리까지'를 쓴다.
 5. 수단 이름(전원 장치·산소통 등)은 사실표의 이름을 그대로 쓴다.
 6. '꼭 담을 내용'은 하나도 빼지 않는다. 각 항목의 낱말은 같은 문장 안에 함께 쓴다.
 7. 문장은 짧게 쓴다: ${LIMITS.minSentences}~${LIMITS.maxSentences}문장, 한 문장 ${LIMITS.maxSentenceChars}자 이내(띄어쓰기 포함). 한 문장에 한 가지만 말한다. '-습니다/-세요'로 쓴다.
@@ -32,8 +32,8 @@ export const NOTICE_SYSTEM = `너는 정전 때 전기로 움직이는 의료기
 function batteryKo(f: NoticeFacts): string {
   const b = f.battery;
   switch (b.state) {
-    case "UNTIL": return f.batteryWithExt ? `확인된 외장 배터리까지 합쳐 적어도 ${b.text}까지 버틴다(기기 배터리만의 시각이 아니다. 그 문장에 '외장 배터리까지'를 쓴다)` : `적어도 ${b.text}까지 버틴다`;
-    case "HOURS": return f.batteryWithExt ? `확인된 외장 배터리까지 합쳐 완전히 충전하면 적어도 ${b.text} 버틴다(기기 배터리만의 시간이 아니다. 그 문장에 '외장 배터리까지'를 쓴다)` : `완전히 충전하면 적어도 ${b.text} 버틴다`;
+    case "UNTIL": return f.batteryWithExt ? `외장 배터리까지 합쳐 계산상 ${b.text}까지 버틴다` : `계산상 ${b.text}까지 버틴다`;
+    case "HOURS": return f.batteryWithExt ? `외장 배터리까지 합쳐 완전히 충전하면 계산상 ${b.text} 버틴다` : `완전히 충전하면 계산상 ${b.text} 버틴다`;
     case "UNDER30": return "완전히 충전해도 30분을 못 버틴다";
     case "NONE": return "배터리가 없어 정전되면 바로 멈춘다";
     case "MAYBE_OUT": return "배터리가 거의 없거나 이미 다 떨어졌을 수 있다";
@@ -44,8 +44,8 @@ function cylinderKo(f: NoticeFacts): string | null {
   const c = f.cylinder;
   if (!c) return null;
   if (c.state === "MAYBE_OUT") return "확인된 산소통이 있지만 이미 거의 다 썼을 수 있다";
-  if (c.state === "HOURS") return `확인된 산소통은 적어도 ${c.text} 쓴다`;
-  return f.actions.includes("SWITCH_AFTER_BATTERY") ? `배터리가 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓰고, 그러면 적어도 ${c.text}까지 쓴다` : `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 적어도 ${c.text}까지 쓴다`;
+  if (c.state === "HOURS") return `확인된 산소통은 계산상 ${c.text} 쓴다`;
+  return f.actions.includes("SWITCH_AFTER_BATTERY") ? `배터리가 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓰고, 그러면 계산상 ${c.text}까지 쓴다` : `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 계산상 ${c.text}까지 쓴다`;
 }
 function planKo(f: NoticeFacts): string | null {
   const p = f.plan;
@@ -77,7 +77,7 @@ export function noticeUser(f: NoticeFacts): string {
       const sup = josa(f.cylinder ? "산소통" : "배터리", "이가");
       return f.warnSameTime
         ? `도착 시각과 ${f.cylinder ? "산소통" : "배터리"} 시각이 같다. '${help}${f.plan?.type === "CALL119" ? "가" : "의 도착이"} 늦어지면 ${sup} 먼저 떨어질 수 있다'로 쓴다(도움 수단 문장 뒤)`
-        : `${josa(help, "이가")} 오기 전에 ${sup} 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다)`;
+        : `${josa(help, "이가")} 오기 전에 ${sup} 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다. '늦어지면'처럼 조건을 달지 않는다)`;
     })() } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),
     할일: f.actions.map((a) => ACTION_KO[a]),

@@ -15,14 +15,14 @@ export const ROLE_WORDS: Record<Role, readonly string[]> = {
 };
 /** 그 시각이 든 문장에 있으면 안 되는 낱말: 뜻 뒤집기(못·않·이후·지나…)와 다른 역할 낱말(뒤바뀜 차단) */
 export const ROLE_FORBID: Record<Role, readonly string[]> = {
-  BATTERY_T: ["도착", "산소통", "충전하면", "충전해도", "충전해 두면", ...FLIP], // 정전 중 시각은 지금 상태 기준(통합 레드팀 6라운드)
-  CYL_T: ["도착", "배터리", ...FLIP],
+  BATTERY_T: ["도착", "산소통", "충전하면", "충전해도", "충전해 두면", "적어도", ...FLIP], // '적어도'는 하한 보장으로 읽힌다(통합 레드팀 9라운드) // 정전 중 시각은 지금 상태 기준(통합 레드팀 6라운드)
+  CYL_T: ["도착", "배터리", "적어도", ...FLIP],
   // 도착·이송 시각 문장에 '배터리'·'산소통'이 있으면(정해진 수단 이름 안의 낱말은 빼고 본다) 그 시각을 배터리 시각처럼 쓴 것으로 본다(통합 레드팀 4라운드)
   ARRIVAL_T: ["배터리", "산소통", ...FLIP],
   T119: ["배터리", "산소통", ...FLIP],
-  CHARGE_H: ["도착", "산소통", "없이", "안 해도", "않아도", ...FLIP],
+  CHARGE_H: ["도착", "산소통", "없이", "안 해도", "않아도", "적어도", ...FLIP],
   CHARGE_LT: ["도착", "산소통", "않으면", "안 하면", "없으면", "없이"], // 「30분을 못 버팁니다」는 부정문이 맞다. 「충전하지 않으면」 전제 바꾸기는 막는다(6라운드)
-  CYL_H: ["도착", "배터리", "충전", ...FLIP],
+  CYL_H: ["도착", "배터리", "충전", "적어도", ...FLIP],
 };
 export const ROLE_KO: Record<Role, string> = {
   BATTERY_T: "배터리가 적어도 버티는 시각", CYL_T: "산소통으로 바꿔 쓰면 적어도 버티는 시각", ARRIVAL_T: "도착 시각",
@@ -57,7 +57,7 @@ export function requirements(f: NoticeFacts): Requirements {
   if (b.state === "HOURS") must(b.text, "CHARGE_H");
   if (b.state === "UNDER30") must("30분", "CHARGE_LT");
   // 확인 외장 배터리가 합쳐진 시간·시각이면 그 문장에 '외장'을 쓴다(기기 배터리만의 시간처럼 쓰지 않게, 통합 레드팀 8라운드)
-  if (f.batteryWithExt && (b.state === "HOURS" || b.state === "UNTIL")) sent([b.text, "외장"], "외장 배터리까지 합친 시간이다");
+  if (f.batteryWithExt && (b.state === "HOURS" || b.state === "UNTIL")) sent([b.text, "외장"], "외장 배터리까지 합친 시간이다", ["없이", "말고", "따로", "제외", "빼고", "만으로", "내장"]);
   if (b.state === "MAYBE_OUT") sent(["배터리", "이미"], "배터리가 이미 떨어졌을 수 있다");
   if (b.state === "UNKNOWN") sent(["배터리", "담당자"], "배터리가 얼마나 가는지 담당자가 확인 중이다");
   if (b.state === "NONE") sent(["멈"], "배터리가 없어 정전되면 바로 멈춘다"); // 「배터리가 없습니다. 그래서 바로 멈춥니다」처럼 나눠 써도 된다(뜻은 2차 검사)
@@ -73,7 +73,8 @@ export function requirements(f: NoticeFacts): Requirements {
   }
   const supplyW = f.cylinder ? "산소통" : "배터리";
   if (f.warnRunOutFirst && f.warnSameTime) sent([supplyW, "먼저", "늦어지면"], `도착이 늦어지면 ${supplyW}가 먼저 떨어질 수 있다(표시 시각이 같음)`);
-  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`);
+  // 표시 시각이 같지 않으면 경고는 조건 없이: '늦어지면 먼저'는 '제때 오면 괜찮다'로 읽힌다(통합 레드팀 9라운드)
+  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`, ["늦어지면", "늦으면", "늦게", "지연", "못 오면"]);
   if (p?.type === "CALL119") {
     sent(["구급", "연결"], "구급대와 연결했다");
     if (p.doneBy) must(p.doneBy, "T119");
@@ -114,9 +115,9 @@ export const BANNED: Record<"GUARANTEE" | "VAGUE_TIME" | "MEDICAL" | "RISKY" | "
 const DEVICE_OP = /(끄|꺼|끈|뽑|빼|멈추|조절|낮추|줄이|높이|아끼|아껴)/;
 const DEVICE_WORD = /(기기|전원|플러그|산소|호흡기|발생기|흡인기|배터리|장치)/;
 
-const NATIVE_TIME = /(?:한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|열한|열두|스무|반)\s?(?:시간|시(?=[\s,.에까부쯤반경]|$))/;
+const NATIVE_TIME = /(?:두어|서너|너덧|네댓|대여섯|예닐곱|열댓|여남은|한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|열한|열두|스무|반)\s?(?:시간|시(?=[\s,.에까부쯤반경]|$))/; // 어림 수사(통합 레드팀 9라운드)
 const SINO_TIME = /(?:[일이삼사오육칠팔구]?십[일이삼사오육칠팔구]?|[삼사오육칠팔구])\s?(?:분|시간)(?![가-힣])/;
-const TIME_WORD = /(오전|오후|새벽|아침|저녁|한밤|자정|정오|이틀|사흘|며칠|하루|하룻|반나절|밤새|내일|모레|다음\s?날|한동안|당분간|오랫동안|오래|수\s?시간|수십\s?분|오늘\s?밤|몇\s?(?:시|분))/;
+const TIME_WORD = /(오전|오후|새벽|아침|저녁|한밤|자정|정오|이틀|사흘|며칠|하루|하룻|반나절|밤새|내일|모레|다음\s?날|한동안|당분간|오랫동안|오래|수\s?시간|수십\s?분|오늘\s?밤|몇\s?(?:시|분)|한나절|점심|동틀|해\s?뜰|무렵|녘|오밤중)/;
 
 export type ViolationCode =
   | "FORMAT_COUNT" | "FORMAT_LEN" | "FORMAT_TOTAL" | "LATIN" | "MULTI_TIME"                  // 형식
@@ -220,10 +221,21 @@ export function josa(word: string, pair: "이가" | "은는"): string {
  * 코드가 늘 붙이는 고정 문장(AI가 쓰지 않는다): 119·123 연락, 평시에는 원안의 「대체장소」「절전 가능 여부」.
  * 절전(기기 설정)은 의료 판단이라 안내하지 않고 담당 의료진·대여업체 확인으로 넘긴다.
  */
+/** 계산값 단서(코드 고정 문장): 표시 하한은 넘칠 수 있다(봉인 E2 사후 집계 14.9%, 통합 레드팀 9라운드). 시각·시간이 글에 있을 때만 */
+export function caveatSentence(f: NoticeFacts): string[] {
+  const bat = f.battery.state === "UNTIL" || f.battery.state === "HOURS";
+  const cyl = f.cylinder != null && (f.cylinder.state === "UNTIL" || f.cylinder.state === "HOURS");
+  if (!bat && !cyl) return [];
+  const what = bat && cyl ? "배터리·산소통" : bat ? "배터리" : "산소통";
+  return [f.kind === "OUTAGE" ? `${what} 시각은 계산값이라 더 일찍 떨어질 수 있습니다.` : `${what} 시간은 계산값이라 더 짧을 수 있습니다.`];
+}
+
 export function tailSentences(f: NoticeFacts): string[] {
+  const caveat = caveatSentence(f);
   return f.kind === "OUTAGE"
-    ? ["위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
+    ? [...caveat, "위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
     : [
+      ...caveat,
       // 갈 곳: 늘 붙인다(원안 '대체장소', 통합 레드팀 4라운드). 절전: 배터리 없는 기기면 뺀다. 한 문장 45자 이내
       "정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요.",
       ...(f.battery.state === "NONE" ? [] : ["절전 기능이 있는지 담당 의료진에게 물어 두세요.", "기기 설정은 혼자 바꾸지 마세요."]),
@@ -238,13 +250,13 @@ export function templateSentences(f: NoticeFacts): string[] {
   const b = f.battery, c = f.cylinder;
   if (f.kind === "OUTAGE") {
     out.push(`${hi}정전으로 ${f.device} 전원이 끊겼습니다.`);
-    if (b.state === "UNTIL") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 적어도 ${b.text}까지 버팁니다.` : `배터리는 적어도 ${b.text}까지 버팁니다.`);
+    if (b.state === "UNTIL") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 계산상 ${b.text}까지 버팁니다.` : `배터리는 계산상 ${b.text}까지 버팁니다.`);
     if (b.state === "MAYBE_OUT") out.push("배터리가 거의 없거나 이미 다 떨어졌을 수 있습니다.");
     if (b.state === "UNKNOWN") out.push("배터리가 얼마나 갈지 담당자가 확인하고 있습니다.");
     if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
     if (c) {
       out.push(f.actions.includes("SWITCH_AFTER_BATTERY") ? "배터리가 떨어지면 확인된 산소통으로 바꿔 쓰세요." : "지금 확인된 산소통으로 바꿔 쓰세요.");
-      out.push(c.state === "UNTIL" ? `산소통은 적어도 ${c.text}까지 씁니다.` : "산소통도 이미 거의 다 썼을 수 있습니다.");
+      out.push(c.state === "UNTIL" ? `산소통은 계산상 ${c.text}까지 씁니다.` : "산소통도 이미 거의 다 썼을 수 있습니다.");
     }
     const p = f.plan;
     if (p?.type === "ASSIGN" || p?.type === "GAP") {
@@ -268,11 +280,11 @@ export function templateSentences(f: NoticeFacts): string[] {
     return out;
   }
   out.push(`${hi}정전에 미리 대비해 주세요.`);
-  if (b.state === "HOURS") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 완전히 충전하면 적어도 ${b.text} 버팁니다.` : `${josa(f.device, "은는")} 완전히 충전하면 적어도 ${b.text} 버팁니다.`);
+  if (b.state === "HOURS") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 완전히 충전하면 계산상 ${b.text} 버팁니다.` : `${josa(f.device, "은는")} 완전히 충전하면 계산상 ${b.text} 버팁니다.`);
   if (b.state === "UNDER30") out.push(`${f.device} 배터리는 완전히 충전해도 30분을 못 버팁니다.`);
   if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
   if (b.state === "UNKNOWN") out.push("배터리가 얼마나 가는지 담당자가 확인하고 있습니다.");
-  if (c?.state === "HOURS") out.push(`확인된 산소통은 적어도 ${c.text} 씁니다.`);
+  if (c?.state === "HOURS") out.push(`확인된 산소통은 계산상 ${c.text} 씁니다.`);
   for (const a of f.actions) {
     if (a === "CHARGE_DEVICE") out.push("평소에 기기 배터리를 늘 충전해 두세요.");
     if (a === "CHARGE_EXT") out.push("외장 배터리도 늘 충전해 두세요.");
