@@ -252,12 +252,14 @@ const CYL_DEVICES: readonly DeviceClass[] = ["O2_STAT", "O2_STAT_CYL", "O2_PORT"
 function split(hh: HouseholdView, db: EngineDb) {
   if (hh.cylinder && !CYL_DEVICES.includes(deviceClassOf(hh, db))) {
     const nc = computeLowerBoundDetail({ ...hh, cylinder: undefined }, db);
-    return { all: nc, noCyl: nc, cylS: 0 };
+    const eng = computeLowerBoundDetail(hh, db);
+    // 엔진은 산소통을 하한에 더한다(봉인 코드라 그대로). 직전 끝(lEndPrev)에서 뺄 엔진 몫만 따로 넘긴다
+    return { all: nc, noCyl: nc, cylS: 0, engineCylS: eng.Ls != null && nc.Ls != null ? eng.Ls - nc.Ls : 0 };
   }
   const all = computeLowerBoundDetail(hh, db);
   const noCyl = hh.cylinder ? computeLowerBoundDetail({ ...hh, cylinder: undefined }, db) : all;
   const cylS = all.Ls != null && noCyl.Ls != null ? all.Ls - noCyl.Ls : 0;
-  return { all, noCyl, cylS };
+  return { all, noCyl, cylS, engineCylS: cylS };
 }
 
 /** 평시 대비 입력: 완충(기기 화면 100%) 기준. 신고 시각·직전 소진 시각은 쓰지 않는다 */
@@ -275,11 +277,12 @@ export function outageInput(args: {
   hh: HouseholdView; baseIso: string; nowS: number; lane: Lane; resourceKind: ResourceKind | null; etaS: number | null; late119: boolean; db?: EngineDb;
 }): NoticeInputT | null {
   if (!(NOTICE_LANES as readonly string[]).includes(args.lane)) return null;
-  const { all, noCyl, cylS } = split(args.hh, args.db ?? DEFAULT_DB);
+  const { all, noCyl, cylS, engineCylS } = split(args.hh, args.db ?? DEFAULT_DB);
   // 배터리 끝은 직전 신고 단조 규칙(lEndPrev)을 반영한 전체 끝을 넘지 않는다
   let batteryEndS = all.endS == null || noCyl.endS == null ? null : Math.min(all.endS, noCyl.endS);
   // 재신고 단조(정전 중 비증가): 직전 끝(lEndPrev)은 산소통을 포함하므로, 산소통 몫을 뺀 값을 배터리 끝의 상한으로 둔다(늘어나지 않게)
-  if (batteryEndS != null && args.hh.lEndPrev != null && cylS > 0) batteryEndS = Math.min(batteryEndS, qT(args.hh.lEndPrev) - cylS);
+  // 인공호흡기 등 산소통을 셈하지 않는 기기도 엔진의 직전 끝에는 산소통 몫이 들어 있으므로 그만큼 뺀다(통합 레드팀 3라운드)
+  if (batteryEndS != null && args.hh.lEndPrev != null && engineCylS > 0) batteryEndS = Math.min(batteryEndS, qT(args.hh.lEndPrev) - engineCylS);
   return {
     kind: "OUTAGE", caregiver: args.hh.caregiver, deviceCls: deviceClassOf(args.hh, args.db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs: noCyl.Ls, cylinderEndS: cylS > 0 ? all.endS : null, cylinderS: cylS,

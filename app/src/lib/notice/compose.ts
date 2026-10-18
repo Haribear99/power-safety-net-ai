@@ -6,12 +6,16 @@ import { splitSentences, tailSentences, templateSentences, verify, type Violatio
 
 export const FOOTER = {
   // 보호자가 읽는 꼬리말은 짧고 쉽게(검사 설명은 운영자 화면에만)
-  ai: "※ AI가 쓴 글입니다. 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
-  fallback: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
-  template: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
+  // 정전 중: 배터리 시각은 사양 계산, 도움 수단·시각은 담당자 승인(통합 레드팀 3라운드)
+  ai: "※ AI가 쓴 글입니다. 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
+  fallback: "※ 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
+  template: "※ 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
   // 평시 대비 안내는 담당자 결정이 아니라 기기 사양 계산이다(통합 레드팀 2라운드)
   prepAi: "※ AI가 쓴 글입니다. 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
   prep: "※ 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
+  // 시간이 없는 평시 안내(수동검토 등)
+  prepNoTime: "※ 시연용 안내입니다.",
+  prepNoTimeAi: "※ AI가 쓴 글입니다. 시연용 안내입니다.",
 } as const;
 
 /** 2차 검사 결과: 뽑은 주장, 또는 검사 실패(실패 시 닫힘) */
@@ -28,7 +32,11 @@ export interface Composed {
 }
 
 const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">): Composed => ({
-  ...rest, footer: f.kind === "PREP" ? (rest.source === "ai" ? FOOTER.prepAi : FOOTER.prep) : rest.footer, sentences: [...body, ...tailSentences(f)],
+  ...rest,
+  footer: f.kind !== "PREP" ? rest.footer
+    : f.battery.state === "HOURS" || f.battery.state === "UNDER30" || f.cylinder ? (rest.source === "ai" ? FOOTER.prepAi : FOOTER.prep)
+    : rest.source === "ai" ? FOOTER.prepNoTimeAi : FOOTER.prepNoTime,
+  sentences: [...body, ...tailSentences(f)],
 });
 
 /** ai = AI 본문과 2차 검사 결과(없으면 고정 문안). 2차 검사 없이 AI 본문을 내보내는 경로는 없다 */

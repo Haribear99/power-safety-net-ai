@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v10"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음), 금지 지시 예외를 '배달 기다리지 마세요'로 좁힘
+export const CHECK_VERSION = "n1-check-v11"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부)
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
@@ -61,7 +61,7 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
 - supplyMayRunOutBeforeHelp: 도움(전원 장치·구급대 등)이 오기 전에 배터리나 산소통이 먼저 떨어질 수 있다고 했는가.
 - runOutWhich: 그 경고가 가리키는 것 — battery(배터리) | cylinder(산소통) | unclear(분명하지 않음) | none(경고 없음).
 - actions: 읽는 사람에게 하라고(또는 하지 말라고) 한 모든 것. 하나도 빼지 않는다.
-  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배터리가 떨어지면 바꿔 쓰세요'는 when=after_condition, '배달 산소통을 기다리지 마세요'는 negated=true로 따로),
+  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배터리가 떨어지면 바꿔 쓰세요'는 when=after_condition),
   CHARGE_DEVICE(평소 기기 배터리 충전), CHARGE_EXT(외장 배터리 충전), CHECK_CYLINDER(산소통 미리 확인), PLAN_WITH_STAFF(정전 때 쓸 방법을 담당자와 미리 정함),
   GENERAL_PREPARE('정전에 미리 대비하세요'처럼 구체적 행동 없는 일반 당부),
   OTHER(그 밖의 모든 지시 — 하지 말라는 말, 전화 걸기, 기기 조작, 이동, 연락 없이 기다리라는 말 등). quote = 그 지시 문장 일부를 그대로.
@@ -136,11 +136,8 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   const want = new Set<string>((f.actions as Action[]).map((a) => (a === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" : a)));
   for (const a of c.actions) if (a.kind === "OTHER") bad("CLAIM_UNSAFE", `정하지 않은 지시: 「${a.quote}」`);
   // 금지 지시 예외는 하나뿐: 지금 바꿔 쓰는 집에서 「추가 산소통 배달을 기다리지 마세요」(바꿔 쓰기 문장이 따로 있고, 문장에 배달·기다리가 있을 때)
-  for (const a of c.actions) {
-    if (!a.negated) continue;
-    const ok = a.kind === "SWITCH_TO_CYLINDER" && switchWhen === "now" && switches.length > 0 && /배달|기다리/.test(a.quote) && !/바꾸|바꿔|쓰지/.test(a.quote.replace(/기다리지/g, ""));
-    if (!ok) bad("CLAIM_UNSAFE", `하지 말라는 지시: 「${a.quote}」`);
-  }
+  // 금지 지시는 예외 없이 거부한다(「집 산소통은 사용하지 마세요」처럼 글자 조건으로는 가를 수 없다 — 통합 레드팀 3라운드)
+  for (const a of c.actions) if (a.negated) bad("CLAIM_UNSAFE", `하지 말라는 지시: 「${a.quote}」`);
   // 상황: 정전 중 안내는 정전 중, 평시 안내는 정전 전(「정전이 끝났습니다」 차단)
   const wantSit = f.kind === "OUTAGE" ? "outage_now" : "before_outage";
   if (c.situation !== wantSit && c.situation !== "not_mentioned") bad("CLAIM_MISMATCH", `상황: 글 ${c.situation}, 사실 ${wantSit}`);

@@ -105,7 +105,7 @@ function NoticeItem() {
   return (
     <li>
       승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
-      {n ? ` 봉인 측정: AI 글 통과 ${ci(n.aiSent)}, 레드팀 에이전트가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
+      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
       <Link className="underline" href="/lab#notice">자세히</Link>
     </li>
   );

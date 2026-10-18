@@ -9,12 +9,12 @@
  */
 import { PRICE_PER_MTOK, type ModelKey } from "./models";
 
-export type Pool = "dev" | "sealed" | "public" | "judge" | "notice" | "reserve";
-export const POOLS: readonly Pool[] = ["dev", "sealed", "public", "judge", "notice", "reserve"];
+export type Pool = "dev" | "sealed" | "public" | "judge" | "notice" | "notice_judge" | "reserve";
+export const POOLS: readonly Pool[] = ["dev", "sealed", "public", "judge", "notice", "notice_judge", "reserve"];
 
 export const MICRO = 1_000_000;
 export const FREEZE_TOTAL_USD = 35;
-const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge", "notice"];
+const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge", "notice", "notice_judge"];
 
 export interface Usage {
   input_tokens: number;
@@ -43,7 +43,8 @@ export function poolLimitUsd(pool: Pool): number {
     case "public": return t * 0.12;
     case "judge": return 3.0;
     case "notice": return 3.0;
-    case "reserve": return t * 0.21 - 6.0;
+    case "notice_judge": return 1.5; // 심사용 코드 알림 전용(라벨 판독 judge 몫과 분리, 통합 레드팀 3라운드)
+    case "reserve": return t * 0.21 - 7.5;
   }
 }
 
@@ -57,6 +58,7 @@ export function kstDate(now = new Date()): string {
 export function dayLimitUsd(pool: Pool, poolSpentUsd: number, now = new Date(), voteEnd = process.env.VOTE_END_KST ?? "2026-12-31"): number | null {
   if (pool === "judge") return 0.4;
   if (pool === "notice") return 0.6;
+  if (pool === "notice_judge") return 0.4;
   if (pool !== "public") return null;
   const days = Math.max(1, Math.ceil((Date.parse(`${voteEnd}T23:59:59+09:00`) - now.getTime()) / 86_400_000));
   return Math.min(0.3, Math.max(0, poolLimitUsd("public") - poolSpentUsd) / days);

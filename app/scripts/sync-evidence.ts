@@ -2,7 +2,7 @@
 // 실행: (app/에서) npx tsx scripts/sync-evidence.ts
 // 화면·보고서·ClosingCard가 읽는 숫자는 모두 이 파일에서 나온다. 손으로 적은 숫자는 0개다.
 // 입력 파일이 없으면 그 키를 싣지 않는다 → 화면은 「측정 전」으로 대체한다(하드코딩 금지).
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
 import { wilson } from "../src/lib/sim/analyze";
@@ -229,6 +229,20 @@ if (e6) {
 }
 
 // ---- N1: 보호자 알림 AI 문장 + 두 단계 검사(S9 봉인 실행, scripts/n1-analyze.ts) ----
+/** 봉인 실행에서 AI 글이 나간 항목 중 대표 예시(경고 있는 전원 배정·산소통·119·평시) — 실시간 생성 한도에 걸려도 AI 글을 볼 수 있게 */
+function n1Examples() {
+  const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
+  if (!existsSync(dir)) return [];
+  type Row = { id: string; stratum: string; facts: { kind: string; plan: { type: string } | null; cylinder: unknown; warnRunOutFirst: boolean }; composed: { source: string; sentences: string[]; footer: string } };
+  const rows = readdirSync(dir).filter((f) => /^test-\d+\.json$/.test(f)).sort().map((f) => JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as Row).filter((r) => r.composed.source === "ai");
+  const pick = (label: string, ok: (r: Row) => boolean) => { const r = rows.find(ok); return r ? { label, id: r.id, sentences: r.composed.sentences } : null; };
+  return [
+    pick("전원 배정 · 먼저 떨어질 수 있음 경고", (r) => r.facts.kind === "OUTAGE" && (r.facts.plan?.type === "ASSIGN" || r.facts.plan?.type === "GAP") && r.facts.warnRunOutFirst && !r.facts.cylinder),
+    pick("산소발생기 · 확인된 산소통", (r) => r.facts.kind === "OUTAGE" && r.facts.cylinder != null),
+    pick("119 연계", (r) => r.facts.kind === "OUTAGE" && r.facts.plan?.type === "CALL119" && !r.facts.cylinder),
+    pick("평시 대비", (r) => r.facts.kind === "PREP"),
+  ].filter(Boolean);
+}
 type RateN = { k: number; n: number; rate: number | null; wilson95: number[] | null };
 const n1 = take("out/n1_sealed.json") as {
   notices: { aiSent: RateN; templateFalseReject: RateN; sentBodyGate1Violations: RateN; judge: { ai: number; template: number; same: number; fail: number }; latencyE2E: { p50: number | null; p95: number | null } };
@@ -245,6 +259,7 @@ if (n1) {
     missedCategories: Object.entries(n1.corpus.byCategory).filter(([, v]) => v.caught < v.n).map(([k, v]) => ({ category: k, missed: v.n - v.caught, n: v.n })),
     judge: n1.notices.judge, latencyP50: n1.notices.latencyE2E.p50,
     // 9.5(보낸 글 1차 위반 0)는 구조상 보장되는 확인 항목이라 적중 집계에서 뺀다(통합 레드팀 1라운드)
+    examples: n1Examples(),
     prereg: { hit: n1Scored.filter((x) => x.hit).length, total: n1Scored.length, structural: n1.prereg.items.filter((x) => x.id === "9.5").map((x) => ({ id: x.id, text: x.text, value: x.value, hit: x.hit })), missed: n1Scored.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
 }

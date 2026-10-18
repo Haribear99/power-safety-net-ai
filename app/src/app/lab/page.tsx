@@ -427,12 +427,26 @@ function NoticeCheck() {
         <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트가 틀리게 쓴 글 {n.badMissed.n}건(라벨은 작성자 판단, 범주 예시와 작성 중 유형 일부는 개발 세션이 제안, 내용은 봉인 실행 전 미열람) 중 두 검사를 모두 통과한 글: <strong>{r(n.badMissed)}</strong>. 2차 검사도 Opus라 맹점이 겹쳐 실제보다 적게 놓쳤을 수 있습니다. 1차 검사만이면 {n.badCaughtGate1.k}건, 2차 검사만이면 {n.badCaughtGate2.k}건을 막았습니다.
           {n.missedCategories.length ? ` 놓친 범주: ${n.missedCategories.map((m) => `${KO[m.category] ?? m.category} ${m.missed}/${m.n}`).join(", ")}.` : ""}</li>
         <li>같은 모음의 맞는 글 {n.goodFalseReject.n}건 중 잘못 막은 글: {r(n.goodFalseReject)}. 막히면 고정 문안이 후보가 되므로 안내가 끊기지는 않습니다.</li>
-        <li>봉인 시험셋 {n.aiSent.n}건(봉인 뒤 공개 난수로 만든 결정 장면)에서 AI 글이 그대로 나간 비율: {r(n.aiSent)}. 정답 글(고정 문안)을 2차 검사가 잘못 막은 비율 {r(n.templateFalseReject)}. 지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사).</li>
-        <li>AI 글이 고정 문안보다 쉬운가(탐색, Opus 눈가림 판정, 같은 내용): AI {n.judge.ai} · 고정 문안 {n.judge.template} · 같음 {n.judge.same}. {n.judge.ai > n.judge.template ? "AI 쪽이 조금 많지만 AI가 판정한 탐색 지표라 근거로 쓰지 않습니다." : "AI 글이 더 쉽다는 근거는 없습니다. 내용을 코드가 정하면 문장만 바꿔 얻는 이득은 작습니다."} 사람 평가는 하지 않았습니다.</li>
+        <li>봉인 시험셋 {n.aiSent.n}건(봉인 뒤 공개 난수로 만든 결정 장면)에서 AI 글이 그대로 나간 비율: {r(n.aiSent)}. 고정 문안을 2차 검사가 잘못 막은 비율 {r(n.templateFalseReject)}(봉인 당시 고정 문안 15건은 스스로 모순이었는데 이것도 통과시킨 값 — 아래). 지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사).</li>
+        <li>AI 글이 고정 문안보다 쉬운가(탐색, Opus 눈가림 판정, 같은 내용): AI {n.judge.ai} · 고정 문안 {n.judge.template} · 같음 {n.judge.same}. {n.judge.ai > n.judge.template ? "AI 쪽이 조금 많지만, 봉인 당시 고정 문안 60건 중 15건(119 경고 문장이 '적어도 …까지' 바로 뒤에 '그 전에 먼저 떨어질 수 있다'로 온 모순, 봉인 뒤 고침)이 있었고 AI 우세 18:14 중 10:2가 그 쌍에서 나왔습니다. 나머지 44쌍은 AI 8 · 고정 문안 12입니다. AI 글이 더 쉽다는 근거는 없습니다." : "AI 글이 더 쉽다는 근거는 없습니다. 내용을 코드가 정하면 문장만 바꿔 얻는 이득은 작습니다."} 사람 평가는 하지 않았습니다.</li>
       </ul>
+      {n.examples.length > 0 && (
+        <div className="mt-3" data-testid="n1-examples">
+          <h3 className="text-[15px] font-bold">봉인 측정 때 AI가 쓴 글(검사 통과, 기록)</h3>
+          <div className="mt-1 grid gap-2 sm:grid-cols-2">
+            {n.examples.map((e) => (
+              <div key={e.id} className="rounded border border-line p-2 text-[14px]">
+                <p className="text-[12px] text-muted">{e.label} · {e.id}</p>
+                <ol className="mt-1 space-y-0.5">{e.sentences.map((s, i) => <li key={i}>{s}</li>)}</ol>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-[12px] text-muted">실시간 생성은 하루 한도가 있습니다. 한도에 걸려도 위 기록으로 AI 글을 볼 수 있습니다. 마지막 두 문장(119·123)은 늘 고정 문장입니다.</p>
+        </div>
+      )}
       <p className="mt-1 text-[13px] text-muted">
         검사가 보는 범위: 시각 표기·날짜, 수단과 이름, 먼저 떨어질 수 있다는 경고, 늦음, 할 일(정해진 것만), 안심 약속·의료·기기 조작·위험 행동. 문장의 모든 뜻을 보장하지는 않습니다(2차 검사도 AI).
-        예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘(구조상 보장 항목 {n.prereg.structural.map((x) => x.id).join(", ")}는 집계에서 뺌).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text}(봉인 원문) → 실제 ${m.value}`).join(" · ") : ""}
+        예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘({n.prereg.structural.map((x) => x.id).join(", ")}는 사전등록 때 &lsquo;구조상 보장 확인 항목&rsquo;으로 표시한 것이라 집계에서 뺌, 넣으면 {n.prereg.hit + 1}/{n.prereg.total + 1}).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text}(봉인 원문) → 실제 ${m.value}`).join(" · ") : ""}
         {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전이며, 새 사례로 측정하지 않았습니다.
       </p>
     </div>

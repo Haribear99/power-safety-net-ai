@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
 import { BANNED, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v9";
+export const NOTICE_PROMPT_VERSION = "n1-v10";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -74,7 +74,7 @@ export function noticeUser(f: NoticeFacts): string {
     ...(plan ? { 담당자결정: plan } : {}),
     ...(f.warnRunOutFirst ? { 경고: `${f.plan?.type === "CALL119" ? "구급대" : f.plan && "resource" in f.plan ? f.plan.resource : "도움"}가 오기 전에 ${f.cylinder ? "산소통" : "배터리"}가 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다)` } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),
-    할일: f.actions.map((a) => (a === "SWITCH_TO_CYLINDER" && f.plan && "resource" in f.plan && f.plan.resource.includes("산소통") ? `${ACTION_KO[a]}(추가 산소통 배달을 기다리지 않음)` : ACTION_KO[a])),
+    할일: f.actions.map((a) => ACTION_KO[a]),
     그대로써야할표기: req.mustInclude.map((m) => ({ 표기: m.text, 뜻: m.hint })),
     꼭담을내용: req.mustSentences.map((m) => ({ 같은문장의낱말: m.all, 뜻: m.hint })),
   };

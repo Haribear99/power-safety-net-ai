@@ -285,15 +285,15 @@ describe("통합 레드팀 2라운드 회귀", () => {
   });
   it("1차: 이송 시각이 지났는데 '아직'이면 거부", () => {
     const f = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, nowS: 5000, batteryEndS: 9000, etaS: 4000 }));
-    expect(verify(f, [...templateSentences(f), "구급대가 언제 올지는 아직 모릅니다."]).ok).toBe(false);
+    expect(verify(f, [...templateSentences(f), "구급대가 언제 올지는 아직 정해지지 않았습니다."]).ok).toBe(false);
   });
-  it("2차: '지금 산소통으로 바꿔 쓰지 마세요'는 거부, '추가 산소통 배달을 기다리지 마세요'는 허용", () => {
+  it("2차: 금지 지시는 예외 없이 거부('바꿔 쓰지 마세요'·'배달 기다리지 마세요' 모두)", () => {
     const f = buildFacts(IN({ deviceCls: "O2_STAT", lane: "PROPOSE_ASSIGN", resourceKind: "O2_CYL_DELIVERY", batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200, etaS: 9000 }));
     const base = truthClaims(f);
     const bad = { ...base, actions: [...base.actions.filter((a) => a.kind !== "SWITCH_TO_CYLINDER"), { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "지금 산소통으로 바꿔 쓰지 마세요" }] };
     expect(compareClaims(f, bad).length).toBeGreaterThan(0);
     const ok = { ...base, actions: [...base.actions, { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "추가 산소통 배달은 기다리지 마세요" }] };
-    expect(compareClaims(f, ok)).toEqual([]);
+    expect(compareClaims(f, ok).length).toBeGreaterThan(0);
   });
 });
 

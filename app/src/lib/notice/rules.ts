@@ -73,7 +73,7 @@ export function requirements(f: NoticeFacts): Requirements {
     else if (p.etaPassed) sent(["구급", "지나"], "구급대 이송 예정 시각이 지나 담당자가 확인 중이다");
     else sent(["구급", "아직"], "구급대가 언제 올지는 아직 정해지지 않았다");
     // 사실과 반대 상태 말 금지(통합 레드팀 2라운드)
-    if (p.etaPassed) forbid(["구급", "아직"], "이송 예정 시각이 지났는데 '아직 정해지지 않았다'");
+    if (p.etaPassed) forbid(["구급", "아직", "정해"], "이송 예정 시각이 지났는데 '아직 정해지지 않았다'");
     if (!p.etaPassed) forbid(["구급", "지나"], "이송 예정 시각이 지나지 않았는데 '지났다'");
     if (p.late) sent(["늦"], "구급대 출동이 늦어질 수 있다");
   }

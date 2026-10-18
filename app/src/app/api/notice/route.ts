@@ -1,8 +1,9 @@
 // POST /api/notice — 보호자 알림 쉬운 글 1건. 입력은 숫자·열거값만(NoticeInput, strict). 사실 묶음은 서버가 다시 만든다.
-// 순서: 본문 검사(JSON·zod) → 사실 묶음(코드) → 접근 코드(맞으면 코드당 시간 60회, 틀리면 /api/vision과 같은 차단 규칙)
+// 순서: 본문 검사(JSON·zod) → 사실 묶음(코드) → 접근 코드(맞으면 코드당 시간 20회·하루 40회, 틀리면 /api/vision과 같은 차단 규칙)
 //       → 코드 없으면 IP(/64) 시간 5회 → 생성(PW_N1_notice) → 1차 검사(글자 규칙) → 통과하면 2차 검사(PW_N1_check: 다른 모델이 글만 읽고 주장 추출 → 사실 대조)
 //       → 둘 다 통과하면 AI 본문, 아니면 고정 문안. 119·123 문장과 꼬리말은 늘 코드가 붙인다.
-// 예산: 공개 요청은 알림 전용 풀(notice, 일 $0.60), 심사용 코드 요청은 judge 풀(공개 사용자가 심사 몫을 소진하지 못하게).
+// 예산: 공개 요청은 알림 전용 풀(notice, 일 $0.60), 심사용 코드 요청은 notice_judge 풀(일 $0.40, 라벨 판독 judge 몫·공개 몫과 분리).
+// 요청 제한: 코드 없으면 IP 시간 5회, 코드 있으면 코드당 시간 20회·하루 40회.
 // 예산·저장소가 없거나 어느 단계든 예산이 거부되면 고정 문안(재생 모드). 생성만 하고 검사를 못 하면 AI 글은 나가지 않는다.
 import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -47,14 +48,14 @@ export async function POST(req: Request) {
   const ip = ipBucket(ipAddress(req) ?? req.headers.get("x-forwarded-for")?.split(",")[0]);
   try {
     const code = (body.accessCode ?? "").replace(/\s+/g, "");
-    let pool: "notice" | "judge" = "notice";
+    let pool: "notice" | "notice_judge" = "notice";
     if (code) {
       if (await be.raw(["GET", `pl26:rl:badcode-block:${ip}`])) {
         return NextResponse.json({ error: "code_blocked", message: "접근 코드를 여러 번 틀려 이 주소의 코드 입력이 1시간 막혔습니다. 코드 칸을 비우면 공개 생성은 쓸 수 있습니다" }, { status: 429 });
       }
       if (accessCodeOk(code)) {
-        pool = "judge";
-        // judge 풀은 라벨 판독 심사와 함께 쓰므로 알림 몫을 시간 20회·하루 40회로 묶는다(통합 레드팀 2라운드)
+        pool = "notice_judge";
+        // 알림 전용 심사 풀. 시간 20회·하루 40회(통합 레드팀 2·3라운드)
         if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 20, 7200)) || !(await hit(be, `pl26:rl:judge:notice:day:${new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)}`, 40, 2 * 86400))) {
           return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 알림 한도(시간 20회·하루 40회)를 넘었습니다. 고정 문안은 계속 볼 수 있습니다" }, { status: 429 });
         }

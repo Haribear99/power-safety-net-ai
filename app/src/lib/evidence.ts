@@ -119,6 +119,8 @@ export interface N1Evidence {
   missedCategories: { category: string; missed: number; n: number }[];
   judge: { ai: number; template: number; same: number; fail: number };
   latencyP50: number | null;
+  /** 봉인 실행에서 AI 글이 나간 대표 예시(sentences = 본문 + 고정 119·123 문장) */
+  examples: { label: string; id: string; sentences: string[] }[];
   prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }
 export function n1Evidence(): N1Evidence | null {
