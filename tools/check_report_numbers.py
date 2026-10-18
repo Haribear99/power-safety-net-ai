@@ -67,7 +67,9 @@ expected = {
     "N1 놓침": f"{ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%, 95% {ev['n1']['badMissed']['lo'] * 100:.1f}~{ev['n1']['badMissed']['hi'] * 100:.1f}%",
     "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}(95% {ev['n1']['goodFalseReject']['lo'] * 100:.1f}~{ev['n1']['goodFalseReject']['hi'] * 100:.1f}%)",
     "N1 쌍 비교(탐색 표지)": f"AI 판정 탐색 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}",
-    "N1 쌍 비교(모순 쌍 제외)": f"모순 {ev['n1']['judgeSplit']['contradiction']['n']}쌍 빼면 {ev['n1']['judgeSplit']['rest']['ai']}:{ev['n1']['judgeSplit']['rest']['template']}",
+    "N1 같은 시각 모순 AI 글": f"{ev['n1']['judgeSplit']['aiSameTime']['n']}건은 같은 시각 경고 모순",
+    "N1 1·2차 검사 몫": f"글자 규칙 {ev['n1']['badCaughtGate1']['k']}건·AI 대조 {ev['n1']['badCaughtGate2']['k']}건",
+    "N1 쌍 비교 유의성": "차이 없음(p≈" + format(ev['n1']['judgeSplit']['signP'], '.1f'),
     "N1 측정 버전 표기": "봉인 당시 검사 기준",
     "N1 사용 규칙(9.1 틀림 시 표기)": "시연용·담당자 확인 뒤 발송",
 }

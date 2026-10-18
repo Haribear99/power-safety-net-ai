@@ -135,7 +135,6 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   const got = new Set<string>(c.actions.filter((a) => !a.negated).map((a) => a.kind));
   const want = new Set<string>((f.actions as Action[]).map((a) => (a === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" : a)));
   for (const a of c.actions) if (a.kind === "OTHER") bad("CLAIM_UNSAFE", `정하지 않은 지시: 「${a.quote}」`);
-  // 금지 지시 예외는 하나뿐: 지금 바꿔 쓰는 집에서 「추가 산소통 배달을 기다리지 마세요」(바꿔 쓰기 문장이 따로 있고, 문장에 배달·기다리가 있을 때)
   // 금지 지시는 예외 없이 거부한다(통합 레드팀 3라운드)
   for (const a of c.actions) if (a.negated) bad("CLAIM_UNSAFE", `하지 말라는 지시: 「${a.quote}」`);
   // 상황: 정전 중 안내는 정전 중, 평시 안내는 정전 전(「정전이 끝났습니다」 차단)

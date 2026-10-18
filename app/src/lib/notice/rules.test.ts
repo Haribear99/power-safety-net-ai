@@ -355,6 +355,28 @@ describe("통합 레드팀 4라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 5라운드 회귀", () => {
+  const vent = (charge: HouseholdView["device"]["charge"]): HouseholdView => ({
+    id: "H5", pseudonym: "H-005", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "LTV1150", specBy: "db_exact", batteryAgeY: 1, charge }, ext: [],
+  });
+  const foot = (hh: HouseholdView) => compose(buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!), null).footer;
+  it("충전량을 알리지 않은 집의 꼬리말에 '알려 주신 충전량'이 없다", () => {
+    const f = foot(vent({ value: null, source: "unknown" }));
+    expect(f).not.toContain("알려 주신");
+    expect(f).toContain("충전량을 몰라");
+    expect(foot(vent({ value: 80, source: "device_screen" }))).toContain("알려 주신 충전량");
+  });
+  it("도움 시각이 글에 없으면 꼬리말에 '과 시각'이 없다", () => {
+    expect(compose(buildFacts(IN({ etaS: null })), null).footer).not.toContain("과 시각");
+    expect(compose(buildFacts(IN({})), null).footer).toContain("과 시각");
+  });
+  it("근거 표지는 사실표(프롬프트)를 바꾸지 않는다", () => {
+    const i = IN({});
+    expect(noticeUser(buildFacts({ ...i, batteryBasis: "chargeUnknown" } as NoticeInputT))).toBe(noticeUser(buildFacts(i)));
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [

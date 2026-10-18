@@ -122,7 +122,17 @@ export interface N1Evidence {
   /** 봉인 실행에서 AI 글이 나간 대표 예시(sentences = 본문 + 고정 119·123 문장) */
   examples: { label: string; id: string; sentences: string[] }[];
   /** 봉인 당시 고정 문안 모순 쌍과 나머지로 나눈 쌍 비교 */
-  judgeSplit?: { contradiction: { n: number; ai: number; template: number; same: number }; rest: { ai: number; template: number; same: number } };
+  judgeSplit?: {
+    /** n = 모순 고정 문안 수, judged = 그중 쌍 비교가 된 수(AI 글이 탈락한 항목은 쌍 비교 없음) */
+    contradiction: { n: number; judged: number; ai: number; template: number; same: number };
+    rest: { ai: number; template: number; same: number };
+    /** 나간 AI 글 중 같은 시각 경고 모순(봉인 당시 통과, 지금 규칙은 「도착이 늦어지면」) */
+    aiSameTime: { n: number; ai: number; template: number; same: number };
+    /** 나간 AI 글의 배터리·산소통 시각 문장 중 '적어도'를 뺀 수(고정 문안은 늘 씀) */
+    atLeastDropped: { k: number; n: number };
+    /** 쌍 비교 부호검정 양측 p(같음 제외) */
+    signP: number;
+  };
   costPerNotice?: { mean: number; max: number } | null;
   prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }

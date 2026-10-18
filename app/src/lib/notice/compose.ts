@@ -4,20 +4,6 @@ import { compareClaims, type ClaimsT } from "./check";
 import type { NoticeFacts } from "./facts";
 import { splitSentences, tailSentences, templateSentences, verify, type Violation } from "./rules";
 
-export const FOOTER = {
-  // 보호자가 읽는 꼬리말은 짧고 쉽게(검사 설명은 운영자 화면에만)
-  // 정전 중: 배터리 시각은 사양 계산, 도움 수단·시각은 담당자 승인(통합 레드팀 3라운드)
-  ai: "※ AI가 쓴 글입니다. 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
-  fallback: "※ 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
-  template: "※ 배터리 시각은 기기 사양으로 계산했고, 도움 수단과 시각은 담당자가 승인했습니다. 시연용 안내입니다.",
-  // 평시 대비 안내는 담당자 결정이 아니라 기기 사양 계산이다(통합 레드팀 2라운드)
-  prepAi: "※ AI가 쓴 글입니다. 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
-  prep: "※ 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
-  // 시간이 없는 평시 안내(수동검토 등)
-  prepNoTime: "※ 시연용 안내입니다.",
-  prepNoTimeAi: "※ AI가 쓴 글입니다. 시연용 안내입니다.",
-} as const;
-
 /** 2차 검사 결과: 뽑은 주장, 또는 검사 실패(실패 시 닫힘) */
 export type Check2 = { claims: ClaimsT } | { error: string };
 
@@ -31,7 +17,14 @@ export interface Composed {
   footer: string;
 }
 
-/** 꼬리말: 실제로 글에 있는 시각의 근거만 적는다(통합 레드팀 3·4라운드) */
+const BATTERY_BASIS: Record<NonNullable<NoticeFacts["batteryBasis"]> | "none", string> = {
+  charge: "배터리 시각은 기기 사양과 알려 주신 충전량으로 낮춰 잡아 계산했고",
+  chargeUnknown: "배터리 시각은 충전량을 몰라 기기 사양에서 낮춰 잡아 계산했고",
+  screen: "배터리 시각은 기기 화면의 남은 시간으로 계산했고",
+  operator: "배터리 시각은 담당자가 확인한 값으로 계산했고",
+  none: "배터리 시각은 기기 사양으로 계산했고",
+};
+/** 꼬리말: 실제로 글에 있는 시각의 근거만 적는다(통합 레드팀 3·4·5라운드) */
 function footerFor(f: NoticeFacts, ai: boolean): string {
   const head = ai ? "※ AI가 쓴 글입니다. " : "※ ";
   if (f.kind === "PREP") {
@@ -39,11 +32,14 @@ function footerFor(f: NoticeFacts, ai: boolean): string {
     return `${head}${timed ? "시간은 기기 사양과 확인된 값으로 계산했습니다. " : ""}시연용 안내입니다.`;
   }
   const parts: string[] = [];
-  if (f.battery.state === "UNTIL") parts.push("배터리 시각은 기기 사양과 알려 주신 충전량으로 계산했고");
+  if (f.battery.state === "UNTIL") parts.push(BATTERY_BASIS[f.batteryBasis ?? "none"]);
   if (f.cylinder?.state === "UNTIL") parts.push("산소통 시각은 담당자가 확인한 값으로 계산했고");
-  return `${head}${parts.length ? `${parts.join(", ")}, ` : ""}도움 수단${f.plan && f.plan.type !== "SHELTER" ? "과 시각" : ""}은 담당자가 승인했습니다. 시연용 안내입니다.`;
+  // '과 시각'은 글에 도움 시각이 있을 때만(통합 레드팀 5라운드)
+  const p = f.plan;
+  const timed = p != null && ((p.type === "CALL119" && p.doneBy != null) || ((p.type === "ASSIGN" || p.type === "GAP") && p.arriveBy != null));
+  return `${head}${parts.length ? `${parts.join(", ")}, ` : ""}도움 수단${timed ? "과 시각" : ""}은 담당자가 승인했습니다. 시연용 안내입니다.`;
 }
-const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">): Composed => ({
+const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences" | "footer">): Composed => ({
   ...rest,
   footer: footerFor(f, rest.source === "ai"),
   sentences: [...body, ...tailSentences(f)],
@@ -52,14 +48,14 @@ const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">)
 /** ai = AI 본문과 2차 검사 결과(없으면 고정 문안). 2차 검사 없이 AI 본문을 내보내는 경로는 없다 */
 export function compose(f: NoticeFacts, ai: { sentences: readonly string[]; check: Check2 | null } | null): Composed {
   const tpl = splitSentences(templateSentences(f));
-  if (!ai) return done(f, tpl, { source: "template", violations: [], rejectedAt: null, footer: FOOTER.template });
+  if (!ai) return done(f, tpl, { source: "template", violations: [], rejectedAt: null });
   const r1 = verify(f, ai.sentences);
-  if (!r1.ok) return done(f, tpl, { source: "template", violations: r1.violations, rejectedAt: "gate1", footer: FOOTER.fallback });
+  if (!r1.ok) return done(f, tpl, { source: "template", violations: r1.violations, rejectedAt: "gate1" });
   const v2: Violation[] = !ai.check ? [{ code: "CHECK_FAILED", detail: "2차 검사를 하지 않음" }]
     : "error" in ai.check ? [{ code: "CHECK_FAILED", detail: `2차 검사 실패: ${ai.check.error}` }]
     : compareClaims(f, ai.check.claims);
-  if (v2.length) return done(f, tpl, { source: "template", violations: v2, rejectedAt: "gate2", footer: FOOTER.fallback });
-  return done(f, r1.sentences, { source: "ai", violations: [], rejectedAt: null, footer: FOOTER.ai });
+  if (v2.length) return done(f, tpl, { source: "template", violations: v2, rejectedAt: "gate2" });
+  return done(f, r1.sentences, { source: "ai", violations: [], rejectedAt: null });
 }
 
 /** 음성 낭독용: AI 글이면 먼저 그 사실을 말하고, 전화번호는 한 자리씩(「백십구」가 아니라 「일일구」) */

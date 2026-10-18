@@ -34,7 +34,7 @@ export function totalBudgetUsd(): number {
   return Number(process.env.CLAUDE_TOTAL_BUDGET_USD ?? 45);
 }
 
-/** 풀 상한(7.1절): dev 0.45, sealed 0.22, public 0.12, reserve 0.21 − judge $3.0 − notice $3.0 */
+/** 풀 상한(7.1절): dev 0.45, sealed 0.22, public 0.12, reserve 0.21 − judge $3.0 − notice $3.0 − notice_judge $1.5 */
 export function poolLimitUsd(pool: Pool): number {
   const t = totalBudgetUsd();
   switch (pool) {

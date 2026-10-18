@@ -72,9 +72,10 @@ function NoticeLedger() {
       <h2 className="mt-6 text-[18px] font-bold">AI가 하는 일 ②: 보호자 알림(생성 Claude Sonnet, 검사 Claude Opus)</h2>
       {n ? (
         <div className="mt-1 text-[14px]">
-          <p>담당자가 정한 시각·할 일을 AI가 쉬운 글로 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다. 아니면 고정 문안입니다. 시연용이며 실제 발송 기능은 없습니다.</p>
+          <p>담당자가 정한 시각·할 일을 AI가 쉬운 글로 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다. 아니면 고정 문안입니다. 시연용·담당자 확인 뒤 발송이며 실제 발송 기능은 없습니다.</p>
           <ul className="mt-1 list-disc pl-5">
-            <li>봉인 시험셋(봉인 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}(봉인 당시 모순 고정 문안 {n.judgeSplit?.contradiction.n ?? "—"}건도 통과시킨 값)</li>
+            <li>봉인 시험셋(봉인 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}(봉인 당시 모순 고정 문안 {n.judgeSplit?.contradiction.n ?? "—"}건도 통과시킨 값). 나간 AI 글 중 {n.judgeSplit?.aiSameTime.n ?? "—"}건은 같은 시각 경고 모순(봉인 뒤 고침)</li>
+            <li>쉬움 쌍 비교(탐색, Opus 판정): AI {n.judge.ai} · 고정 {n.judge.template} · 같음 {n.judge.same}, 차이 없음{n.judgeSplit ? `(부호검정 p≈${n.judgeSplit.signP.toFixed(1)}. 사후: 모순 고정 문안 ${n.judgeSplit.contradiction.judged}쌍 빼면 ${n.judgeSplit.rest.ai}:${n.judgeSplit.rest.template})` : ""}</li>
             <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
             <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
           </ul>

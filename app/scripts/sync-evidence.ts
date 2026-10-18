@@ -229,33 +229,63 @@ if (e6) {
 }
 
 // ---- N1: 보호자 알림 AI 문장 + 두 단계 검사(S9 봉인 실행, scripts/n1-analyze.ts) ----
-/** 봉인 당시 고정 문안이 스스로 모순이던 쌍(119 경고, 또는 경고가 붙었는데 표시 도착 ≤ 표시 보호 끝)을 빼고 본 쌍 비교(통합 레드팀 3·4라운드) */
+/** 표시 시각('내일 오전 4시 10분' 등)을 분으로(비교용) */
+function n1Mins(t: string | null | undefined): number | null {
+  if (!t) return null;
+  const d = t.startsWith("내일") ? 1 : t.startsWith("모레") ? 2 : 0;
+  const m = /(오전|오후) (\d+)시(?: (\d+)분)?/.exec(t);
+  if (!m) return null;
+  let h = Number(m[2]);
+  if (m[1] === "오후" && h !== 12) h += 12;
+  if (m[1] === "오전" && h === 12) h = 0;
+  return d * 1440 + h * 60 + Number(m[3] ?? 0);
+}
+type N1Facts = Record<string, unknown> & { kind: string; plan: { type: string; arriveBy?: string | null; doneBy?: string | null } | null; battery: { text?: string }; cylinder: { text?: string } | null; warnRunOutFirst?: boolean };
+/** 경고가 붙었는데 표시 도움 시각이 표시 보호 끝과 같음: 「X까지 / X까지 도착 / 먼저 떨어짐」(통합 레드팀 4·5라운드) */
+function n1SameTimeWarn(F: N1Facts): boolean {
+  const warn = Boolean(F.warnBatteryFirst ?? F.warnRunOutFirst);
+  const sup = n1Mins(F.cylinder ? F.cylinder.text : F.battery.text);
+  const p = F.plan;
+  const help = p?.type === "CALL119" ? n1Mins(p.doneBy) : p?.type === "ASSIGN" || p?.type === "GAP" ? n1Mins(p.arriveBy) : null;
+  return warn && sup != null && help != null && help === sup;
+}
+/** 봉인 당시 고정 문안이 스스로 모순이던 쌍(119 경고, 또는 경고가 붙었는데 표시 도착 ≤ 표시 보호 끝)을 빼고 본 쌍 비교(통합 레드팀 3·4라운드, 사후 분석).
+ *  AI 글 쪽의 같은 시각 경고(봉인 당시 통과, 지금 규칙은 「도착이 늦어지면」)도 함께 센다(5라운드) */
 function n1JudgeSplit() {
   const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
   if (!existsSync(dir)) return {};
-  const mins = (t: string | null | undefined): number | null => {
-    if (!t) return null;
-    const d = t.startsWith("내일") ? 1 : t.startsWith("모레") ? 2 : 0;
-    const m = /(오전|오후) (\d+)시(?: (\d+)분)?/.exec(t);
-    if (!m) return null;
-    let h = Number(m[2]);
-    if (m[1] === "오후" && h !== 12) h += 12;
-    if (m[1] === "오전" && h === 12) h = 0;
-    return d * 1440 + h * 60 + Number(m[3] ?? 0);
-  };
-  const split = { contradiction: { n: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 } };
+  const split = { contradiction: { n: 0, judged: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 }, aiSameTime: { n: 0, ai: 0, template: 0, same: 0 } };
+  const atLeast = { k: 0, n: 0 };
   for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
-    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { facts: Record<string, unknown> & { plan: { type: string; arriveBy?: string | null } | null; battery: { text?: string }; cylinder: { text?: string } | null }; judged: { pick?: "ai" | "template" | "same" } | null };
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { facts: N1Facts; composed: { source: string }; judged: { pick?: "ai" | "template" | "same" } | null };
     const F = r.facts;
     const warn = Boolean(F.warnBatteryFirst ?? F.warnRunOutFirst);
     const sup = F.cylinder ? F.cylinder.text : F.battery.text;
     const p = F.plan;
-    const c = warn && (p?.type === "CALL119" || ((p?.type === "ASSIGN" || p?.type === "GAP") && p.arriveBy != null && sup != null && (mins(p.arriveBy) ?? 0) <= (mins(sup) ?? 0)));
+    const c = warn && (p?.type === "CALL119" || ((p?.type === "ASSIGN" || p?.type === "GAP") && p.arriveBy != null && sup != null && (n1Mins(p.arriveBy) ?? 0) <= (n1Mins(sup) ?? 0)));
     if (c) split.contradiction.n++;
     const pick = r.judged?.pick;
     if (pick) (c ? split.contradiction : split.rest)[pick]++;
+    if (pick && c) split.contradiction.judged++;
+    if (r.composed.source === "ai" && n1SameTimeWarn(F)) {
+      split.aiSameTime.n++;
+      if (pick) split.aiSameTime[pick]++;
+    }
+    // 쌍 비교의 내용 차이: AI 글이 배터리·산소통 시각 문장에서 하한 표현 '적어도'를 뺐는가(고정 문안은 늘 씀)
+    if (r.composed.source === "ai" && F.kind === "OUTAGE") for (const t of [F.battery.text, F.cylinder?.text]) {
+      if (!t) continue;
+      const s = (r as unknown as { composed: { sentences: string[] } }).composed.sentences.find((x) => x.includes(t) && !/도착|구급/.test(x));
+      if (!s) continue;
+      atLeast.n++;
+      if (!s.includes("적어도")) atLeast.k++;
+    }
   }
-  return { judgeSplit: split };
+  // 쌍 비교 부호검정(같음 제외, 양측): AI 대 고정
+  const a = split.contradiction.ai + split.rest.ai, b = split.contradiction.template + split.rest.template, m = a + b;
+  let tail = 0, c = 1;
+  for (let i = 0; i <= m; i++) { if (i > 0) c = (c * (m - i + 1)) / i; if (i <= Math.min(a, b)) tail += c; }
+  const signP = Math.min(1, (2 * tail) / 2 ** m);
+  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000 } };
 }
 /** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
 function n1Cost() {
@@ -272,11 +302,13 @@ function n1Cost() {
 function n1Examples() {
   const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
   if (!existsSync(dir)) return [];
-  type Row = { id: string; stratum: string; facts: { kind: string; plan: { type: string } | null; cylinder: unknown; warnRunOutFirst: boolean }; composed: { source: string; sentences: string[]; footer: string } };
+  type Row = { id: string; stratum: string; facts: N1Facts; composed: { source: string; sentences: string[]; footer: string } };
   const rows = readdirSync(dir).filter((f) => /^test-\d+\.json$/.test(f)).sort().map((f) => JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as Row).filter((r) => r.composed.source === "ai");
   const pick = (label: string, ok: (r: Row) => boolean) => { const r = rows.find(ok); return r ? { label, id: r.id, sentences: r.composed.sentences } : null; };
+  // 같은 시각 경고(4라운드에서 고친 모순)는 대표 예시로 고르지 않는다(통합 레드팀 5라운드)
   return [
-    pick("전원 배정 · 먼저 떨어질 수 있음 경고", (r) => r.facts.kind === "OUTAGE" && (r.facts.plan?.type === "ASSIGN" || r.facts.plan?.type === "GAP") && r.facts.warnRunOutFirst && !r.facts.cylinder),
+    pick("전원 배정 · 먼저 떨어질 수 있음 경고", (r) => r.facts.kind === "OUTAGE" && (r.facts.plan?.type === "ASSIGN" || r.facts.plan?.type === "GAP") && Boolean(r.facts.warnRunOutFirst) && !r.facts.cylinder
+      && (n1Mins(r.facts.plan.arriveBy) ?? -1) > (n1Mins(r.facts.battery.text) ?? Infinity)),
     pick("산소발생기 · 확인된 산소통", (r) => r.facts.kind === "OUTAGE" && r.facts.cylinder != null),
     pick("119 연계", (r) => r.facts.kind === "OUTAGE" && r.facts.plan?.type === "CALL119" && !r.facts.cylinder),
     pick("평시 대비", (r) => r.facts.kind === "PREP"),

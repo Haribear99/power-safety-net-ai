@@ -58,6 +58,8 @@ export const NoticeInput = z.discriminatedUnion("kind", [
     /** 자원: 도착 절대 시각, 119: 이송 완료 예상 절대 시각. 없으면 null */
     etaS: S.nullable(),
     late119: z.boolean(),
+    /** 배터리 시각의 근거(꼬리말용): 알린 충전량 / 충전량 모름(낮춘 가정) / 기기 화면 남은 시간 / 담당자 입력 하한. 없으면 꼬리말에 근거를 적지 않는다 */
+    batteryBasis: z.enum(["charge", "chargeUnknown", "screen", "operator"]).optional(),
   }).strict(),
 ]);
 export type NoticeInputT = z.infer<typeof NoticeInput>;
@@ -111,6 +113,8 @@ export interface NoticeFacts {
   warnSameTime: boolean;
   extDeclared: boolean;       // PREP만 의미
   actions: Action[];
+  /** OUTAGE 배터리 시각의 근거(꼬리말만 쓴다. 본문·검사와 무관) */
+  batteryBasis?: "charge" | "chargeUnknown" | "screen" | "operator";
 }
 
 const TEN_MIN = 600;
@@ -238,7 +242,7 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   if (cylinder) actions.push(switchNow ? "SWITCH_TO_CYLINDER" : "SWITCH_AFTER_BATTERY");
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
   const warnSameTime = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS === supplyShownS;
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions };
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions, ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
@@ -296,10 +300,13 @@ export function outageInput(args: {
   const batteryLs = noCyl.Ls === 0 && hasBattery ? 1 : noCyl.Ls;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
   const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;
+  // 꼬리말 근거: 엔진 표지 그대로(충전량을 알리지 않은 집에 '알려 주신 충전량'을 쓰지 않는다, 통합 레드팀 5라운드)
+  const fl = bat.lb.flags;
+  const batteryBasis = fl.includes("OPERATOR_LOWER") ? "operator" as const : fl.includes("SCREEN_CAPPED") ? "screen" as const : fl.includes("CHARGE_UNKNOWN") ? "chargeUnknown" as const : "charge" as const;
   return {
     kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs, cylinderEndS, cylinderS: cylS,
-    lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119,
+    lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119, batteryBasis,
   };
 }
 
