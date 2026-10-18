@@ -1,0 +1,235 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-014",
+ "stratum": "OUTAGE:NONE:GAP:보호자",
+ "input": {
+  "baseIso": "2026-09-11T03:00:00+09:00",
+  "batteryEndS": 486,
+  "batteryLs": 0,
+  "caregiver": true,
+  "cylinderEndS": null,
+  "deviceCls": "O2_STAT",
+  "etaS": 12626,
+  "kind": "OUTAGE",
+  "lane": "GAP_REDUCE",
+  "late119": false,
+  "nowS": 8855,
+  "resourceKind": "ESS_L"
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "GAP",
+   "resource": "대용량 전원 장치",
+   "arriveBy": "오전 6시 40분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "130819c6-1734-4e19-a697-552efaaeddcb",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1873,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94Rxz8HhWt2uubt1Xhf",
+  "usage": {
+   "input": 565,
+   "output": 181,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.003329
+ },
+ "raw": [
+  "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+  "이 산소발생기는 배터리가 없습니다.",
+  "그래서 정전되면 바로 멈춥니다.",
+  "담당자가 대용량 전원 장치를 집으로 보내기로 했습니다.",
+  "대용량 전원 장치는 오전 6시 40분까지 도착합니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+   "이 산소발생기는 배터리가 없습니다.",
+   "그래서 정전되면 바로 멈춥니다.",
+   "담당자가 대용량 전원 장치를 집으로 보내기로 했습니다.",
+   "대용량 전원 장치는 오전 6시 40분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "대용량 전원 장치",
+     "time": "오전 6시 40분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0073252,
+  "meta": {
+   "requestId": "ae507dff-55da-42a9-902a-b5b5bb618e8e",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3129,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94S9Vu9pL6SDDi7GmAF",
+   "usage": {
+    "input": 207,
+    "output": 288,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0073252
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+   "이 산소발생기는 배터리가 없습니다.",
+   "그래서 정전되면 바로 멈춥니다.",
+   "담당자가 대용량 전원 장치를 집으로 보내기로 했습니다.",
+   "대용량 전원 장치는 오전 6시 40분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "대용량 전원 장치",
+     "time": "오전 6시 40분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "adcfe96d-4e08-4589-bcd4-6fb1b212859d",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3143,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94SRDCUHxTarN5F7qj1",
+   "usage": {
+    "input": 172,
+    "output": 287,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0071652
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "SAME",
+  "pick": "same",
+  "reason": "두 글의 사실·시각·할 일이 같다. B는 한 문장에 한 생각을 담고 담당자 결정을 밝히지만 문장이 늘었고, A는 더 짧아 급할 때 빨리 읽힌다. 장단점이 비슷해 이해 속도와 정확성 차이가 거의 없다.",
+  "meta": {
+   "requestId": "2f57accd-dd5e-4ece-a764-cfc800263dbc",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 4989,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94Sh6veFka4VFP1W4Sb",
+   "usage": {
+    "input": 461,
+    "output": 133,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0046318
+  }
+ }
+}

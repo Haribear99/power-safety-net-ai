@@ -1,0 +1,254 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-046",
+ "stratum": "OUTAGE:NONE+cyl:CALL119:본인",
+ "input": {
+  "baseIso": "2026-08-14T22:00:00+09:00",
+  "batteryEndS": 1110,
+  "batteryLs": 0,
+  "caregiver": false,
+  "cylinderEndS": 37110,
+  "deviceCls": "O2_STAT_CYL",
+  "etaS": 22898,
+  "kind": "OUTAGE",
+  "lane": "FALLBACK_119",
+  "late119": false,
+  "nowS": 1783,
+  "resourceKind": null
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "본인",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": {
+   "state": "UNTIL",
+   "text": "내일 오전 8시 10분"
+  },
+  "plan": {
+   "type": "CALL119",
+   "doneBy": "내일 오전 4시 30분",
+   "late": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "SWITCH_TO_CYLINDER",
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "cad9b6d5-f852-4dff-8b1a-977f56f57de3",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2775,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg953TUMbLU6NQA1ScAB6",
+  "usage": {
+   "input": 802,
+   "output": 257,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.004563
+ },
+ "raw": [
+  "정전으로 산소발생기 전원이 끊겼습니다.",
+  "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+  "집에 있는 확인된 산소통이 있습니다.",
+  "그 산소통으로 바꿔 쓰면 내일 오전 8시 10분까지 산소통을 쓸 수 있습니다.",
+  "구급대와 연결했습니다.",
+  "구급대가 내일 오전 4시 30분까지 옮겨 줄 예정입니다.",
+  "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "정전으로 산소발생기 전원이 끊겼습니다.",
+   "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+   "집에 있는 확인된 산소통이 있습니다.",
+   "그 산소통으로 바꿔 쓰면 내일 오전 8시 10분까지 산소통을 쓸 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 내일 오전 4시 30분까지 옮겨 줄 예정입니다.",
+   "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "lasts_until",
+     "time": "내일 오전 8시 10분"
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "내일 오전 4시 30분",
+     "timeMeaning": "finish_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요"
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0090492,
+  "meta": {
+   "requestId": "c7536d39-934f-47f4-9657-7f30bee6c850",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3389,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg953hkqdt7HQcKE8B2oF",
+   "usage": {
+    "input": 283,
+    "output": 359,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0090492
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "정전으로 산소발생기 전원이 끊겼습니다.",
+   "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+   "집에 있는 확인된 산소통이 있습니다.",
+   "그 산소통으로 바꿔 쓰면 내일 오전 8시 10분까지 산소통을 쓸 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 내일 오전 4시 30분까지 옮겨 줄 예정입니다.",
+   "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "lasts_until",
+     "time": "내일 오전 8시 10분"
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "내일 오전 4시 30분",
+     "timeMeaning": "finish_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "지금 확인된 산소통으로 바꿔 쓰세요."
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "8d784552-172e-4ed9-ad13-ce33c3830bf8",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3695,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg953zeqi9doJpoKTwjT2",
+   "usage": {
+    "input": 236,
+    "output": 352,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0087212
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "A",
+  "pick": "template",
+  "reason": "급한 상황에서 A는 '산소통으로 바꿔 쓰세요'라는 핵심 행동을 세 번째 줄에 바로 제시합니다. B는 같은 행동을 일곱 번째 줄에서야 지시하고 산소통 설명을 반복합니다. A가 더 빨리 할 일을 알려 줍니다.",
+  "meta": {
+   "requestId": "e7bd84f9-ffea-47dc-80a3-b79bb896a137",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2550,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg954KZdCZyE1NQKEakYG",
+   "usage": {
+    "input": 601,
+    "output": 137,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0052718
+  }
+ }
+}

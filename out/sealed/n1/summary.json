@@ -1,0 +1,1592 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "sealed",
+ "sealed": true,
+ "set": {
+  "file": "datasets/notice/test.json",
+  "sha256": "d1d8df152848cff99b0c5bc6812e64023a4a3429c6d7ccbe7545cc5049dc3794",
+  "n": 60
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 56,
+    "n": 60,
+    "rate": 0.9333333333333333,
+    "wilson95": [
+     0.8407464259125857,
+     0.9737713014577508
+    ]
+   },
+   "gate1Pass": {
+    "k": 58,
+    "n": 60,
+    "rate": 0.9666666666666667,
+    "wilson95": [
+     0.886362256341505,
+     0.9908106808265498
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 56,
+    "n": 58,
+    "rate": 0.9655172413793104,
+    "wilson95": [
+     0.8827085444155522,
+     0.9904920717544576
+    ]
+   },
+   "gate1FactError": {
+    "k": 0,
+    "n": 60,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.060171853034227174
+    ]
+   },
+   "callFail": {
+    "k": 0,
+    "n": 60,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.060171853034227174
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 60,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.060171853034227174
+    ]
+   },
+   "templateFalseReject": {
+    "k": 0,
+    "n": 60,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.060171853034227174
+    ]
+   },
+   "rejectCodes": {
+    "gate1:FORMAT_LEN": 2,
+    "gate2:CLAIM_MISMATCH": 2
+   },
+   "judge": {
+    "ai": 18,
+    "template": 14,
+    "same": 24,
+    "fail": 0,
+    "aiFirstPickAi": 8,
+    "aiFirst": 27
+   },
+   "latencyE2E": {
+    "p50": 6527,
+    "p95": 8082,
+    "n": 60,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 1.1437178999999995,
+  "judgeCostUsd": 0.32884,
+  "rows": [
+   {
+    "id": "test-000",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-001",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-002",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-003",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-004",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-005",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-006",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-007",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-008",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-009",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-010",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-011",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-012",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:보호자",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "test-013",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-014",
+    "stratum": "OUTAGE:NONE:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-015",
+    "stratum": "OUTAGE:NONE:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-016",
+    "stratum": "OUTAGE:NONE:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-017",
+    "stratum": "OUTAGE:NONE:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-018",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-019",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-020",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-021",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-022",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-023",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-024",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:보호자",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CLAIM_MISMATCH"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "test-025",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-026",
+    "stratum": "OUTAGE:UNTIL:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-027",
+    "stratum": "OUTAGE:UNTIL:CALL119:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-028",
+    "stratum": "OUTAGE:UNTIL:GAP+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-029",
+    "stratum": "OUTAGE:UNTIL:GAP+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-030",
+    "stratum": "OUTAGE:UNTIL:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-031",
+    "stratum": "OUTAGE:UNTIL:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-032",
+    "stratum": "PREP:HOURS:-:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-033",
+    "stratum": "PREP:HOURS:-:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-034",
+    "stratum": "PREP:UNKNOWN:-:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-035",
+    "stratum": "PREP:UNKNOWN:-:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-036",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-037",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-038",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-039",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-040",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-041",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-042",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "test-043",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CLAIM_MISMATCH"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "test-044",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-045",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-046",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-047",
+    "stratum": "OUTAGE:NONE:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-048",
+    "stratum": "OUTAGE:NONE:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-049",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-050",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-051",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "template"
+   },
+   {
+    "id": "test-052",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-053",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-054",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-055",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-056",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   },
+   {
+    "id": "test-057",
+    "stratum": "OUTAGE:UNTIL:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-058",
+    "stratum": "OUTAGE:UNTIL:CALL119:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "same"
+   },
+   {
+    "id": "test-059",
+    "stratum": "OUTAGE:UNTIL:GAP+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": "ai"
+   }
+  ]
+ },
+ "corpus": {
+  "file": "datasets/notice/adversarial_test.json",
+  "sha256": "c956fdcb81376c7fc2d98b35ec0fe53c2bb2d72dd3cb346c0e91f3d4f5e5ba14",
+  "n": 100,
+  "metrics": {
+   "badMissed": {
+    "k": 4,
+    "n": 70,
+    "rate": 0.05714285714285714,
+    "wilson95": [
+     0.02244377894478012,
+     0.13791950559340543
+    ]
+   },
+   "badCaught": {
+    "k": 66,
+    "n": 70,
+    "rate": 0.9428571428571428,
+    "wilson95": [
+     0.8620804944065945,
+     0.9775562210552198
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 16,
+    "n": 70,
+    "rate": 0.22857142857142856,
+    "wilson95": [
+     0.14588063169758836,
+     0.33950331689033175
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 66,
+    "n": 70,
+    "rate": 0.9428571428571428,
+    "wilson95": [
+     0.8620804944065945,
+     0.9775562210552198
+    ]
+   },
+   "goodFalseReject": {
+    "k": 3,
+    "n": 30,
+    "rate": 0.1,
+    "wilson95": [
+     0.03459988847741868,
+     0.256210827331743
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 3,
+    "n": 30,
+    "rate": 0.1,
+    "wilson95": [
+     0.03459988847741868,
+     0.256210827331743
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 30,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.11351339476145204
+    ]
+   },
+   "byCategory": {
+    "time_role_swap": {
+     "n": 3,
+     "caught1": 2,
+     "caught2": 3,
+     "caught": 3
+    },
+    "date_shift": {
+     "n": 4,
+     "caught1": 2,
+     "caught2": 4,
+     "caught": 4
+    },
+    "time_value": {
+     "n": 4,
+     "caught1": 0,
+     "caught2": 4,
+     "caught": 4
+    },
+    "time_meaning": {
+     "n": 5,
+     "caught1": 2,
+     "caught2": 5,
+     "caught": 5
+    },
+    "negation": {
+     "n": 4,
+     "caught1": 1,
+     "caught2": 4,
+     "caught": 4
+    },
+    "late_flip": {
+     "n": 3,
+     "caught1": 1,
+     "caught2": 3,
+     "caught": 3
+    },
+    "warning_flip": {
+     "n": 3,
+     "caught1": 0,
+     "caught2": 2,
+     "caught": 2
+    },
+    "omission_by_meaning": {
+     "n": 9,
+     "caught1": 2,
+     "caught2": 8,
+     "caught": 8
+    },
+    "state_flip": {
+     "n": 7,
+     "caught1": 0,
+     "caught2": 7,
+     "caught": 7
+    },
+    "subtle_paraphrase_error": {
+     "n": 2,
+     "caught1": 0,
+     "caught2": 2,
+     "caught": 2
+    },
+    "means_wrong": {
+     "n": 3,
+     "caught1": 2,
+     "caught2": 3,
+     "caught": 3
+    },
+    "extra_instruction": {
+     "n": 2,
+     "caught1": 0,
+     "caught2": 2,
+     "caught": 2
+    },
+    "resource_name_wrong": {
+     "n": 3,
+     "caught1": 0,
+     "caught2": 1,
+     "caught": 1
+    },
+    "risky_action": {
+     "n": 4,
+     "caught1": 1,
+     "caught2": 4,
+     "caught": 4
+    },
+    "medical_or_device": {
+     "n": 6,
+     "caught1": 2,
+     "caught2": 6,
+     "caught": 6
+    },
+    "contradict_tail": {
+     "n": 2,
+     "caught1": 0,
+     "caught2": 2,
+     "caught": 2
+    },
+    "reassurance": {
+     "n": 4,
+     "caught1": 1,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_not_now": {
+     "n": 2,
+     "caught1": 0,
+     "caught2": 2,
+     "caught": 2
+    }
+   }
+  },
+  "costUsd": 0.7954080000000002,
+  "rows": [
+   {
+    "id": "t001",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t002",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t003",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t004",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t005",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t006",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t007",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t008",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t009",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t010",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t011",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t012",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t013",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t014",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t015",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t016",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t017",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t018",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t019",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t020",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t021",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t022",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t023",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t024",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t025",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t026",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t027",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t028",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t029",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t030",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t031",
+    "label": "bad",
+    "category": "time_role_swap",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t032",
+    "label": "bad",
+    "category": "time_role_swap",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t033",
+    "label": "bad",
+    "category": "date_shift",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t034",
+    "label": "bad",
+    "category": "date_shift",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t035",
+    "label": "bad",
+    "category": "time_value",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t036",
+    "label": "bad",
+    "category": "time_value",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t037",
+    "label": "bad",
+    "category": "time_value",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t038",
+    "label": "bad",
+    "category": "time_value",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t039",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t040",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t041",
+    "label": "bad",
+    "category": "negation",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t042",
+    "label": "bad",
+    "category": "negation",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t043",
+    "label": "bad",
+    "category": "negation",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t044",
+    "label": "bad",
+    "category": "late_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t045",
+    "label": "bad",
+    "category": "late_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t046",
+    "label": "bad",
+    "category": "warning_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t047",
+    "label": "bad",
+    "category": "warning_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t048",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t049",
+    "label": "bad",
+    "category": "warning_flip",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t050",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t051",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t052",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t053",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t054",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t055",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t056",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t057",
+    "label": "bad",
+    "category": "subtle_paraphrase_error",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t058",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t059",
+    "label": "bad",
+    "category": "means_wrong",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t060",
+    "label": "bad",
+    "category": "extra_instruction",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t061",
+    "label": "bad",
+    "category": "resource_name_wrong",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t062",
+    "label": "bad",
+    "category": "resource_name_wrong",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t063",
+    "label": "bad",
+    "category": "resource_name_wrong",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t064",
+    "label": "bad",
+    "category": "risky_action",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t065",
+    "label": "bad",
+    "category": "risky_action",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t066",
+    "label": "bad",
+    "category": "risky_action",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t067",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t068",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t069",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t070",
+    "label": "bad",
+    "category": "contradict_tail",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t071",
+    "label": "bad",
+    "category": "contradict_tail",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t072",
+    "label": "bad",
+    "category": "reassurance",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t073",
+    "label": "bad",
+    "category": "reassurance",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t074",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t075",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t076",
+    "label": "bad",
+    "category": "switch_not_now",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t077",
+    "label": "bad",
+    "category": "switch_not_now",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t078",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t079",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t080",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "t081",
+    "label": "bad",
+    "category": "extra_instruction",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t082",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t083",
+    "label": "bad",
+    "category": "subtle_paraphrase_error",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t084",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t085",
+    "label": "bad",
+    "category": "reassurance",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t086",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t087",
+    "label": "bad",
+    "category": "reassurance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t088",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t089",
+    "label": "bad",
+    "category": "means_wrong",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t090",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t091",
+    "label": "bad",
+    "category": "medical_or_device",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t092",
+    "label": "bad",
+    "category": "date_shift",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t093",
+    "label": "bad",
+    "category": "date_shift",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t094",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t095",
+    "label": "bad",
+    "category": "late_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t096",
+    "label": "bad",
+    "category": "risky_action",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t097",
+    "label": "bad",
+    "category": "time_role_swap",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t098",
+    "label": "bad",
+    "category": "means_wrong",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t099",
+    "label": "bad",
+    "category": "negation",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t100",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": true,
+    "gate2": true
+   }
+  ]
+ }
+}

@@ -1,0 +1,97 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t057",
+ "label": "bad",
+ "category": "subtle_paraphrase_error",
+ "facts": {
+  "kind": "PREP",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "HOURS",
+   "text": "3시간"
+  },
+  "cylinder": null,
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": true,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHARGE_EXT"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전이 나기 전에 미리 준비해 주세요.",
+  "인공호흡기는 충전 없이도 적어도 3시간 버팁니다.",
+  "기기 배터리는 평소에 늘 충전해 두세요.",
+  "외장 배터리도 늘 충전해 두세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "other",
+     "time": "3시간"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전이 나기 전에 미리 준비해 주세요"
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "기기 배터리는 평소에 늘 충전해 두세요"
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "외장 배터리도 늘 충전해 두세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 other 3시간, 사실은 lasts_for 3시간"
+   }
+  ],
+  "meta": {
+   "requestId": "0bc0f0c9-8804-46c8-b5d2-d44ae5e938ea",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 6370,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95bPGVuQWppV2sSi5EK",
+   "usage": {
+    "input": 137,
+    "output": 648,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.014245200000000001
+  }
+ },
+ "rejected": true
+}

@@ -1,0 +1,226 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-005",
+ "stratum": "OUTAGE:MAYBE_OUT:SHELTER:본인",
+ "input": {
+  "baseIso": "2026-08-14T22:00:00+09:00",
+  "batteryEndS": 8777,
+  "batteryLs": 8505,
+  "caregiver": false,
+  "cylinderEndS": null,
+  "deviceCls": "O2_PORT",
+  "etaS": null,
+  "kind": "OUTAGE",
+  "lane": "FALLBACK_SHELTER",
+  "late119": false,
+  "nowS": 8894,
+  "resourceKind": null
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "본인",
+  "device": "휴대용 산소발생기",
+  "battery": {
+   "state": "MAYBE_OUT"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "SHELTER"
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "8d7bf246-0e55-4fdc-b992-191e2204d411",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1859,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94FE8tMAMpMkVskoUie",
+  "usage": {
+   "input": 536,
+   "output": 148,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.002941
+ },
+ "raw": [
+  "지금 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+  "휴대용 산소발생기의 배터리는 이미 다 떨어졌을 수 있습니다.",
+  "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "지금 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+   "휴대용 산소발생기의 배터리는 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.006853199999999999,
+  "meta": {
+   "requestId": "33020dd4-74c4-4adf-9f87-028518d03f5f",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3527,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94FQWUwcxfYccubCWSt",
+   "usage": {
+    "input": 174,
+    "output": 271,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.006853199999999999
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "지금 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+   "휴대용 산소발생기의 배터리는 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "9d6daa50-94b7-4d89-9cb1-a2dfad579f6a",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3149,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94Fi4fNDVJE1NDcAnsB",
+   "usage": {
+    "input": 169,
+    "output": 273,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0068731999999999994
+  }
+ },
+ "judged": {
+  "aiFirst": true,
+  "choice": "SAME",
+  "pick": "same",
+  "reason": "두 글은 구조, 할 일, 연락처가 거의 같다. A는 '지금'과 기기명 반복이 있고, B는 '거의 없거나'와 높임 표현이 있다. 이 정도 차이로는 이해 속도나 정확도가 달라지지 않는다.",
+  "meta": {
+   "requestId": "9df1275e-125d-46ab-bfd6-fd434d307e94",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3695,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94FyuuHF2TcVFjJSs7w",
+   "usage": {
+    "input": 425,
+    "output": 117,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0041678
+  }
+ }
+}

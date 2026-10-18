@@ -1,0 +1,89 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t029",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "가래 흡인기",
+  "battery": {
+   "state": "UNKNOWN"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "SHELTER"
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 가래 흡인기 전원이 끊겼습니다.",
+  "배터리가 얼마나 갈지는 담당자가 확인 중입니다.",
+  "가까운 쉼터로 옮기실 수 있도록 담당자가 연락할 예정입니다.",
+  "연락을 받을 수 있게 전화를 가까이 두세요.",
+  "연락이 오면 담당자 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "unknown_being_checked",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 가까이 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 담당자 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "9ff93881-79b7-4fa2-a192-0a1aa9fc02a2",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3614,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95SXR8rGaMa81zza2K9",
+   "usage": {
+    "input": 181,
+    "output": 278,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0070212
+  }
+ },
+ "rejected": false
+}

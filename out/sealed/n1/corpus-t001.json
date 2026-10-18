@@ -1,0 +1,93 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t001",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 11시 20분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "휴대용 전원 장치",
+   "arriveBy": "오후 10시 50분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전 때문에 인공호흡기 전원이 나갔습니다.",
+  "인공호흡기 배터리는 적어도 오후 11시 20분까지 갑니다.",
+  "휴대용 전원 장치가 오후 10시 50분까지 댁에 도착합니다.",
+  "담당자 연락을 받으실 수 있도록 전화를 가까이 두세요.",
+  "연락이 오면 안내에 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 11시 20분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "휴대용 전원 장치",
+     "time": "오후 10시 50분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "담당자 연락을 받으실 수 있도록 전화를 가까이 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내에 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "20be5461-88c1-4276-84fc-0bdac7dd390a",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3589,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95JTTXiWfAk4h5XoJCj",
+   "usage": {
+    "input": 184,
+    "output": 301,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0074932
+  }
+ },
+ "rejected": false
+}

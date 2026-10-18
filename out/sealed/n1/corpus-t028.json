@@ -1,0 +1,99 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t028",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "본인",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 9시 50분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "GAP",
+   "resource": "기기용 외장 배터리",
+   "arriveBy": null,
+   "etaPassed": true
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리는 적어도 오후 9시 50분까지 버팁니다.",
+  "기기용 외장 배터리는 도착 예정 시각을 넘겨서 담당자가 확인하고 있습니다.",
+  "외장 배터리가 오기 전에 기기 배터리가 먼저 떨어질 수 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [
+  {
+   "code": "MISSING_SENTENCE",
+   "detail": "기기용 외장 배터리+지나 한 문장 없음(기기용 외장 배터리 도착 예정 시각이 지나 담당자가 확인 중이다)"
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 9시 50분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "기기용 외장 배터리",
+     "time": null,
+     "timeMeaning": "passed_being_checked",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "168172b4-821b-4e0a-813b-549f1f6598c5",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3128,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95SFfbAYNEVuphtvwdV",
+   "usage": {
+    "input": 202,
+    "output": 281,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0071652
+  }
+ },
+ "rejected": true
+}

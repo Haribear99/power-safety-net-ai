@@ -1,0 +1,100 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t048",
+ "label": "bad",
+ "category": "omission_by_meaning",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "내일 오전 0시 40분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": "내일 오전 1시",
+   "late": true
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리는 적어도 내일 오전 0시 40분까지 버팁니다.",
+  "구급대와 연결했습니다.",
+  "구급대가 내일 오전 1시까지 옮겨 드릴 예정입니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "배터리 상태는 먼저 확인해 연락드립니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "내일 오전 0시 40분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "내일 오전 1시",
+     "timeMeaning": "finish_by",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "먼저 떨어짐 경고: 글 false, 사실 true"
+   }
+  ],
+  "meta": {
+   "requestId": "4bfa6a97-15f7-4635-a1b2-7dd5fab4fabd",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3173,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95YaSNeb5DR5bfA8rWd",
+   "usage": {
+    "input": 218,
+    "output": 277,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0071492
+  }
+ },
+ "rejected": true
+}

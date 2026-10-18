@@ -1,0 +1,229 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-033",
+ "stratum": "PREP:HOURS:-:본인",
+ "input": {
+  "batteryS": 40896,
+  "caregiver": false,
+  "cylinderS": 0,
+  "deviceCls": "VENT_8H",
+  "extDeclared": true,
+  "kind": "PREP"
+ },
+ "facts": {
+  "kind": "PREP",
+  "audience": "본인",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "HOURS",
+   "text": "11시간"
+  },
+  "cylinder": null,
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": true,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHARGE_EXT"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "1cca0841-e739-4bb0-8aef-3029f348d742",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1705,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94oLhvB44xr1PSo9yVD",
+  "usage": {
+   "input": 421,
+   "output": 138,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.002611
+ },
+ "raw": [
+  "정전이 오기 전에 미리 대비해 두면 좋습니다.",
+  "인공호흡기 배터리는 완전히 충전하면 적어도 11시간 버팁니다.",
+  "평소에 배터리를 늘 충전해 두세요.",
+  "외장 배터리를 가지고 계신 것으로 알고 있습니다.",
+  "외장 배터리도 충전해 두세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "정전이 오기 전에 미리 대비해 두면 좋습니다.",
+   "인공호흡기 배터리는 완전히 충전하면 적어도 11시간 버팁니다.",
+   "평소에 배터리를 늘 충전해 두세요.",
+   "외장 배터리를 가지고 계신 것으로 알고 있습니다.",
+   "외장 배터리도 충전해 두세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_for",
+     "time": "11시간"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전이 오기 전에 미리 대비해 두면 좋습니다."
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 배터리를 늘 충전해 두세요."
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "외장 배터리도 충전해 두세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0077932,
+  "meta": {
+   "requestId": "edff8a69-9c21-4b9f-b9a1-9d32aaa3168c",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3582,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94oWR5JUCJWHfdXCZRE",
+   "usage": {
+    "input": 164,
+    "output": 320,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0077932
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "정전이 오기 전에 미리 대비해 두면 좋습니다.",
+   "인공호흡기 배터리는 완전히 충전하면 적어도 11시간 버팁니다.",
+   "평소에 배터리를 늘 충전해 두세요.",
+   "외장 배터리를 가지고 계신 것으로 알고 있습니다.",
+   "외장 배터리도 충전해 두세요.",
+   "정전되면 한전 123에 알리세요.",
+   "위급하면 바로 119에 전화하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_for",
+     "time": "11시간"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 미리 대비해 주세요."
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 기기 배터리를 늘 충전해 두세요."
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "외장 배터리도 늘 충전해 두세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "4d87a941-e6a3-4a92-8a8f-5b05a097d911",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3545,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94opBumyC2T3BMPRKmT",
+   "usage": {
+    "input": 127,
+    "output": 315,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0075452
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "A",
+  "pick": "template",
+  "reason": "A는 첫 문장부터 할 일을 바로 말하고, 할 일마다 한 문장씩 짧게 씁니다. B에는 '좋습니다' 같은 완곡한 표현과 '가지고 계신 것으로 알고 있습니다' 같은 행동과 상관없는 문장이 끼어 있어 할 일을 찾는 데 조금 더 걸립니다. A에 '늘'이 있어 꾸준히 충전하라는 뜻도 더 분명합니다.",
+  "meta": {
+   "requestId": "efeea16c-0d54-4bfb-adca-d9bef821f856",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3210,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94p7j6HouniVs1hBUyd",
+   "usage": {
+    "input": 361,
+    "output": 188,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0053318
+  }
+ }
+}

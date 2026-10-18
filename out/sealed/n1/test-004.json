@@ -1,0 +1,226 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-004",
+ "stratum": "OUTAGE:MAYBE_OUT:SHELTER:보호자",
+ "input": {
+  "baseIso": "2026-09-11T03:00:00+09:00",
+  "batteryEndS": 2247,
+  "batteryLs": 680,
+  "caregiver": true,
+  "cylinderEndS": null,
+  "deviceCls": "VENT_1H",
+  "etaS": null,
+  "kind": "OUTAGE",
+  "lane": "FALLBACK_SHELTER",
+  "late119": false,
+  "nowS": 1655,
+  "resourceKind": null
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "MAYBE_OUT"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "SHELTER"
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "a9d0e98a-27cc-404e-8b14-9b96e3352722",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1587,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94EARsUipUJMyT1s9Z1",
+  "usage": {
+   "input": 521,
+   "output": 142,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.002851
+ },
+ "raw": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "인공호흡기 배터리는 이미 다 떨어졌을 수 있습니다.",
+  "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0068292,
+  "meta": {
+   "requestId": "427bd7db-4ff8-4ca2-83a5-25251e2a3de5",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3088,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94EKgFKLYNvPPHQWsqM",
+   "usage": {
+    "input": 168,
+    "output": 271,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0068292
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 가까운 쉼터로 옮기도록 연락합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "66ac680e-319c-4c68-9b3b-836f35301e10",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3399,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94EbGr6vkSEr9C5Gsgm",
+   "usage": {
+    "input": 171,
+    "output": 273,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0068812
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "SAME",
+  "pick": "same",
+  "reason": "두 글의 구조와 할 일(전화 곁에 두기, 안내 따르기, 위급 시 119)이 같다. A는 '거의 없거나 이미', B는 '이미'로 배터리 표현만 조금 다를 뿐, 이해 속도와 정확성에 의미 있는 차이가 없다.",
+  "meta": {
+   "requestId": "f5246ac3-a001-4de5-835f-c41bed54838a",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3948,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94EtGoW3benfmiQ7vAT",
+   "usage": {
+    "input": 421,
+    "output": 128,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0043718
+  }
+ }
+}

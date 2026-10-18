@@ -1,0 +1,105 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t089",
+ "label": "bad",
+ "category": "means_wrong",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 4시"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "대용량 전원 장치",
+   "arriveBy": null,
+   "etaPassed": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기가 전원을 잃었습니다.",
+  "배터리는 적어도 오후 4시까지는 버팁니다.",
+  "대용량 전원 장치는 도착 예정 시각이 지나 담당자가 확인 중입니다.",
+  "대신 가까운 쉼터로 옮기도록 연락드립니다.",
+  "연락이 올 수 있으니 전화를 가까이 두세요.",
+  "연락을 받으시면 안내를 따라 주세요."
+ ],
+ "gate1": [
+  {
+   "code": "UNSUPPORTED",
+   "detail": "정하지 않은 수단 「쉼터」",
+   "sentence": "대신 가까운 쉼터로 옮기도록 연락드립니다."
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 4시"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "several",
+     "name": "대용량 전원 장치, 가까운 쉼터",
+     "time": null,
+     "timeMeaning": "passed_being_checked",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락이 올 수 있으니 전화를 가까이 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락을 받으시면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "수단: 글은 several/대용량 전원 장치, 가까운 쉼터//passed_being_checked, 사실은 power_equipment/대용량 전원 장치//passed_being_checked"
+   }
+  ],
+  "meta": {
+   "requestId": "0eeb9d36-ff1a-45ef-8303-7595fecd578f",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3203,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95mwL5sbD7YcFGbWepu",
+   "usage": {
+    "input": 202,
+    "output": 294,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0074252
+  }
+ },
+ "rejected": true
+}

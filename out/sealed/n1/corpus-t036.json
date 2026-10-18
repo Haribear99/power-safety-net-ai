@@ -1,0 +1,98 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t036",
+ "label": "bad",
+ "category": "time_value",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 4시"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "대용량 전원 장치",
+   "arriveBy": null,
+   "etaPassed": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기가 전원을 잃었습니다.",
+  "배터리는 적어도 오후 4시 반까지는 버팁니다.",
+  "대용량 전원 장치는 도착 예정 시각이 지나 담당자가 확인 중입니다.",
+  "연락이 올 수 있으니 전화를 가까이 두세요.",
+  "연락을 받으시면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 4시 반"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "대용량 전원 장치",
+     "time": null,
+     "timeMeaning": "passed_being_checked",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락이 올 수 있으니 전화를 가까이 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락을 받으시면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 lasts_until 오후 4시 반, 사실은 lasts_until 오후 4시"
+   }
+  ],
+  "meta": {
+   "requestId": "c70ba337-d902-42d6-a333-79d6958baa69",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3176,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95UZG4K46UqvyMw9kXk",
+   "usage": {
+    "input": 177,
+    "output": 290,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0072452
+  }
+ },
+ "rejected": true
+}

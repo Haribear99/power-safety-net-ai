@@ -1,0 +1,98 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t030",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "MAYBE_OUT"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": null,
+   "late": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리가 거의 남지 않았거나 이미 다 됐을 수 있습니다.",
+  "구급대에 연락이 닿았습니다.",
+  "구급대가 언제 올지는 아직 정해지지 않았습니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [
+  {
+   "code": "MISSING_SENTENCE",
+   "detail": "구급+연결 한 문장 없음(구급대와 연결했다)"
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": null,
+     "timeMeaning": "not_decided_yet",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "3514aca7-f5bb-43f4-8ca4-60ce2bfd060d",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2823,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95SqJefcAhL52hMStRD",
+   "usage": {
+    "input": 196,
+    "output": 263,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0067812
+  }
+ },
+ "rejected": true
+}

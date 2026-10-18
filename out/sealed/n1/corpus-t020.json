@@ -1,0 +1,88 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t020",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "PREP",
+  "audience": "본인",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": {
+   "state": "HOURS",
+   "text": "5시간 30분"
+  },
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "CHECK_CYLINDER"
+  ]
+ },
+ "sentences": [
+  "정전에 대비해 미리 준비해 주세요.",
+  "산소발생기에는 배터리가 없어서 정전되면 바로 멈춥니다.",
+  "확인된 산소통으로는 적어도 5시간 30분 쓸 수 있습니다.",
+  "산소통 상태를 미리 확인해 두세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "lasts_for",
+     "time": "5시간 30분"
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 대비해 미리 준비해 주세요."
+     },
+     {
+      "kind": "CHECK_CYLINDER",
+      "when": "unspecified",
+      "quote": "산소통 상태를 미리 확인해 두세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "3e07079f-4082-40f0-82c7-67fe9924a315",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3177,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95PvV7rzFpQz1k3GUe6",
+   "usage": {
+    "input": 142,
+    "output": 271,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0067252
+  }
+ },
+ "rejected": false
+}

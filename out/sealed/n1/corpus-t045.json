@@ -1,0 +1,103 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t045",
+ "label": "bad",
+ "category": "late_flip",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "의료기기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오전 4시 10분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": null,
+   "late": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 의료기기 전원이 끊겼습니다.",
+  "배터리는 적어도 오전 4시 10분까지 버팁니다.",
+  "구급대와 연결했습니다.",
+  "다만 구급대가 언제 올지는 아직 정해지지 않았습니다.",
+  "구급대 출동은 늦지 않게 이루어집니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오전 4시 10분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": null,
+     "timeMeaning": "not_decided_yet",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": true,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "수단: 글은 ambulance//not_decided_yet/늦음 false, 사실은 ambulance//not_decided_yet/늦음 true"
+   },
+   {
+    "code": "CLAIM_UNSAFE",
+    "detail": "안심·보장 표현"
+   }
+  ],
+  "meta": {
+   "requestId": "93996472-b94e-4821-bb6f-de066c98a0a4",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3119,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95XVJGjmBFx4CU4BDAT",
+   "usage": {
+    "input": 189,
+    "output": 273,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0069532
+  }
+ },
+ "rejected": true
+}

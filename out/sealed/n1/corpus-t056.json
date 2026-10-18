@@ -1,0 +1,97 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t056",
+ "label": "bad",
+ "category": "time_meaning",
+ "facts": {
+  "kind": "PREP",
+  "audience": "본인",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "HOURS",
+   "text": "9시간"
+  },
+  "cylinder": null,
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": true,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHARGE_EXT"
+  ]
+ },
+ "sentences": [
+  "정전이 오기 전에 미리 준비해 주세요.",
+  "인공호흡기는 9시간을 충전해야 다 찹니다.",
+  "평소 기기 배터리를 충전된 상태로 두세요.",
+  "외장 배터리도 미리 충전해 두세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "other",
+     "time": "9시간"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전이 오기 전에 미리 준비해 주세요"
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소 기기 배터리를 충전된 상태로 두세요"
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "외장 배터리도 미리 충전해 두세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 other 9시간, 사실은 lasts_for 9시간"
+   }
+  ],
+  "meta": {
+   "requestId": "0a8a6531-910a-42fe-98d4-5e573cc06f5e",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2798,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95b8mryiEvmykSxTqbB",
+   "usage": {
+    "input": 127,
+    "output": 317,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.007585199999999999
+  }
+ },
+ "rejected": true
+}

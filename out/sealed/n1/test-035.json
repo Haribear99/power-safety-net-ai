@@ -1,0 +1,228 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-035",
+ "stratum": "PREP:UNKNOWN:-:본인",
+ "input": {
+  "batteryS": null,
+  "caregiver": false,
+  "cylinderS": 0,
+  "deviceCls": "UNKNOWN",
+  "extDeclared": true,
+  "kind": "PREP"
+ },
+ "facts": {
+  "kind": "PREP",
+  "audience": "본인",
+  "device": "의료기기",
+  "battery": {
+   "state": "UNKNOWN"
+  },
+  "cylinder": null,
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": true,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHARGE_EXT"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "02214241-0d3f-412e-bc36-c2c6b50e45db",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1628,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94qXQfMGFBKmExBjQGv",
+  "usage": {
+   "input": 453,
+   "output": 120,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.002495
+ },
+ "raw": [
+  "아직 정전은 아닙니다.",
+  "정전에 미리 대비해 두세요.",
+  "기기 배터리가 얼마나 가는지 담당자가 확인하고 있습니다.",
+  "평소에 기기 배터리를 늘 충전해 두세요.",
+  "가지고 계신 외장 배터리도 충전해 두세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "아직 정전은 아닙니다.",
+   "정전에 미리 대비해 두세요.",
+   "기기 배터리가 얼마나 가는지 담당자가 확인하고 있습니다.",
+   "평소에 기기 배터리를 늘 충전해 두세요.",
+   "가지고 계신 외장 배터리도 충전해 두세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "unknown_being_checked",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 미리 대비해 두세요."
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 기기 배터리를 늘 충전해 두세요."
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "가지고 계신 외장 배터리도 충전해 두세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0076812,
+  "meta": {
+   "requestId": "4d670746-1915-4e23-8a1b-5b9b99f60030",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3526,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94qgsBZ681F6gXqApJK",
+   "usage": {
+    "input": 146,
+    "output": 318,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0076812
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "아직 정전은 아닙니다.",
+   "정전에 미리 대비해 두세요.",
+   "기기 배터리가 얼마나 가는지 담당자가 확인하고 있습니다.",
+   "평소에 기기 배터리를 늘 충전해 두세요.",
+   "가지고 계신 외장 배터리도 충전해 두세요.",
+   "정전되면 한전 123에 알리세요.",
+   "위급하면 바로 119에 전화하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "unknown_being_checked",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 미리 대비해 주세요."
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 기기 배터리를 늘 충전해 두세요."
+     },
+     {
+      "kind": "CHARGE_EXT",
+      "when": "unspecified",
+      "quote": "외장 배터리도 늘 충전해 두세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "c5ce73e3-380c-4e7a-8c22-87ae70caf7eb",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3372,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94qzPsbE1otRj4NDxaA",
+   "usage": {
+    "input": 125,
+    "output": 314,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0075172
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "B",
+  "pick": "ai",
+  "reason": "B는 첫 줄 '아직 정전은 아닙니다'로 지금 상황을 바로 알려 주어 불안을 줄이고 빨리 이해할 수 있다. '기기 배터리', '가지고 계신 외장 배터리'처럼 대상도 더 분명하다. 나머지 할 일은 두 글이 같다.",
+  "meta": {
+   "requestId": "01ef3871-b006-4583-b99f-1802c1bb44ee",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3275,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94rH3yoW8VqHdbMsDkT",
+   "usage": {
+    "input": 341,
+    "output": 134,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0041718
+  }
+ }
+}

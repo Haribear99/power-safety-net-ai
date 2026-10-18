@@ -1,0 +1,96 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t025",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "PREP",
+  "audience": "보호자",
+  "device": "휴대용 산소발생기",
+  "battery": {
+   "state": "HOURS",
+   "text": "1시간 30분"
+  },
+  "cylinder": {
+   "state": "HOURS",
+   "text": "2시간"
+  },
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHECK_CYLINDER"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전에 대비해 미리 챙겨 주세요.",
+  "휴대용 산소발생기는 다 충전하면 적어도 1시간 30분 씁니다.",
+  "확인된 산소통은 적어도 2시간 쓸 수 있습니다.",
+  "평소에 기기 배터리를 늘 충전해 두세요.",
+  "산소통도 미리 확인해 두세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_for",
+     "time": "1시간 30분"
+    },
+    "cylinder": {
+     "kind": "lasts_for",
+     "time": "2시간"
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 대비해 미리 챙겨 주세요"
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 기기 배터리를 늘 충전해 두세요"
+     },
+     {
+      "kind": "CHECK_CYLINDER",
+      "when": "unspecified",
+      "quote": "산소통도 미리 확인해 두세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "4770f2d8-52cd-4a1c-a2a2-8ddf6482ee91",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 4033,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95RHpnZsWWo97WSVgi8",
+   "usage": {
+    "input": 168,
+    "output": 325,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0079092
+  }
+ },
+ "rejected": false
+}

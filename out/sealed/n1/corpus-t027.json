@@ -1,0 +1,93 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t027",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "모레 오전 5시"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "대용량 전원 장치",
+   "arriveBy": "내일 오전 1시",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리는 적어도 모레 오전 5시까지는 버틸 수 있습니다.",
+  "담당자가 대용량 전원 장치를 보내기로 했습니다.",
+  "대용량 전원 장치는 내일 오전 1시까지 도착할 예정입니다.",
+  "전화를 가까이 두시고, 연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "모레 오전 5시"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "대용량 전원 장치",
+     "time": "내일 오전 1시",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 가까이 두시고"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "8f62e990-67e4-4e9d-a628-9aba63f1cbb7",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2929,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95RzbEgSndFjXzcuwQR",
+   "usage": {
+    "input": 191,
+    "output": 282,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0071411999999999995
+  }
+ },
+ "rejected": false
+}

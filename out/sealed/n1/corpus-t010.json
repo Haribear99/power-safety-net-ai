@@ -1,0 +1,95 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t010",
+ "label": "good",
+ "category": "faithful_paraphrase",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "내일 오전 0시 40분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": "내일 오전 1시",
+   "late": true
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리는 적어도 내일 오전 0시 40분까지 버팁니다.",
+  "구급대와 연결했습니다.",
+  "구급대가 내일 오전 1시까지 옮겨 드릴 예정입니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "구급대가 옮겨 드리기 전에 배터리가 먼저 다 될 수 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "내일 오전 0시 40분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "내일 오전 1시",
+     "timeMeaning": "finish_by",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "fb6c64e4-e475-40d3-9daa-09176463e191",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2910,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95M52ysKdpn3JmRT82w",
+   "usage": {
+    "input": 232,
+    "output": 280,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0072651999999999994
+  }
+ },
+ "rejected": false
+}

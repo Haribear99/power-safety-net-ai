@@ -1,0 +1,238 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-054",
+ "stratum": "OUTAGE:UNTIL:CALL119+late+warn:본인",
+ "input": {
+  "baseIso": "2026-08-27T18:00:00+09:00",
+  "batteryEndS": 14059,
+  "batteryLs": 13559,
+  "caregiver": false,
+  "cylinderEndS": null,
+  "deviceCls": "VENT_8H",
+  "etaS": 19282,
+  "kind": "OUTAGE",
+  "lane": "FALLBACK_119",
+  "late119": true,
+  "nowS": 8984,
+  "resourceKind": null
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "본인",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 9시 50분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": "오후 11시 30분",
+   "late": true
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "ae1b1514-59bf-47c8-95a0-91647bc9edf1",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 3764,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg95Bmcjh24TTsSTMbBwK",
+  "usage": {
+   "input": 730,
+   "output": 203,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.003879
+ },
+ "raw": [
+  "정전으로 인공호흡기 전원이 끊겼습니다.",
+  "인공호흡기 배터리는 오후 9시 50분까지 버팁니다.",
+  "도움이 오기 전에 배터리가 먼저 떨어질 수 있습니다.",
+  "구급대와 연결했습니다.",
+  "구급대가 오후 11시 30분까지 옮겨 줄 예정입니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 오후 9시 50분까지 버팁니다.",
+   "도움이 오기 전에 배터리가 먼저 떨어질 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 오후 11시 30분까지 옮겨 줄 예정입니다.",
+   "구급대 출동이 늦어질 수 있습니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 9시 50분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "오후 11시 30분",
+     "timeMeaning": "finish_by",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0073932,
+  "meta": {
+   "requestId": "b728d8c4-67b1-4742-ae2c-23dbc0479523",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3108,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95C6UJcDdQbME9JVvN7",
+   "usage": {
+    "input": 229,
+    "output": 287,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0073932
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 오후 9시 50분까지 버팁니다.",
+   "도움이 오기 전에 배터리가 먼저 떨어질 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 오후 11시 30분까지 옮겨 줄 예정입니다.",
+   "구급대 출동이 늦어질 수 있습니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 9시 50분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "오후 11시 30분",
+     "timeMeaning": "finish_by",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "e1b11770-d6d6-4aa8-955a-f6cc2e93b6f7",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3274,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95CN9depsgFB5PEpyyb",
+   "usage": {
+    "input": 224,
+    "output": 286,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0073532
+  }
+ },
+ "judged": {
+  "aiFirst": false,
+  "choice": "B",
+  "pick": "ai",
+  "reason": "A는 '적어도 9시 50분까지'라고 한 뒤 '그 전에 먼저 떨어질 수 있다'고 해 '그 전'이 무엇인지 모호하고 서로 어긋나 보인다. B는 '도움이 오기 전에'라고 밝혀 배터리 9시 50분과 구급대 11시 30분 사이의 공백을 바로 이해하게 한다.",
+  "meta": {
+   "requestId": "26dad719-6a49-48cb-a305-07f0516e084e",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 4731,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95Ceb6MZZQNRwrNksZw",
+   "usage": {
+    "input": 535,
+    "output": 353,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.009327799999999999
+  }
+ }
+}

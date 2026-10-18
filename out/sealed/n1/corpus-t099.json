@@ -1,0 +1,110 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t099",
+ "label": "bad",
+ "category": "negation",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": {
+   "state": "MAYBE_OUT"
+  },
+  "plan": {
+   "type": "SHELTER"
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "SWITCH_TO_CYLINDER",
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 산소발생기에 전기가 끊겼습니다.",
+  "산소발생기는 정전돼도 바로 멈추지 않습니다.",
+  "지금 확인된 산소통으로 바꿔 쓰세요.",
+  "그 산소통도 이미 거의 다 썼을 수 있습니다.",
+  "담당자가 가까운 쉼터로 옮기도록 연락드립니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": [
+  {
+   "code": "BANNED",
+   "detail": "MEDICAL: 기기 조작 「멈추」",
+   "sentence": "산소발생기는 정전돼도 바로 멈추지 않습니다."
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "other",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "means": {
+     "kind": "shelter",
+     "name": "가까운 쉼터",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "지금 확인된 산소통으로 바꿔 쓰세요"
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 other , 사실은 no_battery_stops "
+   }
+  ],
+  "meta": {
+   "requestId": "48551f0f-93b0-4f90-bc52-d4afb3d5c953",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 5820,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95qB7PNJhvihKe4SHgk",
+   "usage": {
+    "input": 204,
+    "output": 615,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.013853200000000001
+  }
+ },
+ "rejected": true
+}

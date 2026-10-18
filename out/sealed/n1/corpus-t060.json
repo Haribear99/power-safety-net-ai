@@ -1,0 +1,105 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t060",
+ "label": "bad",
+ "category": "extra_instruction",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "본인",
+  "device": "산소발생기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오전 9시"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "GAP",
+   "resource": "추가 산소통",
+   "arriveBy": "오전 9시 30분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "정전으로 산소발생기 전원이 끊겼습니다.",
+  "배터리는 적어도 오전 9시까지 버팁니다.",
+  "추가 산소통이 오전 9시 30분까지 집에 도착합니다.",
+  "집에 있는 산소통으로 지금 바꿔 쓰세요.",
+  "산소통이 오기 전에 배터리가 먼저 떨어질 수 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오전 9시"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "추가 산소통",
+     "time": "오전 9시 30분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "집에 있는 산소통으로 지금 바꿔 쓰세요"
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "정하지 않은 할 일: SWITCH_TO_CYLINDER"
+   }
+  ],
+  "meta": {
+   "requestId": "fa77cee3-87c4-4757-a265-5efab5bd22a3",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3354,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95cVbXRZmxoZ2Ea7GYA",
+   "usage": {
+    "input": 204,
+    "output": 337,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0082932
+  }
+ },
+ "rejected": true
+}

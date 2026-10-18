@@ -1,0 +1,116 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t097",
+ "label": "bad",
+ "category": "time_role_swap",
+ "facts": {
+  "kind": "PREP",
+  "audience": "보호자",
+  "device": "휴대용 산소발생기",
+  "battery": {
+   "state": "HOURS",
+   "text": "1시간 30분"
+  },
+  "cylinder": {
+   "state": "HOURS",
+   "text": "2시간"
+  },
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "CHARGE_DEVICE",
+   "CHECK_CYLINDER"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전에 대비해 미리 챙겨 주세요.",
+  "휴대용 산소발생기는 다 충전하면 적어도 2시간 씁니다.",
+  "확인된 산소통은 적어도 1시간 30분 쓸 수 있습니다.",
+  "평소에 기기 배터리를 늘 충전해 두세요.",
+  "산소통도 미리 확인해 두세요."
+ ],
+ "gate1": [
+  {
+   "code": "ROLE_MISMATCH",
+   "detail": "「2시간」(확인된 산소통이 적어도 버티는 시간)의 뜻 낱말이 맞지 않음",
+   "sentence": "휴대용 산소발생기는 다 충전하면 적어도 2시간 씁니다."
+  },
+  {
+   "code": "ROLE_MISMATCH",
+   "detail": "「1시간 30분」(완충 시 적어도 버티는 시간)의 뜻 낱말이 맞지 않음",
+   "sentence": "확인된 산소통은 적어도 1시간 30분 쓸 수 있습니다."
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_for",
+     "time": "2시간"
+    },
+    "cylinder": {
+     "kind": "lasts_for",
+     "time": "1시간 30분"
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 대비해 미리 챙겨 주세요"
+     },
+     {
+      "kind": "CHARGE_DEVICE",
+      "when": "unspecified",
+      "quote": "평소에 기기 배터리를 늘 충전해 두세요"
+     },
+     {
+      "kind": "CHECK_CYLINDER",
+      "when": "unspecified",
+      "quote": "산소통도 미리 확인해 두세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 lasts_for 2시간, 사실은 lasts_for 1시간 30분"
+   },
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "산소통: 글은 lasts_for 1시간 30분, 사실은 lasts_for 2시간"
+   }
+  ],
+  "meta": {
+   "requestId": "c5b1b580-dee9-42b2-80ed-e7bb0918ab09",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3253,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95pdWMY89duLXLr1tPT",
+   "usage": {
+    "input": 168,
+    "output": 325,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0079092
+  }
+ },
+ "rejected": true
+}

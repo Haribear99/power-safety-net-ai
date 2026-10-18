@@ -1,0 +1,233 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-051",
+ "stratum": "OUTAGE:UNTIL:ASSIGN:보호자",
+ "input": {
+  "baseIso": "2026-07-03T14:00:00+09:00",
+  "batteryEndS": 10959,
+  "batteryLs": 10035,
+  "caregiver": true,
+  "cylinderEndS": null,
+  "deviceCls": "VENT_8H",
+  "etaS": 7515,
+  "kind": "OUTAGE",
+  "lane": "PROPOSE_ASSIGN",
+  "late119": false,
+  "nowS": 1737,
+  "resourceKind": "MOBILE_GEN"
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 5시"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "이동식 발전기",
+   "arriveBy": "오후 4시 10분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "45cbe91e-dbe8-461a-92ea-9517456b5e28",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2251,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg958hW6ickcc3urFCZYT",
+  "usage": {
+   "input": 540,
+   "output": 169,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.003159
+ },
+ "raw": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "인공호흡기 배터리는 적어도 오후 5시까지 버팁니다.",
+  "담당자가 이동식 발전기를 집으로 보내기로 했습니다.",
+  "이동식 발전기는 오후 4시 10분까지 도착합니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 적어도 오후 5시까지 버팁니다.",
+   "담당자가 이동식 발전기를 집으로 보내기로 했습니다.",
+   "이동식 발전기는 오후 4시 10분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 5시"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "이동식 발전기",
+     "time": "오후 4시 10분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0072572,
+  "meta": {
+   "requestId": "6e03ffb7-4284-4bfb-917f-8475ea6b01b8",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3848,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg958uTgsVZ1JkEqW5XJz",
+   "usage": {
+    "input": 195,
+    "output": 287,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0072572
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+   "인공호흡기 배터리는 적어도 오후 5시까지 버팁니다.",
+   "담당자가 이동식 발전기를 집으로 보내기로 했습니다.",
+   "이동식 발전기는 오후 4시 10분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 5시"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "이동식 발전기",
+     "time": "오후 4시 10분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "8ebd4b6a-72dc-47e5-a505-d7f95de87ecb",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3002,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg959EuyadLMk4Hy5xJ3E",
+   "usage": {
+    "input": 164,
+    "output": 292,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0072331999999999995
+  }
+ },
+ "judged": {
+  "aiFirst": true,
+  "choice": "B",
+  "pick": "template",
+  "reason": "B는 발전기 도착 시각을 한 문장으로 바로 알려 급한 상황에서 더 빨리 읽힌다. A는 '담당자가 보내기로 했다'는 문장이 하나 더 있어 결정 과정을 알려 주지만, 할 일 파악에는 도움이 적다. 차이는 크지 않다.",
+  "meta": {
+   "requestId": "af4814f8-2dc0-468e-aebc-5ba952554fe9",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2723,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg959WBV3iCbcFPZKHBna",
+   "usage": {
+    "input": 441,
+    "output": 135,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0045918
+  }
+ }
+}

@@ -1,0 +1,108 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t031",
+ "label": "bad",
+ "category": "time_role_swap",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 11시 20분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "GAP",
+   "resource": "기기용 외장 배터리",
+   "arriveBy": "내일 오전 0시 10분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 지금 정전이라 인공호흡기 전원이 끊긴 상태입니다.",
+  "배터리로는 적어도 내일 오전 0시 10분 도착 때까지 쓸 수 있습니다.",
+  "기기용 외장 배터리는 오후 11시 20분까지 보내 드립니다.",
+  "다만 외장 배터리가 오기 전에 배터리가 먼저 떨어질 수 있습니다.",
+  "전화를 곁에 두고 연락을 기다려 주세요.",
+  "연락이 오면 그 안내를 따라 주세요."
+ ],
+ "gate1": [
+  {
+   "code": "MISSING_SENTENCE",
+   "detail": "기기용 외장 배터리+도착 한 문장 없음(기기용 외장 배터리이(가) 집에 도착한다)"
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "내일 오전 0시 10분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "기기용 외장 배터리",
+     "time": "오후 11시 20분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 곁에 두고 연락을 기다려 주세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 그 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 lasts_until 내일 오전 0시 10분, 사실은 lasts_until 오후 11시 20분"
+   },
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "수단: 글은 power_equipment/기기용 외장 배터리/오후 11시 20분/arrive_by, 사실은 power_equipment/기기용 외장 배터리/내일 오전 0시 10분/arrive_by"
+   }
+  ],
+  "meta": {
+   "requestId": "f6614981-d1a3-41e6-8f6c-74458afd7d1b",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3150,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95T5zwX1meVLKve2Z4M",
+   "usage": {
+    "input": 229,
+    "output": 299,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0076332
+  }
+ },
+ "rejected": true
+}

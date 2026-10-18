@@ -1,0 +1,98 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t051",
+ "label": "bad",
+ "category": "state_flip",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "MAYBE_OUT"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": null,
+   "late": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기에 전기가 들어오지 않습니다.",
+  "배터리는 이미 가득 차 있습니다.",
+  "구급대와 연결해 두었습니다.",
+  "구급대가 언제 도착할지는 아직 정해지지 않았습니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "연락을 받을 수 있도록 전화를 옆에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "other",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": null,
+     "timeMeaning": "not_decided_yet",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "연락을 받을 수 있도록 전화를 옆에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "배터리: 글은 other , 사실은 maybe_already_out "
+   }
+  ],
+  "meta": {
+   "requestId": "7f7fb35c-8054-49ca-b137-f18a113f2226",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 4506,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95ZWk9SAoCbZ3xS8NDG",
+   "usage": {
+    "input": 197,
+    "output": 461,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0107452
+  }
+ },
+ "rejected": true
+}

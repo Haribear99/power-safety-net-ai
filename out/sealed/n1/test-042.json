@@ -1,0 +1,186 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-042",
+ "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:보호자",
+ "input": {
+  "baseIso": "2026-08-27T18:00:00+09:00",
+  "batteryEndS": 1087,
+  "batteryLs": 0,
+  "caregiver": true,
+  "cylinderEndS": 37087,
+  "deviceCls": "O2_STAT_CYL",
+  "etaS": 38136,
+  "kind": "OUTAGE",
+  "lane": "FALLBACK_119",
+  "late119": true,
+  "nowS": 8981,
+  "resourceKind": null
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": {
+   "state": "UNTIL",
+   "text": "내일 오전 4시 10분"
+  },
+  "plan": {
+   "type": "CALL119",
+   "doneBy": "내일 오전 4시 40분",
+   "late": true
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "SWITCH_TO_CYLINDER",
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "34b55e38-494d-46d6-90f3-727264bf6054",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 2512,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94yteKmkjMPysK3jQpz",
+  "usage": {
+   "input": 975,
+   "output": 310,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.005439
+ },
+ "raw": [
+  "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+  "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+  "집에 있는 확인된 산소통으로 바꿔 쓰면 내일 오전 4시 10분까지 산소통을 쓸 수 있습니다.",
+  "구급대와 연결했습니다.",
+  "구급대가 옮겨 주는 일은 내일 오전 4시 40분까지 도착할 예정입니다.",
+  "구급대 출동이 늦어질 수 있습니다.",
+  "도움이 오기 전에 산소통이 먼저 떨어질 수 있습니다.",
+  "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": false,
+  "violations": [
+   {
+    "code": "FORMAT_LEN",
+    "detail": "51자",
+    "sentence": "집에 있는 확인된 산소통으로 바꿔 쓰면 내일 오전 4시 10분까지 산소통을 쓸 수 있습니다."
+   }
+  ],
+  "sentences": [
+   "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+   "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+   "집에 있는 확인된 산소통으로 바꿔 쓰면 내일 오전 4시 10분까지 산소통을 쓸 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 옮겨 주는 일은 내일 오전 4시 40분까지 도착할 예정입니다.",
+   "구급대 출동이 늦어질 수 있습니다.",
+   "도움이 오기 전에 산소통이 먼저 떨어질 수 있습니다.",
+   "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓰세요.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": null,
+ "composed": {
+  "source": "template",
+  "violations": [
+   {
+    "code": "FORMAT_LEN",
+    "detail": "51자",
+    "sentence": "집에 있는 확인된 산소통으로 바꿔 쓰면 내일 오전 4시 10분까지 산소통을 쓸 수 있습니다."
+   }
+  ],
+  "rejectedAt": "gate1",
+  "footer": "※ AI 문장이 검사를 통과하지 못해 고정 문안을 보냅니다 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+   "산소발생기는 배터리가 없어 정전되면 바로 멈춥니다.",
+   "지금 확인된 산소통으로 바꿔 쓰세요.",
+   "산소통은 적어도 내일 오전 4시 10분까지 씁니다.",
+   "그 전에 산소통이 먼저 떨어질 수 있습니다.",
+   "구급대와 연결했습니다.",
+   "구급대가 내일 오전 4시 40분까지 옮겨 드릴 예정입니다.",
+   "구급대 출동이 늦어질 수 있습니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따라 주세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "lasts_until",
+     "time": "내일 오전 4시 10분"
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": "내일 오전 4시 40분",
+     "timeMeaning": "finish_by",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "지금 확인된 산소통으로 바꿔 쓰세요."
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "9c1dae78-e035-496b-8180-9d44408e165e",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3598,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94z7m7NFDY9USvTpnLf",
+   "usage": {
+    "input": 290,
+    "output": 352,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.008937200000000001
+  }
+ },
+ "judged": null
+}

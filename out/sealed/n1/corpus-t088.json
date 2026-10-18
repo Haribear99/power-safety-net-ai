@@ -1,0 +1,111 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t088",
+ "label": "bad",
+ "category": "omission_by_meaning",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "인공호흡기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오전 10시 50분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "휴대용 전원 장치",
+   "arriveBy": "오전 10시 50분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": true,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+  "배터리는 적어도 오전 10시 50분까지 버팁니다.",
+  "휴대용 전원 장치가 곧 집에 도착합니다.",
+  "하지만 도착 전에 배터리가 먼저 떨어질 수 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [
+  {
+   "code": "BANNED",
+   "detail": "VAGUE_TIME: 「곧」",
+   "sentence": "휴대용 전원 장치가 곧 집에 도착합니다."
+  }
+ ],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오전 10시 50분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "휴대용 전원 장치",
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": true,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [
+     "곧"
+    ],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "수단: 글은 power_equipment/휴대용 전원 장치//none, 사실은 power_equipment/휴대용 전원 장치/오전 10시 50분/arrive_by"
+   },
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "표기 밖 시간 표현: 곧"
+   }
+  ],
+  "meta": {
+   "requestId": "8a0b912b-46d4-4281-871f-deb4ba261d1f",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3126,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95mfVpzwiPz7NP9VtSr",
+   "usage": {
+    "input": 182,
+    "output": 275,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0069651999999999995
+  }
+ },
+ "rejected": true
+}

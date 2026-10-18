@@ -1,0 +1,93 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t080",
+ "label": "bad",
+ "category": "omission_by_meaning",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "의료기기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오전 4시 10분"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "CALL119",
+   "doneBy": null,
+   "late": true
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 의료기기 전원이 끊겼습니다.",
+  "배터리는 적어도 오전 4시 10분까지 버팁니다.",
+  "구급대 연결은 아직 되지 않았습니다.",
+  "출동이 늦어질 수도 있습니다.",
+  "전화를 곁에 두세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오전 4시 10분"
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "ambulance",
+     "name": "구급대",
+     "time": null,
+     "timeMeaning": "not_decided_yet",
+     "mayBeLate": true
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "now",
+      "quote": "전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "cddcb3bf-2fe7-4a86-a067-eaef008aea46",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3094,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95jK7grLfvrKZH96C7Y",
+   "usage": {
+    "input": 162,
+    "output": 270,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0067852
+  }
+ },
+ "rejected": false
+}

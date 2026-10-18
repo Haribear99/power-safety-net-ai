@@ -1,0 +1,232 @@
+{
+ "promptVersion": "n1-v7",
+ "checkVersion": "n1-check-v6",
+ "id": "test-038",
+ "stratum": "OUTAGE:MAYBE_OUT:GAP:보호자",
+ "input": {
+  "baseIso": "2026-09-11T03:00:00+09:00",
+  "batteryEndS": 7068,
+  "batteryLs": 6378,
+  "caregiver": true,
+  "cylinderEndS": null,
+  "deviceCls": "O2_PORT",
+  "etaS": 15530,
+  "kind": "OUTAGE",
+  "lane": "GAP_REDUCE",
+  "late119": false,
+  "nowS": 8942,
+  "resourceKind": "O2_CYL_DELIVERY"
+ },
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "휴대용 산소발생기",
+  "battery": {
+   "state": "MAYBE_OUT"
+  },
+  "cylinder": null,
+  "plan": {
+   "type": "GAP",
+   "resource": "추가 산소통",
+   "arriveBy": "오전 7시 20분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "ok": true,
+ "meta": {
+  "requestId": "1974731a-7774-4bd3-bbcc-0a42a1c1a265",
+  "stage": "PW_N1_notice",
+  "model": "claude-sonnet-5-5",
+  "pool": "sealed",
+  "latencyMs": 1713,
+  "attempt": 1,
+  "maxTokens": 1000,
+  "stopReason": "end_turn",
+  "apiRequestId": "req_011Cg94tbs8qqa9nXNMnxf7F",
+  "usage": {
+   "input": 578,
+   "output": 172,
+   "cacheRead": 1945,
+   "cacheWrite": 0
+  },
+  "costUsd": 0.003265
+ },
+ "raw": [
+  "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+  "배터리가 거의 없거나 이미 다 떨어졌을 수 있습니다.",
+  "담당자가 추가 산소통을 집으로 보내기로 했습니다.",
+  "추가 산소통은 오전 7시 20분까지 도착합니다.",
+  "연락을 받을 수 있게 전화를 곁에 두세요.",
+  "연락이 오면 안내를 따르세요."
+ ],
+ "gate1": {
+  "ok": true,
+  "violations": [],
+  "sentences": [
+   "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+   "배터리가 거의 없거나 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 추가 산소통을 집으로 보내기로 했습니다.",
+   "추가 산소통은 오전 7시 20분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요."
+  ]
+ },
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "추가 산소통",
+     "time": "오전 7시 20분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따르세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "cost": 0.0072292,
+  "meta": {
+   "requestId": "a2965f36-cde2-483f-99be-f6f8ff11f7cc",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3274,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94tmd1yhBoPN7yWttYj",
+   "usage": {
+    "input": 198,
+    "output": 285,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0072292
+  }
+ },
+ "composed": {
+  "source": "ai",
+  "violations": [],
+  "rejectedAt": null,
+  "footer": "※ AI가 쓴 문장을 규칙 검사와 별도 AI 역추출 검사로 사실(시각·수단·할 일)과 대조해 통과시켰습니다 · 119·123 문장은 고정 · 결정은 담당자 · 시연용 모의 안내",
+  "sentences": [
+   "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+   "배터리가 거의 없거나 이미 다 떨어졌을 수 있습니다.",
+   "담당자가 추가 산소통을 집으로 보내기로 했습니다.",
+   "추가 산소통은 오전 7시 20분까지 도착합니다.",
+   "연락을 받을 수 있게 전화를 곁에 두세요.",
+   "연락이 오면 안내를 따르세요.",
+   "위급하면 바로 119에 전화하세요.",
+   "정전 문의는 한전 123으로 하세요."
+  ]
+ },
+ "templateCheck": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "maybe_already_out",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "추가 산소통",
+     "time": "오전 7시 20분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "연락을 받을 수 있게 전화를 곁에 두세요."
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요."
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [],
+  "meta": {
+   "requestId": "6246c570-88c3-44f5-8efb-65464f89b3cb",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2746,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94u4ABGXGwRmSmuRkjh",
+   "usage": {
+    "input": 175,
+    "output": 287,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0071772
+  }
+ },
+ "judged": {
+  "aiFirst": true,
+  "choice": "B",
+  "pick": "template",
+  "reason": "B는 '담당자가 보내기로 했다'는 결정 과정을 빼고 '오전 7시 20분까지 집에 도착'을 한 문장에 담았다. 급한 상황에서 무엇이 언제 오는지가 더 빨리 보인다. 할 일은 두 글이 같다.",
+  "meta": {
+   "requestId": "7f4c8dda-d765-4dec-a9d9-28673de9a68d",
+   "stage": "PW_N1_judge",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 2731,
+   "attempt": 1,
+   "maxTokens": 600,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg94uJBHLBGVTwiteDFh8",
+   "usage": {
+    "input": 455,
+    "output": 121,
+    "cacheRead": 639,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0043678
+  }
+ }
+}

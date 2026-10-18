@@ -1,0 +1,109 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t038",
+ "label": "bad",
+ "category": "time_value",
+ "facts": {
+  "kind": "OUTAGE",
+  "audience": "보호자",
+  "device": "산소발생기",
+  "battery": {
+   "state": "UNTIL",
+   "text": "오후 8시"
+  },
+  "cylinder": {
+   "state": "UNTIL",
+   "text": "내일 오전 0시"
+  },
+  "plan": {
+   "type": "ASSIGN",
+   "resource": "전기차 전원",
+   "arriveBy": "오후 8시 30분",
+   "etaPassed": false
+  },
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "SWITCH_TO_CYLINDER",
+   "KEEP_PHONE",
+   "FOLLOW_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+  "배터리는 적어도 오후 8시까지 버팁니다.",
+  "지금 바로 확인된 산소통으로 바꿔 쓰세요.",
+  "산소통으로는 적어도 내일 오전 0시 반까지 쓸 수 있습니다.",
+  "전기차 전원이 오후 8시 30분까지 집에 도착합니다.",
+  "전화를 곁에 두고 연락을 기다리세요.",
+  "연락이 오면 안내를 따라 주세요."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "lasts_until",
+     "time": "오후 8시"
+    },
+    "cylinder": {
+     "kind": "lasts_until",
+     "time": "내일 오전 0시 반"
+    },
+    "means": {
+     "kind": "power_equipment",
+     "name": "전기차 전원",
+     "time": "오후 8시 30분",
+     "timeMeaning": "arrive_by",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "SWITCH_TO_CYLINDER",
+      "when": "now",
+      "quote": "지금 바로 확인된 산소통으로 바꿔 쓰세요"
+     },
+     {
+      "kind": "KEEP_PHONE",
+      "when": "unspecified",
+      "quote": "전화를 곁에 두고 연락을 기다리세요"
+     },
+     {
+      "kind": "FOLLOW_STAFF",
+      "when": "after_condition",
+      "quote": "연락이 오면 안내를 따라 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "산소통: 글은 lasts_until 내일 오전 0시 반, 사실은 lasts_until 내일 오전 0시"
+   }
+  ],
+  "meta": {
+   "requestId": "1791ff1b-136d-4358-b29a-3a763a35a665",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3966,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95V7yKDTQw3sNYjAqxm",
+   "usage": {
+    "input": 223,
+    "output": 357,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.008769200000000001
+  }
+ },
+ "rejected": true
+}

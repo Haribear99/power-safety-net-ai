@@ -1,0 +1,84 @@
+{
+ "checkVersion": "n1-check-v6",
+ "id": "t078",
+ "label": "bad",
+ "category": "omission_by_meaning",
+ "facts": {
+  "kind": "PREP",
+  "audience": "보호자",
+  "device": "산소발생기",
+  "battery": {
+   "state": "NONE"
+  },
+  "cylinder": null,
+  "plan": null,
+  "warnRunOutFirst": false,
+  "extDeclared": false,
+  "actions": [
+   "PLAN_WITH_STAFF"
+  ]
+ },
+ "sentences": [
+  "보호자님, 정전에 미리 대비해 주세요.",
+  "산소발생기는 배터리가 없어 정전되는 순간 멈춥니다.",
+  "정전 때 쓸 방법은 담당자가 이미 정해 두었습니다."
+ ],
+ "gate1": [],
+ "gate2": {
+  "check": {
+   "claims": {
+    "battery": {
+     "kind": "no_battery_stops",
+     "time": null
+    },
+    "cylinder": {
+     "kind": "not_mentioned",
+     "time": null
+    },
+    "means": {
+     "kind": "none",
+     "name": null,
+     "time": null,
+     "timeMeaning": "none",
+     "mayBeLate": false
+    },
+    "supplyMayRunOutBeforeHelp": false,
+    "actions": [
+     {
+      "kind": "GENERAL_PREPARE",
+      "when": "unspecified",
+      "quote": "정전에 미리 대비해 주세요"
+     }
+    ],
+    "otherTimesOrDurations": [],
+    "reassuranceOrPromise": false,
+    "medicalOrDeviceOrRiskyInstruction": false
+   }
+  },
+  "violations": [
+   {
+    "code": "CLAIM_MISMATCH",
+    "detail": "할 일 빠짐: PLAN_WITH_STAFF"
+   }
+  ],
+  "meta": {
+   "requestId": "15c7cd90-5789-4e5b-8da4-5e95e02c3549",
+   "stage": "PW_N1_check",
+   "model": "claude-opus-5-5",
+   "pool": "sealed",
+   "latencyMs": 3494,
+   "attempt": 1,
+   "maxTokens": 1500,
+   "stopReason": "end_turn",
+   "apiRequestId": "req_011Cg95ijMvHUc817kemXR7N",
+   "usage": {
+    "input": 119,
+    "output": 211,
+    "cacheRead": 3686,
+    "cacheWrite": 0
+   },
+   "costUsd": 0.0054332
+  }
+ },
+ "rejected": true
+}
