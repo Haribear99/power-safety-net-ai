@@ -22,6 +22,7 @@ function allInputs(): NoticeInputT[] {
   for (const caregiver of [true, false]) for (const deviceCls of CLS) {
     for (const batteryS of [null, 0, 600, 1800, 5400, 7 * 3600, 41_400]) for (const cylinderS of [0, 36_000]) for (const extDeclared of [true, false]) {
       out.push({ kind: "PREP", caregiver, deviceCls, batteryS, cylinderS, extDeclared });
+      if (extDeclared && batteryS) out.push({ kind: "PREP", caregiver, deviceCls, batteryS, cylinderS, extDeclared, batteryExtS: Math.floor(batteryS / 2) }); // 확인 외장 합산(8라운드)
     }
     for (const lane of NOTICE_LANES) for (const bat of [null, 0, -100, 300, 2 * 3600, 30 * 3600]) for (const cyl of [null, 300, 9 * 3600]) for (const eta of [null, -60, 1800, 50 * 3600]) for (const late119 of [false, true]) {
       const nowS = Math.floor(r() * 20 * 3600);
@@ -30,6 +31,7 @@ function allInputs(): NoticeInputT[] {
         batteryEndS: bat == null ? null : nowS + bat, batteryLs: bat == null ? null : bat === 0 ? 0 : 3600,
         cylinderEndS: cyl == null ? null : nowS + cyl, cylinderS: cyl == null ? 0 : 2 * 3600, lane,
         resourceKind: r() < 0.1 ? null : RES[Math.floor(r() * RES.length)], etaS: eta == null ? null : nowS + eta + Math.floor(r() * 3600), late119,
+        ...(r() < 0.3 ? { batteryExtS: 1800 } : {}), // 확인 외장 합산(8라운드)
       });
     }
   }
@@ -50,7 +52,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
     situation: f.kind === "OUTAGE" ? "outage_now" : "before_outage",
     staffPromises: promises,
     device: f.device,
-    battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null, condition: b.state === "HOURS" || b.state === "UNDER30" ? "full_charge" : "unspecified" },
+    battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null, condition: b.state === "HOURS" || b.state === "UNDER30" ? "full_charge" : "unspecified", includesExternal: f.batteryWithExt ? "yes" : "not_mentioned" },
     cylinder: !c ? { kind: "not_mentioned", time: null } : c.state === "MAYBE_OUT" ? { kind: "maybe_already_out", time: null } : { kind: c.state === "UNTIL" ? "lasts_until" : "lasts_for", time: c.text },
     means: !p ? { kind: "none", name: null, time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
@@ -418,11 +420,51 @@ describe("통합 레드팀 7라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 8라운드 회귀", () => {
+  const vent8 = (verified: boolean): HouseholdView => ({
+    id: "H8", pseudonym: "H-008", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "ASTRAL150", specBy: "db_exact", batteryAgeY: 1, charge: { value: 90, source: "device_screen" } },
+    ext: [{ extSpecId: "ASTRAL_EXT", declaredCount: 2, opVerified: verified ? { count: 2, chargeConfirmed: null, extAgeY: null, auditId: "A8" } : null }],
+  });
+  it("확인 외장이 합쳐진 평시 시간: 고정 문안은 '외장 배터리까지 합쳐', 기기 배터리만처럼 쓰면 1·2차 거부", () => {
+    const i = prepInput(vent8(true));
+    if (i.kind !== "PREP") throw new Error();
+    expect(i.batteryExtS ?? 0).toBeGreaterThan(0);
+    const f = buildFacts(i);
+    expect(f.batteryWithExt).toBe(true);
+    const t = templateSentences(f);
+    expect(t.join(" ")).toContain("외장 배터리까지 합쳐");
+    expect(verify(f, t).ok).toBe(true);
+    const b = f.battery.state === "HOURS" ? f.battery.text : "";
+    expect(verify(f, t.map((s) => (s.includes(b) ? `인공호흡기 배터리는 완전히 충전하면 적어도 ${b} 버팁니다.` : s))).ok).toBe(false);
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    for (const x of ["no", "not_mentioned"] as const) expect(compareClaims(f, { ...c, battery: { ...c.battery, includesExternal: x } }).length).toBeGreaterThan(0);
+  });
+  it("신고만 한 외장은 합산 표지가 없고, '외장까지 합쳐'라고 하면 2차 거부", () => {
+    const f = buildFacts(prepInput(vent8(false)));
+    expect(f.batteryWithExt).toBeUndefined();
+    const c = truthClaims(f);
+    expect(compareClaims(f, { ...c, battery: { ...c.battery, includesExternal: "yes" } }).length).toBeGreaterThan(0);
+  });
+  it("정전 중 확인 외장 합산 시각도 '외장'을 써야 하고, 고정 문안은 통과", () => {
+    const f = buildFacts(outageInput({ hh: vent8(true), baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
+    expect(f.batteryWithExt).toBe(true);
+    expect(verify(f, templateSentences(f)).ok).toBe(true);
+  });
+  it("바꿔 쓰기에 다른 조건을 겹치면 1차 거부('기다렸다가'·'닿은 뒤에'·'안내를 받고'·'허락을 받은 다음')", () => {
+    const f = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 3600, cylinderEndS: 3600 + 7200, cylinderS: 7200, etaS: 5400 }));
+    const swap = (to: string) => templateSentences(f).map((s) => (s.includes("산소통으로 바꿔") ? to : s));
+    for (const bad of ["배터리가 떨어지면 전원 장치를 기다렸다가 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 장치가 닿은 뒤에 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 안내를 받고 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 허락을 받은 다음 산소통으로 바꿔 쓰세요."])
+      expect(verify(f, swap(bad)).ok, bad).toBe(false);
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [
     ["배터리 시각 다름", (c) => ({ ...c, battery: { ...c.battery, time: "내일 오전 0시 10분" } })],
-    ["배터리 뜻 뒤집기", (c) => ({ ...c, battery: { kind: "other", time: null, condition: "unspecified" } })],
+    ["배터리 뜻 뒤집기", (c) => ({ ...c, battery: { kind: "other", time: null, condition: "unspecified", includesExternal: "not_mentioned" } })],
     ["도착이 '이후'", (c) => ({ ...c, means: { ...c.means, timeMeaning: "after" } })],
     ["수단 바뀜", (c) => ({ ...c, means: { ...c.means, kind: "ambulance" } })],
     ["수단 이름 다름", (c) => ({ ...c, means: { ...c.means, name: "대용량 전원 장치" } })],

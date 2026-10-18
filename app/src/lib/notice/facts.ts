@@ -38,6 +38,8 @@ export const NoticeInput = z.discriminatedUnion("kind", [
     /** 운영자 확인 산소통 하한 초. 0 = 없음 */
     cylinderS: DUR,
     extDeclared: z.boolean(),
+    /** batteryS 가운데 확인 외장 배터리 몫(초). 0보다 크면 글은 '외장 배터리까지 합친 시간'이라고 써야 한다(통합 레드팀 8라운드) */
+    batteryExtS: DUR.optional(),
   }).strict(),
   z.object({
     kind: z.literal("OUTAGE"), // 정전 중 담당자 결정 뒤
@@ -58,6 +60,8 @@ export const NoticeInput = z.discriminatedUnion("kind", [
     /** 자원: 도착 절대 시각, 119: 이송 완료 예상 절대 시각. 없으면 null */
     etaS: S.nullable(),
     late119: z.boolean(),
+    /** 배터리 하한 가운데 확인 외장 배터리 몫(초). 0보다 크면 '외장 배터리까지 합쳐' 버티는 시각이다(통합 레드팀 8라운드) */
+    batteryExtS: DUR.optional(),
     /** 배터리 시각의 근거(꼬리말용): 알린 충전량 / 충전량 모름(낮춘 가정) / 기기 화면 남은 시간 / 담당자 입력 하한. 없으면 꼬리말에 근거를 적지 않는다 */
     batteryBasis: z.enum(["charge", "chargeUnknown", "screen", "operator"]).optional(),
   }).strict(),
@@ -113,6 +117,8 @@ export interface NoticeFacts {
   warnSameTime: boolean;
   extDeclared: boolean;       // PREP만 의미
   actions: Action[];
+  /** 배터리 시간·시각에 확인 외장 배터리가 합쳐져 있음(HOURS·UNTIL일 때만). 글은 '외장 배터리까지 합쳐'라고 써야 한다 */
+  batteryWithExt?: true;
   /** OUTAGE 배터리 시각의 근거(꼬리말만 쓴다. 본문·검사와 무관) */
   batteryBasis?: "charge" | "chargeUnknown" | "screen" | "operator";
 }
@@ -183,7 +189,8 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
     if (input.extDeclared) actions.push("CHARGE_EXT");
     if (cylinder) actions.push("CHECK_CYLINDER");
     if (battery.state === "NONE" && !cylinder) actions.push("PLAN_WITH_STAFF");
-    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, warnSameTime: false, extDeclared: input.extDeclared, actions };
+    const withExt = battery.state === "HOURS" && (input.batteryExtS ?? 0) > 0;
+    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, warnSameTime: false, extDeclared: input.extDeclared, actions, ...(withExt ? { batteryWithExt: true as const } : {}) };
   }
   const { baseIso, nowS } = input;
   // 표시 시각(내림)이 지금부터 10분 안이면 '이미 떨어졌을 수 있음'
@@ -242,7 +249,8 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   if (cylinder) actions.push(switchNow ? "SWITCH_TO_CYLINDER" : "SWITCH_AFTER_BATTERY");
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
   const warnSameTime = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS === supplyShownS;
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions, ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
+  const withExt = battery.state === "UNTIL" && (input.batteryExtS ?? 0) > 0;
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
@@ -270,13 +278,21 @@ function split(hh: HouseholdView, db: EngineDb) {
   return { all, noCyl, cylS, engineCylS: cylS };
 }
 
+/** 배터리 하한 가운데 확인 외장 배터리 몫(초): (내장+외장) − 내장만 */
+function extShare(hh: HouseholdView, withExtLs: number | null, db: EngineDb): number {
+  if (withExtLs == null || !hh.ext.some((e) => (e.opVerified?.count ?? 0) > 0)) return 0;
+  const inner = computeLowerBoundDetail({ ...hh, ext: [], cylinder: undefined }, db).Ls;
+  return inner == null ? 0 : Math.max(0, withExtLs - inner);
+}
+
 /** 평시 대비 입력: 완충(기기 화면 100%) 기준. 신고 시각·직전 소진 시각은 쓰지 않는다 */
 export function prepInput(hh: HouseholdView, db: EngineDb = DEFAULT_DB): NoticeInputT {
   const full: HouseholdView = { ...hh, tReport: 0, lEndPrev: null, device: { ...hh.device, charge: { value: 100, source: "device_screen" }, screenRemainingH: undefined } };
   const { noCyl, cylS } = split(full, db);
+  const extS = extShare(full, noCyl.Ls, db);
   return {
     kind: "PREP", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), batteryS: noCyl.Ls, cylinderS: cylS,
-    extDeclared: hh.ext.some((e) => e.declaredCount > 0),
+    extDeclared: hh.ext.some((e) => e.declaredCount > 0), ...(extS > 0 ? { batteryExtS: extS } : {}),
   };
 }
 
@@ -307,6 +323,7 @@ export function outageInput(args: {
     kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs, cylinderEndS, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119, batteryBasis,
+    ...(extShare(hh, noCyl.Ls, db) > 0 ? { batteryExtS: extShare(hh, noCyl.Ls, db) } : {}),
   };
 }
 

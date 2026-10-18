@@ -31,7 +31,7 @@ export function NoticePanel({ input, title, audience = "operator" }: { input: No
       if (!r.ok) { say(j.message ?? `생성 실패(${j.error ?? r.status})`); return; }
       if (j.mode === "replay") { say(`${j.message}. 봉인 측정 때 AI가 쓴 글 예시는 리허설 랩 ⑨(/lab#notice)에 있습니다`); setState({ key, composed: j.composed, source: "고정 문안(규칙)" }); return; }
       if (!j.ok) say(`AI 생성 실패(${j.reason}) — 고정 문안을 보여 드립니다(담당자 확인 뒤 발송)`);
-      setState({ key, composed: j.composed, rejected: j.rejected, source: j.ok ? `실시간 생성 · ${j.meta.model} · ${(j.meta.latencyMs / 1000).toFixed(1)}초` : "고정 문안(규칙)" });
+      setState({ key, composed: j.composed, rejected: j.rejected, source: j.ok && j.composed.source === "ai" ? `실시간 생성 · ${j.meta.model} · ${(j.meta.latencyMs / 1000).toFixed(1)}초` : j.ok ? `고정 문안(규칙) · AI 글 검사 탈락(${(j.meta.latencyMs / 1000).toFixed(1)}초)` : "고정 문안(규칙)" });
     } catch {
       say("생성 요청에 실패했습니다. 고정 문안을 보여 드립니다(담당자 확인 뒤 발송)");
     } finally { setBusy(false); }

@@ -70,6 +70,22 @@ def main(form, md_path, out):
     t = d.tables[0]
     for i, f in enumerate(FIELDS):
         set_cell(t.rows[i + 1].cells[1], vals[f])
+    # 보고서 표 바로 뒤 빈 문단을 1pt로: 표가 2쪽 끝까지 차도 빈 문단이 3쪽으로 밀려 신청서 뒤에 빈 쪽이 생기지 않게(통합 레드팀 8라운드)
+    from docx.shared import Pt
+    nxt = t._tbl.getnext()
+    if nxt is not None and nxt.tag.endswith("}p"):
+        para = docx.text.paragraph.Paragraph(nxt, t._parent)
+        if not para.text.strip():
+            para.paragraph_format.space_before = Pt(0); para.paragraph_format.space_after = Pt(0); para.paragraph_format.line_spacing = Pt(1)
+            for r in para.runs: r.font.size = Pt(1)
+            mark = para._p.get_or_add_pPr().get_or_add_rPr() if hasattr(para._p.get_or_add_pPr(), "get_or_add_rPr") else None
+            if mark is not None:
+                from docx.oxml.ns import qn
+                from docx.oxml import OxmlElement
+                for tag in ("w:sz", "w:szCs"):
+                    el = mark.find(qn(tag))
+                    if el is None: el = OxmlElement(tag); mark.append(el)
+                    el.set(qn("w:val"), "2")
     d.save(out)
     print("wrote", out, {k: len(v) for k, v in vals.items()})
 

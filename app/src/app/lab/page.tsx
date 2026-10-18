@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE, c1Evidence, e4Evidence, e5Evidence, e6Evidence, n1Evidence } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, c1Evidence, e4Evidence, e5Evidence, e6Evidence, kpiOverPredict, n1Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 import { pRange } from "@/lib/engine/params";
@@ -441,7 +441,7 @@ function NoticeCheck() {
               </div>
             ))}
           </div>
-          <p className="mt-1 text-[12px] text-muted">실시간 생성은 하루 한도가 있습니다. 한도에 걸려도 위 기록으로 AI 글을 볼 수 있습니다. 마지막 두 문장(119·123)은 늘 고정 문장입니다. 봉인 당시 기록이라 고정 꼬리가 지금과 다를 수 있습니다(지금은 119 → 123 순서, 평시에는 갈 곳·절전 고정 문장이 붙음). 봉인 시험셋은 봉인 커밋 뒤 공개된 drand 난수로 만들었지만, 비트코인 증명은 실행 도중(시작 약 14분 뒤)에 확정돼, 순서의 근거는 git 커밋 시각(자기 기록)과 OTS 캘린더 접수(서명 없음)뿐입니다. 다른 봉인(S4~S8)도 블록이 실행 시작 뒤입니다(seal/CHANGELOG.md).</p>
+          <p className="mt-1 text-[12px] text-muted">실시간 생성은 하루 한도가 있습니다. 한도에 걸려도 위 기록으로 AI 글을 볼 수 있습니다. 마지막 두 문장(119·123)은 늘 고정 문장입니다. 봉인 당시 기록이라 지금 규칙과 다를 수 있습니다(지금은 119 → 123 순서, 평시에는 갈 곳·절전 고정 문장이 붙고, 확인 외장 배터리가 합쳐진 시간이면 &lsquo;외장 배터리까지 합쳐&rsquo;라고 씀). 봉인 시험셋은 봉인 커밋 뒤 공개된 drand 난수로 만들었지만, 비트코인 증명은 실행 도중(시작 약 14분 뒤)에 확정돼, 순서의 근거는 git 커밋 시각(자기 기록)과 OTS 캘린더 접수(서명 없음)뿐입니다. 다른 봉인(S4~S8)도 블록이 실행 시작 뒤입니다(seal/CHANGELOG.md).</p>
         </div>
       )}
       <p className="mt-1 text-[13px] text-muted">
@@ -450,6 +450,19 @@ function NoticeCheck() {
         {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전이며, 새 사례로 측정하지 않았습니다.
       </p>
     </div>
+  );
+}
+
+/** 원안 KPI '과대예측 0건'(사후 집계, 통합 레드팀 8라운드) */
+function KpiOver() {
+  const k = kpiOverPredict();
+  if (!k) return null;
+  const p = (x: number, n: number) => `${((100 * x) / n).toFixed(1)}%`;
+  const c = k.rule.cause;
+  return (
+    <p className="mb-2 rounded border border-line p-2 text-[14px]">
+      원안 KPI &lsquo;과대예측 0건&rsquo;(사후 집계, 사전등록 밖): 봉인 E2 시드 {k.runs.toLocaleString()}회를 다시 돌리면(공백 지표는 봉인 값과 {k.mismatch === 0 ? "모두 일치" : `${k.mismatch}회 불일치`}) 표시 배터리 하한이 모의 실제보다 긴 경우가 도구 {k.rule.k.toLocaleString()}/{k.rule.n.toLocaleString()} 가구·회({p(k.rule.k, k.rule.n)}), 현행 {p(k.baseline.k, k.baseline.n)}입니다. 목표 0건에 못 미칩니다. 넘는 폭은 중앙값 {Math.round(k.rule.overH.p50 * 60)}분, 상위 10% {k.rule.overH.p90.toFixed(1)}시간 이상, 최대 {k.rule.overH.max.toFixed(1)}시간입니다. 원인(겹치면 앞의 것): 확인 외장 고장 {c.extFailed.toLocaleString()}, 입력 충전량 100%(과대입력 주입 포함) {c.charge100.toLocaleString()}, 그 밖(모의 실제의 노후·설정 계수가 엔진 가정보다 낮음 등) {c.other.toLocaleString()}. 모의는 이런 오차를 일부러 넣었고, 하한이 &lsquo;틀릴 수 없는 값&rsquo;은 아닙니다.
+    </p>
   );
 }
 
@@ -528,6 +541,7 @@ export default function LabPage() {
             <NoticeCheck />
           </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
+            <KpiOver />
             <Prereg d={d} />
           </Section>
         </>

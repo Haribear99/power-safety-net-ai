@@ -1,0 +1,121 @@
+{
+ "format": "pl26-n1-set/2",
+ "items": [
+  {
+   "id": "ext-00",
+   "stratum": "PREP:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "PREP",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "batteryS": 40896,
+    "cylinderS": 0,
+    "extDeclared": true,
+    "batteryExtS": 20160
+   }
+  },
+  {
+   "id": "ext-01",
+   "stratum": "PREP:battery+ext",
+   "audience": "본인",
+   "input": {
+    "kind": "PREP",
+    "caregiver": false,
+    "deviceCls": "VENT_8H",
+    "batteryS": 40896,
+    "cylinderS": 0,
+    "extDeclared": true,
+    "batteryExtS": 20160
+   }
+  },
+  {
+   "id": "ext-02",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 38822,
+    "batteryLs": 38822,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "FALLBACK_SHELTER",
+    "resourceKind": null,
+    "etaS": null,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 20160
+   }
+  },
+  {
+   "id": "ext-03",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 30528,
+    "batteryLs": 30528,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 10800,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 20160
+   }
+  },
+  {
+   "id": "ext-04",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "본인",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": false,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 34675,
+    "batteryLs": 34675,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 14400,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 20160
+   }
+  },
+  {
+   "id": "ext-05",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_8H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 26380,
+    "batteryLs": 26380,
+    "cylinderEndS": null,
+    "cylinderS": 0,
+    "lane": "GAP_REDUCE",
+    "resourceKind": "MOBILE_GEN",
+    "etaS": 72000,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 20160
+   }
+  }
+ ]
+}

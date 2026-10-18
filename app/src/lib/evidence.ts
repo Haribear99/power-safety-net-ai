@@ -137,6 +137,15 @@ export interface N1Evidence {
   costPerNotice?: { mean: number; max: number } | null;
   prereg: { hit: number; total: number; structural: { id: string; text: string; value: string; hit: boolean | null }[]; missed: { id: string; text: string; value: string }[] };
 }
+/** 원안 KPI '과대예측 0건' 사후 집계(봉인 E2 시드 재실행, 사전등록 밖) */
+export interface KpiOverPredict {
+  posthoc: true; runs: number; mismatch: number;
+  rule: { k: number; n: number; runsWithAny: number; cause: { operatorLower: number; extFailed: number; charge100: number; other: number }; overH: { p50: number; p90: number; max: number } };
+  baseline: { k: number; n: number };
+}
+export function kpiOverPredict(): KpiOverPredict | null {
+  return (doc as unknown as { kpiOverPredict?: KpiOverPredict }).kpiOverPredict ?? null;
+}
 export function n1Evidence(): N1Evidence | null {
   return (doc as unknown as { n1?: N1Evidence }).n1 ?? null;
 }

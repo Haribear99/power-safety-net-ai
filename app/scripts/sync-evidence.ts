@@ -312,7 +312,8 @@ function n1Examples() {
       && (n1Mins(r.facts.plan.arriveBy) ?? -1) > (n1Mins(r.facts.battery.text) ?? Infinity)),
     pick("산소발생기 · 확인된 산소통", (r) => r.facts.kind === "OUTAGE" && r.facts.cylinder != null),
     pick("119 연계", (r) => r.facts.kind === "OUTAGE" && r.facts.plan?.type === "CALL119" && !r.facts.cylinder),
-    pick("평시 대비", (r) => r.facts.kind === "PREP"),
+    // 외장 신고 집은 고르지 않는다: 봉인 당시 글은 확인 외장 합산을 밝히지 않았다(통합 레드팀 8라운드)
+    pick("평시 대비", (r) => r.facts.kind === "PREP" && !r.facts.extDeclared),
   ].filter(Boolean);
 }
 type RateN = { k: number; n: number; rate: number | null; wilson95: number[] | null };
@@ -336,6 +337,20 @@ if (n1) {
     costPerNotice: n1Cost(),
     prereg: { hit: n1Scored.filter((x) => x.hit).length, total: n1Scored.length, structural: n1.prereg.items.filter((x) => x.id === "9.5").map((x) => ({ id: x.id, text: x.text, value: x.value, hit: x.hit })), missed: n1Scored.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };
+}
+
+// ---- 원안 KPI '과대예측 0건' 사후 집계(통합 레드팀 8라운드, scripts/e2-m4.ts): 봉인 E2 시드 재실행 ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_m4_posthoc.json");
+  if (existsSync(f)) {
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { runs: number; policies: Record<string, { M4: number; shown: number; mismatch: number; runsWithM4: number; cause: Record<string, number>; overH: { p50: number; p90: number; max: number } }> };
+    const p = d.policies.RULE, k = d.policies.KR_BASELINE;
+    out.kpiOverPredict = {
+      posthoc: true, runs: d.runs, mismatch: p.mismatch + k.mismatch,
+      rule: { k: p.M4, n: p.shown, runsWithAny: p.runsWithM4, cause: p.cause, overH: p.overH },
+      baseline: { k: k.M4, n: k.shown },
+    };
+  }
 }
 
 // ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----

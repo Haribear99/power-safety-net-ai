@@ -41,6 +41,8 @@ export function requirements(f: NoticeFacts): Requirements {
   const mustInclude: Requirements["mustInclude"] = [];
   const mustSentences: SentenceReq[] = [];
   const forbidSentences: SentenceReq[] = [];
+  // 바꿔 쓰기에 다른 조건을 겹치는 말('기다렸다가'·'닿은 뒤에'·'안내를 받고'·'허락을 받은 다음', 통합 레드팀 8라운드)
+  const SWITCH_EXTRA = ["도착", "오면", "연락", "기다", "뒤에", "다음", "받고", "받은", "허락", "닿", "안내"];
   const NEG = ["않", "말고", "마세", "마십", "마시", "필요 없", "필요가 없", "안 되", "안 돼", "금지", "삼가", "아닙", "아니"];
   const must = (text: string, role: Role) => {
     const a = allowed.find((x) => x.text === text);
@@ -54,6 +56,8 @@ export function requirements(f: NoticeFacts): Requirements {
   if (b.state === "UNTIL") must(b.text, "BATTERY_T");
   if (b.state === "HOURS") must(b.text, "CHARGE_H");
   if (b.state === "UNDER30") must("30분", "CHARGE_LT");
+  // 확인 외장 배터리가 합쳐진 시간·시각이면 그 문장에 '외장'을 쓴다(기기 배터리만의 시간처럼 쓰지 않게, 통합 레드팀 8라운드)
+  if (f.batteryWithExt && (b.state === "HOURS" || b.state === "UNTIL")) sent([b.text, "외장"], "외장 배터리까지 합친 시간이다");
   if (b.state === "MAYBE_OUT") sent(["배터리", "이미"], "배터리가 이미 떨어졌을 수 있다");
   if (b.state === "UNKNOWN") sent(["배터리", "담당자"], "배터리가 얼마나 가는지 담당자가 확인 중이다");
   if (b.state === "NONE") sent(["멈"], "배터리가 없어 정전되면 바로 멈춘다"); // 「배터리가 없습니다. 그래서 바로 멈춥니다」처럼 나눠 써도 된다(뜻은 2차 검사)
@@ -85,9 +89,9 @@ export function requirements(f: NoticeFacts): Requirements {
   for (const a of f.actions) {
     if (a === "KEEP_PHONE") sent(["전화"], "연락을 받을 수 있게 전화를 곁에 둔다");
     if (a === "FOLLOW_STAFF") sent(["안내", "따"], "연락이 오면 안내를 따른다");
-    if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다", NEG);
+    if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다", [...NEG, ...SWITCH_EXTRA, "떨어지면"]);
     // 조건은 '배터리가 떨어지면'뿐('도착하면'·'연락이 오면'·'떨어지기 전에 미리' 차단, 통합 레드팀 7라운드)
-    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리", "떨어지면"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", [...NEG, "전에", "기 전", "도착", "오면", "연락", "미리"]);
+    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리", "떨어지면"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", [...NEG, ...SWITCH_EXTRA, "전에", "기 전", "미리"]);
     if (a === "CHARGE_DEVICE") sent(["충전"], "평소에 배터리를 늘 충전해 둔다");
     if (a === "CHARGE_EXT") sent(["외장", "충전"], "외장 배터리도 충전해 둔다");
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");
@@ -153,7 +157,7 @@ export function unsupportedWords(f: NoticeFacts): string[] {
   for (const n of Object.values(RESOURCE_NOUN)) if (n !== res) out.push(n);
   out.push("발전기", "전원 장치", "비상 전원");
   if (!f.cylinder) out.push("산소통", "실린더");
-  const extOk = f.kind === "PREP" ? f.extDeclared : res === RESOURCE_NOUN.RENTAL_EXT;
+  const extOk = f.kind === "PREP" ? f.extDeclared : res === RESOURCE_NOUN.RENTAL_EXT || f.batteryWithExt === true;
   if (!extOk) out.push("외장");
   // 정해진 수단·확인된 산소통의 낱말 자체는 허용
   return [...new Set(out)].filter((w) => !(res && res.includes(w)) && !(f.cylinder && (w === "산소통" || w === "실린더")));
@@ -234,7 +238,7 @@ export function templateSentences(f: NoticeFacts): string[] {
   const b = f.battery, c = f.cylinder;
   if (f.kind === "OUTAGE") {
     out.push(`${hi}정전으로 ${f.device} 전원이 끊겼습니다.`);
-    if (b.state === "UNTIL") out.push(`배터리는 적어도 ${b.text}까지 버팁니다.`);
+    if (b.state === "UNTIL") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 적어도 ${b.text}까지 버팁니다.` : `배터리는 적어도 ${b.text}까지 버팁니다.`);
     if (b.state === "MAYBE_OUT") out.push("배터리가 거의 없거나 이미 다 떨어졌을 수 있습니다.");
     if (b.state === "UNKNOWN") out.push("배터리가 얼마나 갈지 담당자가 확인하고 있습니다.");
     if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
@@ -264,7 +268,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     return out;
   }
   out.push(`${hi}정전에 미리 대비해 주세요.`);
-  if (b.state === "HOURS") out.push(`${josa(f.device, "은는")} 완전히 충전하면 적어도 ${b.text} 버팁니다.`);
+  if (b.state === "HOURS") out.push(f.batteryWithExt ? `외장 배터리까지 합쳐 완전히 충전하면 적어도 ${b.text} 버팁니다.` : `${josa(f.device, "은는")} 완전히 충전하면 적어도 ${b.text} 버팁니다.`);
   if (b.state === "UNDER30") out.push(`${f.device} 배터리는 완전히 충전해도 30분을 못 버팁니다.`);
   if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
   if (b.state === "UNKNOWN") out.push("배터리가 얼마나 가는지 담당자가 확인하고 있습니다.");

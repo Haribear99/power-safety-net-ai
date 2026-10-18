@@ -32,8 +32,8 @@ export const NOTICE_SYSTEM = `너는 정전 때 전기로 움직이는 의료기
 function batteryKo(f: NoticeFacts): string {
   const b = f.battery;
   switch (b.state) {
-    case "UNTIL": return `적어도 ${b.text}까지 버틴다`;
-    case "HOURS": return `완전히 충전하면 적어도 ${b.text} 버틴다`;
+    case "UNTIL": return f.batteryWithExt ? `확인된 외장 배터리까지 합쳐 적어도 ${b.text}까지 버틴다(기기 배터리만의 시각이 아니다. 그 문장에 '외장 배터리까지'를 쓴다)` : `적어도 ${b.text}까지 버틴다`;
+    case "HOURS": return f.batteryWithExt ? `확인된 외장 배터리까지 합쳐 완전히 충전하면 적어도 ${b.text} 버틴다(기기 배터리만의 시간이 아니다. 그 문장에 '외장 배터리까지'를 쓴다)` : `완전히 충전하면 적어도 ${b.text} 버틴다`;
     case "UNDER30": return "완전히 충전해도 30분을 못 버틴다";
     case "NONE": return "배터리가 없어 정전되면 바로 멈춘다";
     case "MAYBE_OUT": return "배터리가 거의 없거나 이미 다 떨어졌을 수 있다";

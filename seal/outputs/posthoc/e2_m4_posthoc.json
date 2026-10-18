@@ -1,0 +1,46 @@
+{
+ "format": "pl26-e2-m4-posthoc/2",
+ "note": "사후 집계(사전등록 밖). 봉인 E2 시드 재실행, M1·M2S 봉인 값 대조. overH = 과대예측 폭(시간)",
+ "seedLo": 3000001,
+ "runs": 5400,
+ "policies": {
+  "RULE": {
+   "M4": 24141,
+   "registered": 162000,
+   "shown": 162000,
+   "overCount": 24141,
+   "cause": {
+    "operatorLower": 0,
+    "extFailed": 3442,
+    "charge100": 2936,
+    "other": 17763
+   },
+   "runsWithM4": 5359,
+   "mismatch": 0,
+   "overH": {
+    "p50": 0.27416666666666667,
+    "p90": 1.4297222222222221,
+    "max": 8.640833333333333
+   }
+  },
+  "KR_BASELINE": {
+   "M4": 20577,
+   "registered": 162000,
+   "shown": 137792,
+   "overCount": 20577,
+   "cause": {
+    "operatorLower": 0,
+    "extFailed": 2948,
+    "charge100": 2548,
+    "other": 15081
+   },
+   "runsWithM4": 5319,
+   "mismatch": 0,
+   "overH": {
+    "p50": 0.27444444444444444,
+    "p90": 1.4302777777777778,
+    "max": 8.640833333333333
+   }
+  }
+ }
+}

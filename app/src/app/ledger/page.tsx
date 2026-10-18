@@ -77,7 +77,7 @@ function NoticeLedger() {
             <li>봉인 시험셋(봉인 커밋 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}(봉인 당시 모순 고정 문안 {n.judgeSplit?.contradiction.n ?? "—"}건도 통과시킨 값). 나간 AI 글 중 {n.judgeSplit?.aiSameTime.n ?? "—"}건은 같은 시각 경고 모순(봉인 뒤 고침)</li>
             <li>쉬움 쌍 비교(탐색, Opus 판정): AI {n.judge.ai} · 고정 {n.judge.template} · 같음 {n.judge.same}, AI 우세 근거 없음{n.judgeSplit ? `(부호검정 p≈${n.judgeSplit.signP.toFixed(1)}. 사후: 모순 고정 문안 ${n.judgeSplit.contradiction.judged}쌍 빼면 ${n.judgeSplit.rest.ai}:${n.judgeSplit.rest.template})` : ""}</li>
             <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
-            <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행, 검사 v6·프롬프트 캐시 적중 기준. 지금 검사는 더 길어 건당 비용이 2~4배일 수 있음). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
+            <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행, 검사 v6·프롬프트 캐시 적중 기준. 현행 검사 v16의 dev 회귀 40건은 평균 $0.0141·최대 $0.0183, 캐시가 식은 단발 호출은 더 비쌀 수 있음). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
           </ul>
           <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. <Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
         </div>
