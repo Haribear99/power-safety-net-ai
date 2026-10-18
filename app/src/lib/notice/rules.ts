@@ -75,7 +75,8 @@ export function requirements(f: NoticeFacts): Requirements {
   // 경고는 '도움이 늦어지면'에 달지 않는다: '제때 오면 괜찮다'로 읽힌다(통합 레드팀 9·10라운드)
   const COND = ["늦어지면", "늦어질", "늦으면", "늦게", "지연", "못 오면", "미뤄", "제시간"];
   if (f.warnRunOutFirst && f.warnTight) sent([supplyW, "일찍"], `${supplyW}가 계산보다 일찍 떨어지면 도움이 오기 전에 멈출 수 있다(도착이 계산상 끝과 가까움)`, COND);
-  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`, COND);
+  // 도착이 계산상 끝보다 늦으면 계산대로여도 먼저 떨어진다: '계산보다 일찍 떨어지면'으로 조건을 달지 않는다(통합 레드팀 11라운드)
+  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`, [...COND, "일찍", "계산보다", "빨리", "떨어지면", "닳으면"]);
   if (p?.type === "CALL119") {
     sent(["구급", "연결"], "구급대와 연결했다");
     if (p.doneBy) must(p.doneBy, "T119");
@@ -240,7 +241,7 @@ export function tailSentences(f: NoticeFacts): string[] {
     : [
       ...caveat,
       // 갈 곳: 늘 붙인다(원안 '대체장소', 통합 레드팀 4라운드). 절전: 배터리 없는 기기면 뺀다. 한 문장 45자 이내
-      "정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요.",
+      "정전 때 갈 곳을 담당자와 미리 정해 두세요.", // 조건 없이(짧은 정전은 괜찮다로 읽히지 않게, 11라운드)
       ...(f.battery.state === "NONE" ? [] : ["절전 기능이 있는지 담당 의료진에게 물어 두세요.", "기기 설정은 혼자 바꾸지 마세요."]),
       "위급하면 바로 119에 전화하세요.", "정전되면 한전 123에 알리세요.",
     ];

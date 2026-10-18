@@ -321,7 +321,8 @@ export function outageInput(args: {
   // 확인 산소통이 있으면 외장 배터리 몫은 빼고 셈한다: '배터리가 떨어지면 산소통으로'가 내장 소진 때 바꿔 쓰는 경우에도 산소통 끝·경고가 맞게(보수, 통합 레드팀 9라운드)
   const extS0 = extShare(hh, noCyl.Ls, db);
   // 내장 몫이 거의 없으면(10분 미만) 빼지 않고 외장 합산으로 둔다: 빼면 '배터리 이미 떨어짐·지금 산소통'이 되어 남은 외장을 알리지 않는다(통합 레드팀 10라운드)
-  const dropExt = cylS > 0 && extS0 > 0 && batteryEndS != null && batteryEndS - extS0 - args.nowS >= 600;
+  // 판정은 표시 규칙과 같게(10분 내림 뒤 지금부터 10분 이상): 원값으로 보면 1분 사이에 안내가 뒤집힌다(통합 레드팀 11라운드)
+  const dropExt = cylS > 0 && extS0 > 0 && batteryEndS != null && round10(args.baseIso, batteryEndS - extS0, "floor") - args.nowS >= TEN_MIN;
   if (dropExt && batteryEndS != null) batteryEndS = Math.max(args.nowS, batteryEndS - extS0);
   const batteryLsOut = dropExt && batteryLs != null ? Math.max(batteryLs > 0 ? 1 : 0, batteryLs - extS0) : batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다

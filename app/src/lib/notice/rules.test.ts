@@ -59,6 +59,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
       : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : p.etaPassed ? "passed_being_checked" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
     warningOnlyIfHelpLate: false,
+    warningOnlyIfSupplyEarly: Boolean(f.warnTight),
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
     actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, negated: false, quote: "" })),
@@ -537,6 +538,40 @@ describe("통합 레드팀 10라운드 회귀", () => {
     expect(f.battery.state).toBe("UNTIL");
     expect(f.batteryWithExt).toBe(true);
     expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
+  });
+});
+
+describe("통합 레드팀 11라운드 회귀", () => {
+  it("확인 외장+산소통 집: 시계가 흘러도 '경고 있음 → 없음'으로 뒤집히지 않는다(외장 제외 판정 = 표시 규칙)", () => {
+    const hh: HouseholdView = {
+      id: "H11", pseudonym: "H-011", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 7, source: "device_screen" } },
+      ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A11" } }],
+      cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C11" } },
+    };
+    let warned = false;
+    for (let now = 0; now <= 3600; now += 60) {
+      const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: now, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: now + 5 * 3600, late119: false })!);
+      // 외장을 뺐는데 MAYBE_OUT으로 떨어지는 조합이 없어야 한다
+      if (f.battery.state !== "UNTIL") expect(f.batteryWithExt).toBeUndefined();
+      if (warned) expect(f.warnRunOutFirst, `now ${now}`).toBe(true);
+      warned = warned || f.warnRunOutFirst;
+    }
+  });
+  it("도착이 계산상 끝보다 늦은 경고를 '계산보다 일찍 떨어지면'으로 조건부화하면 1·2차 거부", () => {
+    const f = buildFacts(IN({ lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 4800 + 3600 }));
+    expect(f).toMatchObject({ warnRunOutFirst: true, warnTight: false });
+    const t = templateSentences(f);
+    expect(verify(f, t.map((s) => (s.includes("먼저 떨어질") ? "배터리가 계산보다 일찍 떨어지면 도착보다 먼저 멈출 수 있습니다." : s))).ok).toBe(false);
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    expect(compareClaims(f, { ...c, warningOnlyIfSupplyEarly: true }).length).toBeGreaterThan(0);
+    const tight = buildFacts(IN({}));
+    expect(compareClaims(tight, { ...truthClaims(tight), warningOnlyIfSupplyEarly: true })).toEqual([]);
+  });
+  it("평시 갈 곳 문장은 조건 없이", () => {
+    const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "O2_STAT", batteryS: 0, cylinderS: 0, extDeclared: false });
+    expect(tailSentences(f)).toContain("정전 때 갈 곳을 담당자와 미리 정해 두세요.");
   });
 });
 

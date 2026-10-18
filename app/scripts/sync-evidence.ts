@@ -301,9 +301,16 @@ function n1JudgeSplit() {
     if (r.input.kind !== "OUTAGE" || r.facts.warnBatteryFirst || r.facts.warnRunOutFirst) continue;
     if (buildFacts(r.input).warnRunOutFirst) marginMissed.push(r.id);
   }
-  const defectIds = new Set([...sameTimeIds, ...sentContradictionIds, ...(ext?.ids ?? []), ...marginMissed]);
+  // 사실에 없는 기관 약속(PREP에서 '다시 알려 드립니다' 등). 지금 프롬프트 규칙 1·2차 staffPromises가 거부한다(통합 레드팀 11라운드)
+  const unsupportedPromise: string[] = [];
+  for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { id: string; facts: N1Facts; composed: { source: string; sentences: string[] } };
+    if (r.composed.source !== "ai") continue;
+    if (r.facts.kind === "PREP" && r.composed.sentences.some((x) => /다시 알려|알려 드리겠|연락드리겠|안내해 드리겠/.test(x))) unsupportedPromise.push(r.id);
+  }
+  const defectIds = new Set([...sameTimeIds, ...sentContradictionIds, ...(ext?.ids ?? []), ...marginMissed, ...unsupportedPromise]);
   const sentDefects = defectIds.size;
-  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, marginMissed, sentDefects };
+  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, marginMissed, unsupportedPromise, defectIds: [...defectIds].sort(), sentDefects };
 }
 /** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
 function n1Cost() {
@@ -317,12 +324,13 @@ function n1Cost() {
 }
 
 /** 봉인 실행에서 AI 글이 나간 항목 중 대표 예시(경고 있는 전원 배정·산소통·119·평시) — 실시간 생성 한도에 걸려도 AI 글을 볼 수 있게 */
-function n1Examples() {
+function n1Examples(defectIds: readonly string[] = []) {
   const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
   if (!existsSync(dir)) return [];
   type Row = { id: string; stratum: string; facts: N1Facts; composed: { source: string; sentences: string[]; footer: string } };
   const rows = readdirSync(dir).filter((f) => /^test-\d+\.json$/.test(f)).sort().map((f) => JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as Row).filter((r) => r.composed.source === "ai");
-  const pick = (label: string, ok: (r: Row) => boolean) => { const r = rows.find(ok); return r ? { label, id: r.id, sentences: r.composed.sentences } : null; };
+  // 봉인 뒤 결함 판정 글은 대표 예시로 고르지 않는다(통합 레드팀 5·11라운드)
+  const pick = (label: string, ok: (r: Row) => boolean) => { const r = rows.find((x) => !defectIds.includes(x.id) && ok(x)); return r ? { label, id: r.id, sentences: r.composed.sentences } : null; };
   // 같은 시각 경고(4라운드에서 고친 모순)는 대표 예시로 고르지 않는다(통합 레드팀 5라운드)
   return [
     pick("전원 배정 · 먼저 떨어질 수 있음 경고", (r) => r.facts.kind === "OUTAGE" && (r.facts.plan?.type === "ASSIGN" || r.facts.plan?.type === "GAP") && Boolean(r.facts.warnRunOutFirst) && !r.facts.cylinder
@@ -349,8 +357,8 @@ if (n1) {
     missedCategories: Object.entries(n1.corpus.byCategory).filter(([, v]) => v.caught < v.n).map(([k, v]) => ({ category: k, missed: v.n - v.caught, n: v.n })),
     judge: n1.notices.judge, latencyP50: n1.notices.latencyE2E.p50,
     // 9.5(보낸 글 1차 위반 0)는 구조상 보장되는 확인 항목이라 적중 집계에서 뺀다(통합 레드팀 1라운드)
-    examples: n1Examples(),
     ...n1JudgeSplit(),
+    examples: n1Examples(n1JudgeSplit().defectIds ?? []),
     costPerNotice: n1Cost(),
     prereg: { hit: n1Scored.filter((x) => x.hit).length, total: n1Scored.length, structural: n1.prereg.items.filter((x) => x.id === "9.5").map((x) => ({ id: x.id, text: x.text, value: x.value, hit: x.hit })), missed: n1Scored.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
   };

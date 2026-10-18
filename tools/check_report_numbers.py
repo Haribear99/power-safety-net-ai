@@ -67,7 +67,7 @@ expected = {
     "N1 놓침": f"{ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%, 95% {ev['n1']['badMissed']['lo'] * 100:.1f}~{ev['n1']['badMissed']['hi'] * 100:.1f}%",
     "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}(95% {ev['n1']['goodFalseReject']['lo'] * 100:.1f}~{ev['n1']['goodFalseReject']['hi'] * 100:.1f}%)",
     "N1 쌍 비교(탐색 표지)": f"AI 판정 탐색 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}(AI:고정)",
-    "N1 나간 글 결함": f"결함 판정 {ev['n1']['sentDefects']}/60(모순·외장 합산 미표기·경고 누락",
+    "N1 나간 글 결함": f"결함 판정 {ev['n1']['sentDefects']}/60(모순·외장 미표기·경고 누락·없는 약속",
     "원안 KPI 과대예측(사후)": f"하한이 모의 실제보다 긴 가구·회 {ev['kpiOverPredict']['rule']['k'] / ev['kpiOverPredict']['rule']['n'] * 100:.1f}%",
     "N1 쌍 비교 유의성": "AI 우세 근거 없음(p≈" + format(ev['n1']['judgeSplit']['signP'], '.1f'),
     "N1 측정 버전 표기": "봉인 당시 검사 기준",
