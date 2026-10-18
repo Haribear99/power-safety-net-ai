@@ -78,6 +78,15 @@ const extCases: { id: string; input: NoticeInputT }[] = [
   { id: "ext-04", input: outageInput({ hh: vent8("E4", false, 70), baseIso: BASE, nowS: 0, lane: "FALLBACK_119", resourceKind: null, etaS: 4 * 3600, late119: false })! },
   { id: "ext-05", input: outageInput({ hh: vent8("E5", true, 30), baseIso: BASE, nowS: 0, lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 20 * 3600, late119: false })! },
 ];
+// 13라운드: 확인 외장 + 확인 산소통(휴대용 산소발생기) — 외장을 포함하고 '외장 배터리까지 다 떨어지면 산소통'
+const inogen = (id: string, charge: number): HouseholdView => ({
+  id, pseudonym: `H-${id}`, cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+  device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: charge, source: "device_screen" } },
+  ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: `sim-ext-${id}` } }],
+  cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: `sim-cyl-${id}` } },
+});
+extCases.push({ id: "ext-06", input: outageInput({ hh: inogen("E6", 0), baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 4 * 3600, late119: false })! });
+extCases.push({ id: "ext-07", input: outageInput({ hh: inogen("E7", 60), baseIso: BASE, nowS: 0, lane: "FALLBACK_119", resourceKind: null, etaS: 3 * 3600, late119: false })! });
 for (const c of extCases) if (!buildFacts(c.input).batteryWithExt) throw new Error(`${c.id}: 외장 합산 아님`);
 writeFileSync(path.join(repo, "datasets", "notice", "dev_ext.json"), JSON.stringify({
   format: "pl26-n1-set/2",
@@ -102,6 +111,13 @@ for (const c of extCases.slice(0, 4)) {
   ] as const;
   BADX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-b${j}`, input: c.input, label: "bad", category: cat, sentences: put(s) }));
   GOODX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-g${j}`, input: c.input, label: "good", category: cat, sentences: put(s) }));
+}
+for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) {
+  const f = buildFacts(c.input);
+  const t = templateSentences(f);
+  const k = t.findIndex((s) => s.includes("산소통으로 바꿔"));
+  extItems.push({ id: `${c.id}-b0`, input: c.input, label: "bad", category: "ext_switch_internal_only", sentences: t.map((s, i) => (i === k ? "기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요." : s)) });
+  extItems.push({ id: `${c.id}-g0`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "외장 배터리까지 모두 다 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s)) });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"), JSON.stringify({
   format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장만 바꿨다.", items: extItems,

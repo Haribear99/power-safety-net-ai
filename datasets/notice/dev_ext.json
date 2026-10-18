@@ -116,6 +116,50 @@
     "batteryBasis": "charge",
     "batteryExtS": 20160
    }
+  },
+  {
+   "id": "ext-06",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 8190,
+    "batteryLs": 8190,
+    "cylinderEndS": 18990,
+    "cylinderS": 10800,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 14400,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   }
+  },
+  {
+   "id": "ext-07",
+   "stratum": "OUTAGE:battery+ext",
+   "audience": "보호자",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 14022,
+    "batteryLs": 14022,
+    "cylinderEndS": 24822,
+    "cylinderS": 10800,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 10800,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   }
   }
  ]
 }

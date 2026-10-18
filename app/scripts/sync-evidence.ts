@@ -310,7 +310,13 @@ function n1JudgeSplit() {
   }
   const defectIds = new Set([...sameTimeIds, ...sentContradictionIds, ...(ext?.ids ?? []), ...marginMissed, ...unsupportedPromise]);
   const sentDefects = defectIds.size;
-  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, marginMissed, unsupportedPromise, defectIds: [...defectIds].sort(), sentDefects };
+  // '적어도' 보장 표현은 표현 기준 변경이라 결함에 넣지 않는다. 그런 나간 글 중 결함 판정 밖인 것(통합 레드팀 13라운드: 표기 명확화)
+  const atLeastOnly: string[] = [];
+  for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { id: string; composed: { sentences: string[] } };
+    if (r.composed.sentences.some((x) => x.includes("적어도")) && !defectIds.has(r.id)) atLeastOnly.push(r.id);
+  }
+  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, marginMissed, unsupportedPromise, defectIds: [...defectIds].sort(), sentDefects, atLeastOnly };
 }
 /** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
 function n1Cost() {

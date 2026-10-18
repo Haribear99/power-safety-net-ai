@@ -98,11 +98,24 @@ export function requirements(f: NoticeFacts): Requirements {
     if (a === "FOLLOW_STAFF") sent(["안내", "따"], "연락이 오면 안내를 따른다");
     if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다", [...NEG, ...SWITCH_EXTRA, "떨어지면"]);
     // 조건은 '배터리가 떨어지면'뿐('도착하면'·'연락이 오면'·'떨어지기 전에 미리' 차단, 통합 레드팀 7라운드)
-    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리", "떨어지면"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", [...NEG, ...SWITCH_EXTRA, "전에", "기 전", "미리"]);
+    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리", "떨어지면", ...(f.batteryWithExt ? ["외장"] : [])], f.batteryWithExt ? "외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓴다" : "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", [...NEG, ...SWITCH_EXTRA, "전에", "기 전", "미리", ...(f.batteryWithExt ? ["내장"] : [])]);
     if (a === "CHARGE_DEVICE") sent(["충전"], "평소에 배터리를 늘 충전해 둔다");
     if (a === "CHARGE_EXT") sent(["외장", "충전"], "외장 배터리도 충전해 둔다");
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");
     if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다");
+  }
+  // 깨끗한 문장이 하나 있어도 틀린 문장을 덧붙이면 막는다: 반대 조건 낱말이 든 모든 문장을 거부(통합 레드팀 13라운드)
+  if (f.actions.includes("SWITCH_AFTER_BATTERY")) {
+    for (const w of ["지금", "바로", "당장", "곧바로", "미리", ...SWITCH_EXTRA, "전에"]) forbid(["산소통", "바꿔", w], `산소통 바꿔 쓰기에 '${w}'(배터리가 떨어진 뒤가 아님)`);
+    if (c?.state === "UNTIL") for (const w of ["지금", "바로", "당장", "곧바로"]) forbid([c.text, w], `산소통 시각에 '${w}'(배터리 다음 바꿔 쓰기의 끝)`);
+  }
+  if (f.actions.includes("SWITCH_TO_CYLINDER")) {
+    for (const w of ["떨어지면", "다 되면", "뒤에", "다음에", ...SWITCH_EXTRA]) forbid(["산소통", "바꿔", w], `지금 바꿔 쓰기에 '${w}'`);
+    if (c?.state === "UNTIL") for (const w of ["떨어지면", "다 되면", "뒤에", "다음에"]) forbid([c.text, w], `산소통 시각에 '${w}'(지금 바꿔 쓰기의 끝)`);
+  }
+  if (f.warnRunOutFirst) {
+    for (const w of COND) forbid([supplyW, "떨어", w], `경고에 '${w}' 조건`);
+    if (!f.warnTight) for (const w of ["일찍", "계산보다", "빨리", "닳으면"]) forbid([supplyW, "먼저", w], `계산대로여도 먼저 떨어지는데 '${w}' 조건`);
   }
   return { allowed, mustInclude, mustSentences, forbidSentences };
 }
@@ -270,7 +283,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     if (b.state === "UNKNOWN") out.push("배터리가 얼마나 갈지 담당자가 확인하고 있습니다.");
     if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
     if (c) {
-      out.push(f.actions.includes("SWITCH_AFTER_BATTERY") ? "배터리가 떨어지면 확인된 산소통으로 바꿔 쓰세요." : "지금 확인된 산소통으로 바꿔 쓰세요.");
+      out.push(f.actions.includes("SWITCH_AFTER_BATTERY") ? (f.batteryWithExt ? "외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓰세요." : "배터리가 떨어지면 확인된 산소통으로 바꿔 쓰세요.") : "지금 확인된 산소통으로 바꿔 쓰세요.");
       out.push(c.state === "UNTIL" ? `산소통은 계산상 ${c.text}까지 씁니다.` : "산소통도 이미 거의 다 썼을 수 있습니다.");
     }
     const p = f.plan;

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
 import { BANNED, josa, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v14";
+export const NOTICE_PROMPT_VERSION = "n1-v15";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -45,7 +45,7 @@ function cylinderKo(f: NoticeFacts): string | null {
   if (!c) return null;
   if (c.state === "MAYBE_OUT") return "확인된 산소통이 있지만 이미 거의 다 썼을 수 있다";
   if (c.state === "HOURS") return `확인된 산소통은 계산상 ${c.text} 쓴다`;
-  return f.actions.includes("SWITCH_AFTER_BATTERY") ? `배터리가 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓰고, 그러면 계산상 ${c.text}까지 쓴다` : `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 계산상 ${c.text}까지 쓴다`;
+  return f.actions.includes("SWITCH_AFTER_BATTERY") ? `${f.batteryWithExt ? "외장 배터리까지 다 떨어지면" : "배터리가 떨어지면"} 집에 있는 확인된 산소통으로 바꿔 쓰고, 그러면 계산상 ${c.text}까지 쓴다` : `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 계산상 ${c.text}까지 쓴다`;
 }
 function planKo(f: NoticeFacts): string | null {
   const p = f.plan;
@@ -80,7 +80,7 @@ export function noticeUser(f: NoticeFacts): string {
         : `${josa(help, "이가")} 오기 전에 ${sup} 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다. '늦어지면'처럼 조건을 달지 않는다)`;
     })() } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),
-    할일: f.actions.map((a) => ACTION_KO[a]),
+    할일: f.actions.map((a) => (a === "SWITCH_AFTER_BATTERY" && f.batteryWithExt ? "외장 배터리까지 다 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓴다" : ACTION_KO[a])),
     그대로써야할표기: req.mustInclude.map((m) => ({ 표기: m.text, 뜻: m.hint })),
     꼭담을내용: req.mustSentences.map((m) => ({ 같은문장의낱말: m.all, 뜻: m.hint })),
   };

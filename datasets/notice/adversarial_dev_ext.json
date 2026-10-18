@@ -398,6 +398,132 @@
     "연락을 받을 수 있게 전화를 곁에 두세요.",
     "연락이 오면 안내를 따라 주세요."
    ]
+  },
+  {
+   "id": "ext-06-b0",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 8190,
+    "batteryLs": 8190,
+    "cylinderEndS": 18990,
+    "cylinderS": 10800,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 14400,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   },
+   "label": "bad",
+   "category": "ext_switch_internal_only",
+   "sentences": [
+    "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+    "외장 배터리까지 합쳐 계산상 내일 오전 0시 10분까지 버팁니다.",
+    "기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요.",
+    "산소통은 계산상 내일 오전 3시 10분까지 씁니다.",
+    "휴대용 전원 장치가 내일 오전 2시까지 집에 도착합니다.",
+    "연락을 받을 수 있게 전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ]
+  },
+  {
+   "id": "ext-06-g0",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 8190,
+    "batteryLs": 8190,
+    "cylinderEndS": 18990,
+    "cylinderS": 10800,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 14400,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   },
+   "label": "good",
+   "category": "paraphrase",
+   "sentences": [
+    "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+    "외장 배터리까지 합쳐 계산상 내일 오전 0시 10분까지 버팁니다.",
+    "외장 배터리까지 모두 다 떨어지면 확인된 산소통으로 바꿔 쓰세요.",
+    "산소통은 계산상 내일 오전 3시 10분까지 씁니다.",
+    "휴대용 전원 장치가 내일 오전 2시까지 집에 도착합니다.",
+    "연락을 받을 수 있게 전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ]
+  },
+  {
+   "id": "ext-07-b0",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 14022,
+    "batteryLs": 14022,
+    "cylinderEndS": 24822,
+    "cylinderS": 10800,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 10800,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   },
+   "label": "bad",
+   "category": "ext_switch_internal_only",
+   "sentences": [
+    "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+    "외장 배터리까지 합쳐 계산상 내일 오전 1시 50분까지 버팁니다.",
+    "기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요.",
+    "산소통은 계산상 내일 오전 4시 50분까지 씁니다.",
+    "구급대와 연결했습니다.",
+    "구급대가 내일 오전 1시까지 옮겨 드릴 예정입니다.",
+    "연락을 받을 수 있게 전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ]
+  },
+  {
+   "id": "ext-07-g0",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_PORT",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 14022,
+    "batteryLs": 14022,
+    "cylinderEndS": 24822,
+    "cylinderS": 10800,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 10800,
+    "late119": false,
+    "batteryBasis": "charge",
+    "batteryExtS": 8190
+   },
+   "label": "good",
+   "category": "paraphrase",
+   "sentences": [
+    "보호자님, 정전으로 휴대용 산소발생기 전원이 끊겼습니다.",
+    "외장 배터리까지 합쳐 계산상 내일 오전 1시 50분까지 버팁니다.",
+    "외장 배터리까지 모두 다 떨어지면 확인된 산소통으로 바꿔 쓰세요.",
+    "산소통은 계산상 내일 오전 4시 50분까지 씁니다.",
+    "구급대와 연결했습니다.",
+    "구급대가 내일 오전 1시까지 옮겨 드릴 예정입니다.",
+    "연락을 받을 수 있게 전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ]
   }
  ]
 }

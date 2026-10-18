@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { buildFacts, clockText, durationText, NOTICE_LANES, NoticeInput, outageInput, prepInput, RESOURCE_UNKNOWN_NOUN, validBaseIso, type NoticeFacts, type NoticeInputT } from "./facts";
 import { compose, speechText } from "./compose";
 import { compareClaims, type ClaimsT } from "./check";
-import { FACT_ERROR, josa, requirements, ROLE_KO, tailSentences, templateSentences, verify } from "./rules";
+import { BANNED, FACT_ERROR, josa, requirements, ROLE_KO, tailSentences, templateSentences, verify } from "./rules";
 import { noticeUser } from "./prompt";
 import type { HouseholdView } from "../domain/types";
 
@@ -500,7 +500,7 @@ describe("통합 레드팀 9라운드 회귀", () => {
     expect(verify(f, t).ok).toBe(true);
     for (const x of ["서너 시간 안에 연락이 갑니다.", "한나절 안에 연락이 갑니다.", "동틀 무렵 연락이 갑니다."]) expect(verify(f, [...t, x]).ok, x).toBe(false);
   });
-  it("확인 산소통과 확인 외장이 함께면 외장 몫을 빼고 셈한다(산소통 끝이 내장 소진 기준)", () => {
+  it("확인 산소통과 확인 외장이 함께면 외장을 포함하고 산소통 끝 = 외장까지 다 쓴 뒤 + 산소통(13라운드에 9라운드 정책 되돌림)", () => {
     const hh: HouseholdView = {
       id: "H9", pseudonym: "H-009", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
       device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 100, source: "device_screen" } },
@@ -509,11 +509,9 @@ describe("통합 레드팀 9라운드 회귀", () => {
     };
     const i = outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
     if (i.kind !== "OUTAGE") throw new Error();
-    expect(i.batteryExtS).toBeUndefined();
-    const inner = outageInput({ hh: { ...hh, ext: [] }, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
-    if (inner.kind !== "OUTAGE") throw new Error();
-    expect(i.batteryEndS).toBe(inner.batteryEndS);
-    expect(i.cylinderEndS).toBe(inner.cylinderEndS);
+    expect(i.batteryExtS).toBeGreaterThan(0);
+    expect(i.cylinderEndS).toBe((i.batteryEndS ?? 0) + i.cylinderS);
+    expect(templateSentences(buildFacts(i)).join(" ")).toContain("외장 배터리까지 다 떨어지면");
   });
 });
 
@@ -528,18 +526,23 @@ describe("통합 레드팀 10라운드 회귀", () => {
     for (const w of ["최소한", "넉넉히", "거뜬히", "족히"]) expect(verify(f, t.map((s) => s.replace("계산상", w))).ok, w).toBe(false);
     expect(verify(f, [...t, "그 전에는 멈추지 않습니다."]).ok).toBe(false);
   });
-  it("확인 외장+산소통 집은 내장 몫이 거의 없어도 외장을 늘 뺀다(12라운드 정책: 시계와 무관, 꼬리말에 밝힘)", () => {
+  it("확인 외장+산소통 집은 외장을 늘 포함하고, 바꿔 쓰기는 '외장 배터리까지 다 떨어지면'(13라운드: 엔진 배정 근거와 같게)", () => {
     const hh: HouseholdView = {
       id: "H10", pseudonym: "H-010", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
       device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 0, source: "device_screen" } },
       ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A10" } }],
       cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C10" } },
     };
-    const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
-    expect(f.batteryWithExt).toBeUndefined();
-    expect(f.batteryExtExcluded).toBe(true);
-    expect(f.actions).toContain("SWITCH_TO_CYLINDER");
-    expect(compose(f, null).footer).toContain("외장 배터리는 보수적으로 빼고");
+    const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 4 * 3600, late119: false })!);
+    expect(f.battery.state).toBe("UNTIL");
+    expect(f.batteryWithExt).toBe(true);
+    expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
+    const t = templateSentences(f);
+    expect(t.join(" ")).toContain("외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓰세요");
+    expect(f.warnRunOutFirst).toBe(false); // 외장 2h16m + 산소통 3h > 도착 4h
+    expect(verify(f, t).ok).toBe(true);
+    // 외장을 빼고 '배터리가 떨어지면'만 쓰면 1차 거부
+    expect(verify(f, t.map((s) => (s.includes("산소통으로 바꿔") ? "배터리가 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s))).ok).toBe(false);
   });
 });
 
@@ -608,6 +611,25 @@ describe("통합 레드팀 12라운드 회귀", () => {
         if (warned && f.cylinder?.state === "UNTIL") expect(f.warnRunOutFirst, `eta ${eta} now ${now}`).toBe(true);
         warned = warned || f.warnRunOutFirst;
       }
+    }
+  });
+});
+
+describe("통합 레드팀 13라운드 회귀", () => {
+  it("깨끗한 문장이 있어도 반대 조건 문장을 덧붙이면 1차 거부(바꿔 쓰기·산소통 시각·경고)", () => {
+    const f = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    const t = templateSentences(f);
+    expect(verify(f, t).ok).toBe(true);
+    for (const extra of ["지금 산소통으로 바꿔 써도 됩니다.", "전원 장치가 도착하면 산소통으로 바꿔 쓰세요."]) expect(verify(f, [...t, extra]).ok, extra).toBe(false);
+    const w = buildFacts(IN({ lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 4800 + 3600 }));
+    const tw = templateSentences(w);
+    expect(verify(w, tw).ok).toBe(true);
+    expect(verify(w, [...tw, "도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다."]).ok).toBe(false);
+  });
+  it("꼬리말에 보호자 글 금지 전문어가 없다(모든 근거 조합)", () => {
+    for (const i of allInputs().slice(0, 600)) {
+      const ft = compose(buildFacts(i), null).footer;
+      for (const w of BANNED.JARGON) expect(ft, w).not.toContain(w);
     }
   });
 });

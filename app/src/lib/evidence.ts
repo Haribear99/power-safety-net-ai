@@ -140,6 +140,8 @@ export interface N1Evidence {
   extUndisclosed?: { k: number; ai: number; ids: string[] } | null;
   /** 지금 경고 기준(30분 여유)이면 경고가 붙었을 텐데 봉인 때 경고 없이 나간 글(통합 레드팀 10라운드) */
   marginMissed?: string[];
+  /** '적어도' 보장 표현만 있고 결함 판정 밖인 나간 글(표현 기준 변경이라 결함에서 제외) */
+  atLeastOnly?: string[];
   /** 사실에 없는 기관 약속을 쓴 나간 AI 글(통합 레드팀 11라운드) */
   unsupportedPromise?: string[];
   /** 나간 글 가운데 봉인 뒤 결함으로 판정된 수(같은 시각 모순 AI + 모순 고정 문안 + 외장 미표기 + 경고 여유 미달, 중복 없이) */
