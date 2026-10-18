@@ -377,6 +377,29 @@ describe("통합 레드팀 5라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 6라운드 회귀", () => {
+  it("30분 미만: '충전하지 않으면 30분을 못 버팁니다'는 1차 거부, 전제가 완충이 아니면 2차 거부", () => {
+    const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "VENT_1H", batteryS: 1200, cylinderS: 0, extDeclared: false });
+    expect(f.battery.state).toBe("UNDER30");
+    const t = templateSentences(f);
+    expect(verify(f, t).ok).toBe(true);
+    expect(verify(f, t.map((s) => s.includes("30분") ? "충전하지 않으면 배터리는 30분을 못 버팁니다." : s)).ok).toBe(false);
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    for (const condition of ["without_charge", "current_state", "unspecified"] as const) expect(compareClaims(f, { ...c, battery: { ...c.battery, condition } }).length).toBeGreaterThan(0);
+  });
+  it("정전 중 시각: '완전히 충전하면 …까지'는 1·2차 모두 거부", () => {
+    const f = buildFacts(IN({}));
+    const t = templateSentences(f);
+    const bad = t.map((s) => (s.includes("배터리") && s.includes("적어도") ? s.replace("배터리는", "완전히 충전하면 배터리는") : s));
+    expect(bad.join(" ")).toContain("충전하면");
+    expect(verify(f, bad).ok).toBe(false);
+    const c = truthClaims(f);
+    expect(compareClaims(f, { ...c, battery: { ...c.battery, condition: "full_charge" } }).length).toBeGreaterThan(0);
+    expect(compareClaims(f, { ...c, battery: { ...c.battery, condition: "current_state" } })).toEqual([]);
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [

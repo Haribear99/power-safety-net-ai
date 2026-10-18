@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v13"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음
+export const CHECK_VERSION = "n1-check-v14"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음. v14(6라운드): 30분 미만도 완충 전제, 정전 중 시각에 완충 전제 금지
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
@@ -49,7 +49,7 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
   lasts_for = '완전히 충전하면 (적어도) ~시간 버틴다/쓸 수 있다'(time = 그 시간 표기), less_than = '~도 못 버틴다'(time = 그 표기),
   no_battery_stops = 배터리가 없어 정전되면 바로 멈춘다, maybe_already_out = 이미 떨어졌을 수 있다,
   unknown_being_checked = 얼마나 갈지 담당자가 확인 중, not_mentioned, other = 위에 없는 말(예: '~ 이후에도 버틴다', '~까지는 못 버틴다').
-  condition = 그 말의 전제 — full_charge(완전히 충전하면) | without_charge(충전하지 않아도·충전 없이도) | current_state(지금 상태로) | unspecified(전제 없음).
+  condition = 그 말의 전제 — full_charge(완전히 충전하면·완전히 충전해도) | without_charge(충전하지 않아도·충전 없이도) | current_state(지금 상태로) | unspecified(전제 없음).
 - cylinder: 산소통에 대해 말한 것. lasts_until = 그 시각까지 쓴다/버틴다, lasts_for = (적어도) 그 시간 동안 쓴다/버틴다, maybe_already_out = 이미 거의 다 썼을 수 있다, not_mentioned, other. time은 표기 그대로.
 - means: 담당자가 정한 도움 수단.
   kind = power_equipment(전원 장치·발전기·외장 배터리·산소통 배달 등 물건이 집으로 옴) | ambulance(구급대) | shelter(쉼터로 옮김) | none(수단 말 없음) | several(둘 이상) | other.
@@ -124,7 +124,10 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   const extra = m.extraDetails.filter((x) => { const n = norm(x); return n !== norm(m.name) && !["가까운쉼터", "쉼터", "가까운", "집", "집으로"].includes(n); });
   if (extra.length) bad("CLAIM_MISMATCH", `수단에 덧붙인 내용: ${extra.join(", ")}`);
   // 평시 완충 시간은 '완전히 충전하면' 전제여야 한다(「충전 없이도 2시간」 차단)
-  if (f.battery.state === "HOURS" && c.battery.condition !== "full_charge") bad("CLAIM_MISMATCH", `배터리 전제: 글 ${c.battery.condition}, 사실 full_charge`);
+  // 30분 미만도 '완전히 충전해도' 전제여야 한다(「충전하지 않으면 30분을 못 버팁니다」 차단, 통합 레드팀 6라운드)
+  if ((f.battery.state === "HOURS" || f.battery.state === "UNDER30") && c.battery.condition !== "full_charge") bad("CLAIM_MISMATCH", `배터리 전제: 글 ${c.battery.condition}, 사실 full_charge`);
+  // 정전 중 시각은 지금 충전 상태 기준이다(「완전히 충전하면 …까지」 차단)
+  if (f.battery.state === "UNTIL" && c.battery.condition === "full_charge") bad("CLAIM_MISMATCH", "배터리 전제: 글 full_charge, 사실 지금 상태");
   // 구급대 연결(봉인 S9 놓침 t080): 119 결정이면 '연결했다'여야 하고, 아니면 연결을 말하지 않아야 한다
   if (p?.type === "CALL119" ? m.connected !== "yes" : m.connected === "yes") bad("CLAIM_MISMATCH", `구급대 연결: 글 ${m.connected}`);
   // 산소통 바꿔 쓰기 시점: 배터리가 없거나 떨어졌으면 지금, 배터리가 아직 버티면 배터리가 떨어진 뒤

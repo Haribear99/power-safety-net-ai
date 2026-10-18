@@ -4,7 +4,7 @@
   1. 그 표기가 글에 모두 있다.
   2. 그 표기를 지운 뒤 글에 숫자가 남지 않는다(없는 숫자 = 사실 오류).
   3. 한 문장에 시각·시간 표기가 둘 이상 들어 있지 않다.
-TypeScript 검증기(app/src/lib/notice/rules.ts)를 import하지 않는다. 같은 결론이 나오면 '보낸 글 사실 오류 0'을 두 구현이 함께 확인한 것이다.
+TypeScript 검증기(app/src/lib/notice/rules.ts)를 import하지 않는다. 같은 결론이 나오면 보낸 글의 시각·숫자 표기가 사실 묶음과 일치함을 두 구현이 함께 확인한 것이다(뜻·모순은 보지 않는다).
 
 실행: python tools/notice_check.py out/sealed/n1      (또는 out/n1/<tag>)
 """
