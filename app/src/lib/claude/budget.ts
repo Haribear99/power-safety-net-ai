@@ -1,7 +1,7 @@
 /**
  * 예산 풀 (spec.md 7.1·7.2·7.5절). 출처: 형제 저장소 `app/src/lib/claude/budget.ts`를 복사해 고쳤다.
  * 바꾼 점
- * - 풀: dev | sealed | public | judge | reserve. 키는 `pl26:budget:<pool>`로 **누적**(월 단위 아님).
+ * - 풀: dev | sealed | public | judge | notice | reserve. notice = 보호자 알림 실시간 생성(10/18 추가, 라벨 판독 공개 풀과 분리). 키는 `pl26:budget:<pool>`로 **누적**(월 단위 아님).
  * - '검사 후 기록' 대신 **예약 후 실행**: 풀·일일·전체 키를 Lua 1회(EVAL)로 함께 검사·증가하고(원자적), 호출 뒤 차액을 Lua 1회로 되돌린다.
  *   시간 초과 등 과금 여부를 모르면 예약분을 그대로 둔다(hold).
  * - MemoryStore 폴백 없음: Upstash 환경변수가 없으면 budgetBackend()가 null → 라우트는 재생 모드, 스크립트는 즉시 종료.
@@ -9,12 +9,12 @@
  */
 import { PRICE_PER_MTOK, type ModelKey } from "./models";
 
-export type Pool = "dev" | "sealed" | "public" | "judge" | "reserve";
-export const POOLS: readonly Pool[] = ["dev", "sealed", "public", "judge", "reserve"];
+export type Pool = "dev" | "sealed" | "public" | "judge" | "notice" | "reserve";
+export const POOLS: readonly Pool[] = ["dev", "sealed", "public", "judge", "notice", "reserve"];
 
 export const MICRO = 1_000_000;
 export const FREEZE_TOTAL_USD = 35;
-const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge"];
+const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge", "notice"];
 
 export interface Usage {
   input_tokens: number;
@@ -34,7 +34,7 @@ export function totalBudgetUsd(): number {
   return Number(process.env.CLAUDE_TOTAL_BUDGET_USD ?? 45);
 }
 
-/** 풀 상한(7.1절): dev 0.45, sealed 0.22, public 0.12, reserve 0.21 − judge $3.0 */
+/** 풀 상한(7.1절): dev 0.45, sealed 0.22, public 0.12, reserve 0.21 − judge $3.0 − notice $3.0 */
 export function poolLimitUsd(pool: Pool): number {
   const t = totalBudgetUsd();
   switch (pool) {
@@ -42,7 +42,8 @@ export function poolLimitUsd(pool: Pool): number {
     case "sealed": return t * 0.22;
     case "public": return t * 0.12;
     case "judge": return 3.0;
-    case "reserve": return t * 0.21 - 3.0;
+    case "notice": return 3.0;
+    case "reserve": return t * 0.21 - 6.0;
   }
 }
 
@@ -52,9 +53,10 @@ export function kstDate(now = new Date()): string {
   return k.toISOString().slice(0, 10);
 }
 
-/** 일일 상한(7.5절): public = min($0.30, 풀 잔액 ÷ 남은 일수), judge = $0.40, 나머지 없음(null) */
+/** 일일 상한(7.5절): public = min($0.30, 풀 잔액 ÷ 남은 일수), judge = $0.40, notice = $0.60, 나머지 없음(null) */
 export function dayLimitUsd(pool: Pool, poolSpentUsd: number, now = new Date(), voteEnd = process.env.VOTE_END_KST ?? "2026-12-31"): number | null {
   if (pool === "judge") return 0.4;
+  if (pool === "notice") return 0.6;
   if (pool !== "public") return null;
   const days = Math.max(1, Math.ceil((Date.parse(`${voteEnd}T23:59:59+09:00`) - now.getTime()) / 86_400_000));
   return Math.min(0.3, Math.max(0, poolLimitUsd("public") - poolSpentUsd) / days);

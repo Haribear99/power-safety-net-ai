@@ -8,6 +8,8 @@ import { AiTag } from "@/components/AiTag";
 import { FLAG_KO } from "@/components/ops/labels";
 import type { HouseholdView } from "@/lib/domain/types";
 import { computeLowerBoundDetail, DEFAULT_DB } from "@/lib/engine/lowerBound";
+import { prepInput } from "@/lib/notice/facts";
+import { NoticePanel } from "@/components/NoticePanel";
 import { LABEL_FIELDS, matchLabel, type LabelField, type LabelOutT, type MatchResult } from "@/lib/vision/label";
 
 interface Sample { key: string; title: string; src: string; label: LabelOutT; recorded: string; latencyMs: number }
@@ -147,13 +149,13 @@ function LowerBoundForm({ specId }: { specId: string }) {
   const [src, setSrc] = useState<"device_screen" | "user" | "unknown">("unknown");
   const [pct, setPct] = useState(100);
   const [ext, setExt] = useState(0);
-  const d = useMemo(() => {
+  const { d, prep } = useMemo(() => {
     const hh: HouseholdView = {
       id: "W", pseudonym: "W", cell: { x: 0, y: 0 }, floor: 1, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
       device: { specId, specBy: "ai_label_user_confirmed", batteryAgeY: null, charge: { value: src === "unknown" ? null : pct, source: src } },
       ext: ext > 0 ? [{ extSpecId: null, declaredCount: ext, opVerified: null }] : [],
     };
-    return computeLowerBoundDetail(hh, DEFAULT_DB);
+    return { d: computeLowerBoundDetail(hh, DEFAULT_DB), prep: prepInput(hh, DEFAULT_DB) };
   }, [specId, src, pct, ext]);
   const lb = d.lb;
   return (
@@ -173,6 +175,7 @@ function LowerBoundForm({ specId }: { specId: string }) {
       </ul>
       {lb.flags.length ? <p className="mt-1 text-[13px] text-warn">{lb.flags.map((f) => FLAG_KO[f]).join(" · ")}</p> : null}
       <p className="mt-2 text-[13px] text-muted">입력해도 하한은 제조사 사양의 90%(+운영자 확인분)를 넘지 못합니다 · 충전량 입력은 현재 상태 갱신용 · AI 판독 기종은 운영자 「기종 확인」 전까지 이웃 기종 최소값으로 계산합니다</p>
+      <NoticePanel input={prep} title="보호자 대비 안내(쉬운 글·음성): 완충·외장배터리·연락처" />
     </div>
   );
 }

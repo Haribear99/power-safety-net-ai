@@ -4,7 +4,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AuditEntry, Lane } from "@/lib/domain/types";
 import { computeLowerBoundDetail } from "@/lib/engine/lowerBound";
-import { sToH } from "@/lib/engine/quantize";
+import { qT, sToH } from "@/lib/engine/quantize";
+import { outageInput } from "@/lib/notice/facts";
+import { NoticePanel } from "@/components/NoticePanel";
 import { renderReason, type Reason } from "@/lib/alloc/reasons";
 import { DEVICE_CLASS_LABEL } from "@/lib/alloc/project119";
 import {
@@ -91,10 +93,28 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
         </div>
       ) : null}
 
+      {decided && <DecidedNotice householdId={householdId} />}
       <VerifyForms householdId={householdId} />
       <ReReportForm householdId={householdId} />
     </section>
   );
+}
+
+/** 결정(승인·수정) 뒤 보호자 알림. 사실은 결정 기록·현재 하한에서 코드가 만든다 */
+function DecidedNotice({ householdId }: { householdId: string }) {
+  const { session } = useOps();
+  const s = session!;
+  const d = s.decisions[householdId];
+  const hh = s.households.find((h) => h.id === householdId)!;
+  const input = useMemo(() => outageInput({
+    hh, baseIso: s.preset.meta.baseIso, nowS: s.nowS, lane: d.lane,
+    resourceKind: s.preset.planner.resources.find((r) => r.id === d.resourceId)?.kind ?? null,
+    etaS: d.etaH != null ? qT(d.etaH) : null, late119: d.late119 ?? false, db: DB,
+  }), [hh, s.preset, s.nowS, d]);
+  if (!input) return null;
+  // 재검토 표시가 뜬 결정(도착 전 소진 등)은 낡은 결정이라 알림을 만들지 않는다
+  if (s.flagged[householdId]) return <p className="mt-3 rounded bg-gap-soft p-2 text-[14px] text-gap" data-testid="notice-blocked">보호자 알림 보류: 이 결정은 재검토가 필요합니다. 대안을 승인하거나 수정한 뒤 알림을 만드세요.</p>;
+  return <NoticePanel input={input} title="보호자 알림(쉬운 글·음성)" />;
 }
 
 function safeReason(r: { templateId: string; params: Record<string, string | number> }): string {

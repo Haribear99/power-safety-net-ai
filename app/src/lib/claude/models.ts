@@ -17,7 +17,7 @@ export const PRICE_PER_MTOK: Record<ModelKey, { input: number; output: number; c
   opus: { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 },
 };
 
-export type Stage = "PW_C1_label" | "PW_C1_haiku_arm" | "PW_C2_dsl" | "PW_C3_patch" | "PW_C3_repair";
+export type Stage = "PW_C1_label" | "PW_C1_haiku_arm" | "PW_C2_dsl" | "PW_C3_patch" | "PW_C3_repair" | "PW_N1_notice" | "PW_N1_check" | "PW_N1_judge";
 
 export interface StageConfig {
   model: ModelKey;
@@ -39,4 +39,10 @@ export const STAGE: Record<Stage, StageConfig> = {
   PW_C2_dsl: { model: "sonnet", thinking: "adaptive", effort: "medium", maxTokens: 16_000, timeoutMs: 300_000, reserveUsd: 0.3, retryMaxTokens: 24_000 },
   PW_C3_patch: { model: "sonnet", thinking: "adaptive", effort: "medium", maxTokens: 16_000, timeoutMs: 300_000, reserveUsd: 0.3, retryMaxTokens: 24_000 },
   PW_C3_repair: { model: "sonnet", thinking: "adaptive", effort: "medium", maxTokens: 16_000, timeoutMs: 300_000, reserveUsd: 0.3, retryMaxTokens: 24_000 },
+  // 보호자 알림 쉬운 글(10/18 추가). 입력 약 2천 토큰 + 출력 약 4백 → 약 $0.01
+  PW_N1_notice: { model: "sonnet", thinking: "between_tools", effort: "low", maxTokens: 1000, timeoutMs: 20_000, reserveUsd: 0.02, retryMaxTokens: 2000 },
+  // 보호자 알림 2차 검사: 생성과 다른 모델이 사실표 없이 글만 읽고 주장을 뽑는다(check.ts). 약 $0.012
+  PW_N1_check: { model: "opus", thinking: "omit", effort: "low", maxTokens: 1500, timeoutMs: 30_000, reserveUsd: 0.04, retryMaxTokens: 3000 },
+  // N1 봉인 측정의 탐색 지표(눈가림 쌍 비교) 전용. 운영 경로에서 부르지 않는다
+  PW_N1_judge: { model: "opus", thinking: "omit", effort: "low", maxTokens: 600, timeoutMs: 60_000, reserveUsd: 0.03, retryMaxTokens: 1200 },
 };
