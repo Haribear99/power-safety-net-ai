@@ -127,7 +127,8 @@ export interface N1Evidence {
     contradiction: { n: number; judged: number; ai: number; template: number; same: number };
     rest: { ai: number; template: number; same: number };
     /** 나간 AI 글 중 같은 시각 경고 모순(봉인 당시 통과, 지금 규칙은 「도착이 늦어지면」) */
-    aiSameTime: { n: number; ai: number; template: number; same: number };
+    /** inContradiction = 그중 위 모순 고정 문안 쌍에도 든 수(양쪽 모두 모순) */
+    aiSameTime: { n: number; inContradiction: number; ai: number; template: number; same: number };
     /** 나간 AI 글의 배터리·산소통 시각 문장 중 '적어도'를 뺀 수(고정 문안은 늘 씀) */
     atLeastDropped: { k: number; n: number };
     /** 쌍 비교 부호검정 양측 p(같음 제외) */

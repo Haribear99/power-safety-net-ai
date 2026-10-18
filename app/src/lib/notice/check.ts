@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v14"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음. v14(6라운드): 30분 미만도 완충 전제, 정전 중 시각에 완충 전제 금지
+export const CHECK_VERSION = "n1-check-v15"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음. v14(6라운드): 30분 미만도 완충 전제, 정전 중 시각에 완충 전제 금지. v15(7라운드): 산소통 바꿔 쓰기의 조건이 '배터리가 떨어지면'인지 따로 본다
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
@@ -30,7 +30,7 @@ export const Claims = z.object({
   }),
   supplyMayRunOutBeforeHelp: z.boolean(),
   runOutWhich: z.enum(["battery", "cylinder", "unclear", "none"]),
-  actions: z.array(z.object({ kind: z.enum(ACTIONS), when: z.enum(["now", "after_condition", "unspecified"]), negated: z.boolean(), quote: z.string().max(80) })).max(12),
+  actions: z.array(z.object({ kind: z.enum(ACTIONS), when: z.enum(["now", "after_battery_out", "after_condition", "unspecified"]), negated: z.boolean(), quote: z.string().max(80) })).max(12),
   staffPromises: z.array(z.object({ kind: z.enum(["send_equipment", "ambulance_transport", "shelter_contact", "checking_battery", "checking_eta", "contact_later", "other"]), quote: z.string().max(80) })).max(8),
   otherTimesOrDurations: z.array(z.string().max(40)).max(10),
   reassuranceOrPromise: z.boolean(),
@@ -61,11 +61,11 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
 - supplyMayRunOutBeforeHelp: 도움(전원 장치·구급대 등)이 오기 전에 배터리나 산소통이 먼저 떨어질 수 있다고 했는가('도착이 늦어지면 먼저 떨어질 수 있다'처럼 조건이 붙어도 true).
 - runOutWhich: 그 경고가 가리키는 것 — battery(배터리) | cylinder(산소통) | unclear(분명하지 않음) | none(경고 없음).
 - actions: 읽는 사람에게 하라고(또는 하지 말라고) 한 모든 것. 하나도 빼지 않는다.
-  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배터리가 떨어지면 바꿔 쓰세요'는 when=after_condition),
+  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배터리가 떨어지면 바꿔 쓰세요'는 when=after_battery_out, '전원 장치가 도착하면 바꿔 쓰세요'는 when=after_condition),
   CHARGE_DEVICE(평소 기기 배터리 충전), CHARGE_EXT(외장 배터리 충전), CHECK_CYLINDER(산소통 미리 확인), PLAN_WITH_STAFF(정전 때 쓸 방법을 담당자와 미리 정함),
   GENERAL_PREPARE('정전에 미리 대비하세요'처럼 구체적 행동 없는 일반 당부),
   OTHER(그 밖의 모든 지시 — 하지 말라는 말, 전화 걸기, 기기 조작, 이동, 연락 없이 기다리라는 말 등). quote = 그 지시 문장 일부를 그대로.
-  when = now(지금 바로) | after_condition('도착하면', '연락이 오면'처럼 조건이 된 뒤) | unspecified(때를 말하지 않음).
+  when = now(지금 바로) | after_battery_out(배터리가 떨어지면·다 되면) | after_condition(그 밖의 조건이 된 뒤: '도착하면', '연락이 오면', '떨어지기 전에 미리' 등) | unspecified(때를 말하지 않음).
   negated = '~하지 마세요'처럼 하지 말라는 지시이면 true.
 - staffPromises: 담당자·기관·구급대가 하겠다고 한 일을 모두. send_equipment(장비를 집으로 보냄) | ambulance_transport(구급대가 옮김·연결) | shelter_contact(쉼터로 옮기도록 연락) | checking_battery(배터리를 확인 중) | checking_eta(도착·이송 시각을 확인 중) | contact_later(나중에 연락·안내함) | other(그 밖의 약속). quote = 그 문장 일부.
 - otherTimesOrDurations: 위 time 칸에 넣지 않은 특정 시각·날짜·기간·때 표현(예: '내일 아침', '이틀', '세 시', '곧', '한 시간 안에')을 모두 그대로. '평소에', '늘', '미리', '지금', '바로', '정전되면' 같은 일반 부사·조건은 넣지 않는다.
@@ -130,8 +130,8 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   if (f.battery.state === "UNTIL" && c.battery.condition === "full_charge") bad("CLAIM_MISMATCH", "배터리 전제: 글 full_charge, 사실 지금 상태");
   // 구급대 연결(봉인 S9 놓침 t080): 119 결정이면 '연결했다'여야 하고, 아니면 연결을 말하지 않아야 한다
   if (p?.type === "CALL119" ? m.connected !== "yes" : m.connected === "yes") bad("CLAIM_MISMATCH", `구급대 연결: 글 ${m.connected}`);
-  // 산소통 바꿔 쓰기 시점: 배터리가 없거나 떨어졌으면 지금, 배터리가 아직 버티면 배터리가 떨어진 뒤
-  const switchWhen = f.actions.includes("SWITCH_TO_CYLINDER") ? "now" : f.actions.includes("SWITCH_AFTER_BATTERY") ? "after_condition" : null;
+  // 산소통 바꿔 쓰기 시점: 배터리가 없거나 떨어졌으면 지금, 배터리가 아직 버티면 배터리가 떨어진 뒤(다른 조건 — 도착하면·연락이 오면 — 은 거부, 통합 레드팀 7라운드)
+  const switchWhen = f.actions.includes("SWITCH_TO_CYLINDER") ? "now" : f.actions.includes("SWITCH_AFTER_BATTERY") ? "after_battery_out" : null;
   const switches = c.actions.filter((a) => a.kind === "SWITCH_TO_CYLINDER" && !a.negated);
   for (const a of switches) if (a.when !== switchWhen) bad("CLAIM_UNSAFE", `산소통 바꿔 쓰기 시점: 글 ${a.when}, 사실 ${switchWhen ?? "없음"}: 「${a.quote}」`);
   // 할 일: 정확히 같은 집합, OTHER 없음(부정 지시는 할 일 충족으로 세지 않는다)

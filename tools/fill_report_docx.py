@@ -1,4 +1,4 @@
-# 출처: 형제 저장소 AI 라이프 솔루션 챌린지/tools/fill_report_docx.py 복사(spec.md 7.1절). 고친 점 없음.
+# 출처: 형제 저장소 AI 라이프 솔루션 챌린지/tools/fill_report_docx.py 복사(spec.md 7.1절). 고친 점: 양식 안내 문구의 서식(기울임·파란 글자·밑줄)을 지운다(통합 레드팀 7라운드).
 # -*- coding: utf-8 -*-
 """성과보고서 Word 양식에 submission/report_draft.md 1부를 채운다(제출물 37).
   python -I tools/fill_report_docx.py <양식.docx> <report_draft.md> <출력.docx>
@@ -40,6 +40,8 @@ def set_cell(cell, text: str):
     run0 = first.runs[0] if first.runs else None
     font = (run0.font.name, run0.font.size, run0.font.bold) if run0 else (None, None, None)
     rpr = copy.deepcopy(run0._r.rPr) if run0 is not None and run0._r.rPr is not None else None
+    if rpr is not None:  # 안내 문구 서식은 제출 글에 물려주지 않는다
+        for el in [c for c in rpr if c.tag.split('}')[1] in ('i', 'iCs', 'color', 'u')]: rpr.remove(el)
     ppr = copy.deepcopy(first._p.pPr) if first._p.pPr is not None else None
     for p in cell.paragraphs[1:]:
         p._p.getparent().remove(p._p)

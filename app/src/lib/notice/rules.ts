@@ -86,7 +86,8 @@ export function requirements(f: NoticeFacts): Requirements {
     if (a === "KEEP_PHONE") sent(["전화"], "연락을 받을 수 있게 전화를 곁에 둔다");
     if (a === "FOLLOW_STAFF") sent(["안내", "따"], "연락이 오면 안내를 따른다");
     if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다", NEG);
-    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", NEG);
+    // 조건은 '배터리가 떨어지면'뿐('도착하면'·'연락이 오면'·'떨어지기 전에 미리' 차단, 통합 레드팀 7라운드)
+    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리", "떨어지면"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", [...NEG, "전에", "기 전", "도착", "오면", "연락", "미리"]);
     if (a === "CHARGE_DEVICE") sent(["충전"], "평소에 배터리를 늘 충전해 둔다");
     if (a === "CHARGE_EXT") sent(["외장", "충전"], "외장 배터리도 충전해 둔다");
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");

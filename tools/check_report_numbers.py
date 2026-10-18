@@ -66,7 +66,7 @@ expected = {
     "N1 AI 통과": f"AI 글 통과 {ev['n1']['aiSent']['k']}/{ev['n1']['aiSent']['n']}(95% {ev['n1']['aiSent']['lo'] * 100:.0f}~{ev['n1']['aiSent']['hi'] * 100:.0f}%)",
     "N1 놓침": f"{ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%, 95% {ev['n1']['badMissed']['lo'] * 100:.1f}~{ev['n1']['badMissed']['hi'] * 100:.1f}%",
     "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}(95% {ev['n1']['goodFalseReject']['lo'] * 100:.1f}~{ev['n1']['goodFalseReject']['hi'] * 100:.1f}%)",
-    "N1 쌍 비교(탐색 표지)": f"AI 판정 탐색 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}",
+    "N1 쌍 비교(탐색 표지)": f"AI 판정 탐색 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}(AI:고정)",
     "N1 같은 시각 모순 AI 글": f"{ev['n1']['judgeSplit']['aiSameTime']['n']}건은 같은 시각 경고 모순",
     "N1 1·2차 검사 몫": f"글자 규칙 {ev['n1']['badCaughtGate1']['k']}건·AI 대조 {ev['n1']['badCaughtGate2']['k']}건",
     "N1 쌍 비교 유의성": "AI 우세 근거 없음(p≈" + format(ev['n1']['judgeSplit']['signP'], '.1f'),

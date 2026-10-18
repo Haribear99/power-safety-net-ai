@@ -254,7 +254,7 @@ function n1SameTimeWarn(F: N1Facts): boolean {
 function n1JudgeSplit() {
   const dir = path.join(__dirname, "..", "..", "out", "sealed", "n1");
   if (!existsSync(dir)) return {};
-  const split = { contradiction: { n: 0, judged: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 }, aiSameTime: { n: 0, ai: 0, template: 0, same: 0 } };
+  const split = { contradiction: { n: 0, judged: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 }, aiSameTime: { n: 0, inContradiction: 0, ai: 0, template: 0, same: 0 } };
   const atLeast = { k: 0, n: 0 };
   for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
     const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { facts: N1Facts; composed: { source: string }; judged: { pick?: "ai" | "template" | "same" } | null };
@@ -270,6 +270,7 @@ function n1JudgeSplit() {
     if (r.composed.source === "ai" && n1SameTimeWarn(F)) {
       split.aiSameTime.n++;
       if (pick) split.aiSameTime[pick]++;
+      if (c) split.aiSameTime.inContradiction++;
     }
     // 쌍 비교의 내용 차이: AI 글이 배터리·산소통 시각 문장에서 하한 표현 '적어도'를 뺐는가(고정 문안은 늘 씀)
     if (r.composed.source === "ai" && F.kind === "OUTAGE") for (const t of [F.battery.text, F.cylinder?.text]) {

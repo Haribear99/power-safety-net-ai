@@ -1,0 +1,274 @@
+{
+ "promptVersion": "n1-v11",
+ "checkVersion": "n1-check-v15",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-sw-v15",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_switch.json",
+  "sha256": "62f232a5dcb6137ac97b806e33a1f7fd92ae4febec80287e3fac230fb0b2fc15",
+  "n": 24,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 16,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.1936076829974049
+    ]
+   },
+   "badCaught": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "byCategory": {
+    "switch_on_arrival": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_contact": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_before_out": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_arrival_soft": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    }
+   }
+  },
+  "costUsd": 0.29360800000000004,
+  "rows": [
+   {
+    "id": "sw-00-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}

@@ -58,7 +58,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
-    actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" || kind === "SWITCH_AFTER_BATTERY" ? "after_condition" as const : "now" as const, negated: false, quote: "" })),
+    actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, negated: false, quote: "" })),
     otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
   };
 }
@@ -397,6 +397,24 @@ describe("통합 레드팀 6라운드 회귀", () => {
     const c = truthClaims(f);
     expect(compareClaims(f, { ...c, battery: { ...c.battery, condition: "full_charge" } }).length).toBeGreaterThan(0);
     expect(compareClaims(f, { ...c, battery: { ...c.battery, condition: "current_state" } })).toEqual([]);
+  });
+});
+
+describe("통합 레드팀 7라운드 회귀", () => {
+  const f = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 3600, cylinderEndS: 3600 + 7200, cylinderS: 7200, etaS: 5400 }));
+  const swap = (to: string) => templateSentences(f).map((s) => (s.includes("산소통으로 바꿔") ? to : s));
+  it("배터리가 떨어지면 바꿔 쓰기: 고정 문안 통과, '도착하면'·'연락이 오면'·'떨어지기 전에 미리'는 1차 거부", () => {
+    expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
+    expect(verify(f, templateSentences(f)).ok).toBe(true);
+    for (const bad of ["배터리 대신 전원 장치가 도착하면 산소통으로 바꿔 쓰세요.", "배터리가 남아 있어도 연락이 오면 산소통으로 바꿔 쓰세요.", "배터리가 떨어지기 전에 미리 산소통으로 바꿔 쓰세요."])
+      expect(verify(f, swap(bad)).ok, bad).toBe(false);
+    expect(verify(f, swap("배터리가 다 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓰세요.")).ok).toBe(true);
+  });
+  it("2차: 바꿔 쓰기 조건이 '배터리가 떨어지면'이 아니면 거부", () => {
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    for (const when of ["after_condition", "now", "unspecified"] as const)
+      expect(compareClaims(f, { ...c, actions: c.actions.map((a) => (a.kind === "SWITCH_TO_CYLINDER" ? { ...a, when } : a)) }).length, when).toBeGreaterThan(0);
   });
 });
 

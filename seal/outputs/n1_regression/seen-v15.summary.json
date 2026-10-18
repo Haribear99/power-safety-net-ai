@@ -1,0 +1,149 @@
+{
+ "promptVersion": "n1-v11",
+ "checkVersion": "n1-check-v15",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "seen-v15",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_seen.json",
+  "sha256": "b5f22912c5a08c8e2fcc06774dd8b48e1b8a08909b2473f568b9eccfe1742c46",
+  "n": 7,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 4,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.4898908403969213
+    ]
+   },
+   "badCaught": {
+    "k": 4,
+    "n": 4,
+    "rate": 1,
+    "wilson95": [
+     0.5101091596030786,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 3,
+    "n": 4,
+    "rate": 0.75,
+    "wilson95": [
+     0.3006418400969081,
+     0.954412739704631
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 4,
+    "n": 4,
+    "rate": 1,
+    "wilson95": [
+     0.5101091596030786,
+     0.9999999999999999
+    ]
+   },
+   "goodFalseReject": {
+    "k": 3,
+    "n": 3,
+    "rate": 1,
+    "wilson95": [
+     0.43850296436068037,
+     1
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 3,
+    "n": 3,
+    "rate": 1,
+    "wilson95": [
+     0.43850296436068037,
+     1
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 3,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.5614970356393196
+    ]
+   },
+   "byCategory": {
+    "warning_flip": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "resource_name_wrong": {
+     "n": 2,
+     "caught1": 1,
+     "caught2": 2,
+     "caught": 2
+    },
+    "omission_by_meaning": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    }
+   }
+  },
+  "costUsd": 0.074539,
+  "rows": [
+   {
+    "id": "t026",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t028",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t030",
+    "label": "good",
+    "category": "faithful_paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "t049",
+    "label": "bad",
+    "category": "warning_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t061",
+    "label": "bad",
+    "category": "resource_name_wrong",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "t062",
+    "label": "bad",
+    "category": "resource_name_wrong",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "t080",
+    "label": "bad",
+    "category": "omission_by_meaning",
+    "gate1": true,
+    "gate2": true
+   }
+  ]
+ }
+}
