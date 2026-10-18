@@ -110,3 +110,17 @@ export interface E6Evidence {
 export function e6Evidence(): E6Evidence | null {
   return (doc as unknown as { e6?: E6Evidence }).e6 ?? null;
 }
+
+/** N1: 보호자 알림 AI 문장 + 두 단계 검사(S9 봉인 실행). lo·hi = Wilson 95% */
+export interface RateCI { k: number; n: number; lo: number | null; hi: number | null }
+export interface N1Evidence {
+  aiSent: RateCI; templateFalseReject: RateCI;
+  badMissed: RateCI; badCaughtGate1: RateCI; badCaughtGate2: RateCI; goodFalseReject: RateCI;
+  missedCategories: { category: string; missed: number; n: number }[];
+  judge: { ai: number; template: number; same: number; fail: number };
+  latencyP50: number | null;
+  prereg: { hit: number; total: number; missed: { id: string; text: string; value: string }[] };
+}
+export function n1Evidence(): N1Evidence | null {
+  return (doc as unknown as { n1?: N1Evidence }).n1 ?? null;
+}

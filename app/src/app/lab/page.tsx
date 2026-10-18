@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE, c1Evidence, e4Evidence, e5Evidence, e6Evidence } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, c1Evidence, e4Evidence, e5Evidence, e6Evidence, n1Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 import { pRange } from "@/lib/engine/params";
@@ -406,6 +406,37 @@ function AiAndTarget() {
   );
 }
 
+function NoticeCheck() {
+  const n = n1Evidence();
+  if (!n) return <p className="mt-2 text-[14px]" data-testid="n1">보호자 알림 검사: <strong>{BEFORE_MEASURE}</strong></p>;
+  const r = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(${pct1(x.k / x.n)}, 95% ${pct1(x.lo)}~${pct1(x.hi)})`;
+  const KO: Record<string, string> = {
+    time_value: "시각 값", date_shift: "날짜 밀기", time_role_swap: "시각 맞바꿈", time_meaning: "시각 뜻(까지→이후 등)", negation: "부정", warning_flip: "경고 뒤집기",
+    late_flip: "늦음 뒤집기", state_flip: "배터리·산소통 상태 뒤집기", means_wrong: "수단 틀림", resource_name_wrong: "수단 이름 틀림", extra_instruction: "정하지 않은 지시",
+    contradict_tail: "119·123 문장과 어긋남", reassurance: "안심 약속", medical_or_device: "의료·기기 조작", risky_action: "위험 행동", omission_by_meaning: "뜻으로 빠뜨림",
+    subtle_paraphrase_error: "미묘한 바꿔쓰기 오류", switch_not_now: "산소통 교체 미룸",
+  };
+  return (
+    <div data-testid="n1">
+      <p className="mt-1 text-[14px]">
+        원안의 &lsquo;쉬운 글·음성·보호자 알림&rsquo;입니다. 담당자 결정 뒤 사실(시각·수단·경고)과 할 일은 코드가 정하고, AI(Claude Sonnet)는 쉬운 문장만 씁니다.
+        1차로 규칙이 글자를, 2차로 다른 AI(Claude Opus)가 사실표 없이 글만 읽고 뽑은 내용을 규칙이 결정 기록과 대조합니다. 둘 다 맞을 때만 AI 글이 나가고, 아니면 고정 문안이 나갑니다. 119·123 문장은 늘 고정입니다.
+      </p>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px]">
+        <li>독립 레드팀이 쓴 틀린 글 {n.badMissed.n}건(개발자는 봉인 전까지 내용을 보지 않음) 중 두 검사를 모두 통과해 나갈 뻔한 글: <strong>{r(n.badMissed)}</strong>. 1차 검사만이면 {n.badCaughtGate1.k}건, 2차 검사만이면 {n.badCaughtGate2.k}건을 막았습니다.
+          {n.missedCategories.length ? ` 놓친 범주: ${n.missedCategories.map((m) => `${KO[m.category] ?? m.category} ${m.missed}/${m.n}`).join(", ")}.` : ""}</li>
+        <li>같은 모음의 맞는 글 {n.goodFalseReject.n}건 중 잘못 막은 글: {r(n.goodFalseReject)}. 막히면 고정 문안이 나가므로 안내가 끊기지는 않습니다.</li>
+        <li>봉인 시험셋 {n.aiSent.n}건(봉인 뒤 공개 난수로 만든 결정 장면)에서 AI 글이 그대로 나간 비율: {r(n.aiSent)}. 정답 글(고정 문안)을 2차 검사가 잘못 막은 비율 {r(n.templateFalseReject)}. 지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사).</li>
+        <li>AI 글이 고정 문안보다 쉬운가(탐색, Opus 눈가림 판정, 같은 내용): AI {n.judge.ai} · 고정 문안 {n.judge.template} · 같음 {n.judge.same}. {n.judge.ai > n.judge.template ? "AI 쪽이 조금 많지만 AI가 판정한 탐색 지표라 근거로 쓰지 않습니다." : "AI 글이 더 쉽다는 근거는 없습니다. 내용을 코드가 정하면 문장만 바꿔 얻는 이득은 작습니다."} 사람 평가는 하지 않았습니다.</li>
+      </ul>
+      <p className="mt-1 text-[13px] text-muted">
+        검사가 보는 범위: 시각 표기·날짜, 수단과 이름, 먼저 떨어질 수 있다는 경고, 늦음, 할 일(정해진 것만), 안심 약속·의료·기기 조작·위험 행동. 문장의 모든 뜻을 보장하지는 않습니다(2차 검사도 AI).
+        예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘.{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ") : ""}
+      </p>
+    </div>
+  );
+}
+
 export default function LabPage() {
   const d = lab();
   return (
@@ -419,6 +450,7 @@ export default function LabPage() {
         <a className="rounded border border-line px-2 py-0.5" href="#patches">④ 보완안</a>
         <a className="rounded border border-line px-2 py-0.5" href="#empirical">⑦ 실측 분포</a>
         <a className="rounded border border-line px-2 py-0.5" href="#ai-target">⑧ AI 판독·표적 배치</a>
+        <a className="rounded border border-line px-2 py-0.5" href="#notice">⑨ 보호자 알림</a>
         <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
@@ -475,6 +507,9 @@ export default function LabPage() {
           </Section>
           <Section id="ai-target" n="⑧" title="AI 판독의 몫과 기록 기반 표적 배치">
             <AiAndTarget />
+          </Section>
+          <Section id="notice" n="⑨" title="보호자 알림: AI 문장과 두 단계 검사">
+            <NoticeCheck />
           </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <Prereg d={d} />

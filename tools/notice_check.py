@@ -54,7 +54,8 @@ def check(facts: dict, sentences: list[str]) -> list[str]:
 
 
 def main(d: str) -> int:
-    files = sorted(f for f in glob.glob(os.path.join(d, "*.json")) if not f.endswith("summary.json"))
+    # 보낸 글이 있는 생성 항목만(우회 모음 corpus-*.json은 보낸 글이 없다 — 봉인 뒤 수정, CHANGELOG)
+    files = sorted(f for f in glob.glob(os.path.join(d, "*.json")) if not f.endswith("summary.json") and not os.path.basename(f).startswith("corpus-"))
     bad = 0
     for f in files:
         row = json.load(open(f, encoding="utf-8"))

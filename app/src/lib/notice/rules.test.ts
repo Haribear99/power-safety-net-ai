@@ -41,13 +41,15 @@ function truthClaims(f: NoticeFacts): ClaimsT {
   const b = f.battery, c = f.cylinder, p = f.plan;
   const bk = { UNTIL: "lasts_until", HOURS: "lasts_for", UNDER30: "less_than", NONE: "no_battery_stops", MAYBE_OUT: "maybe_already_out", UNKNOWN: "unknown_being_checked" } as const;
   return {
+    device: f.device,
     battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null },
     cylinder: !c ? { kind: "not_mentioned", time: null } : c.state === "MAYBE_OUT" ? { kind: "maybe_already_out", time: null } : { kind: c.state === "UNTIL" ? "lasts_until" : "lasts_for", time: c.text },
-    means: !p ? { kind: "none", name: null, time: null, timeMeaning: "none", mayBeLate: false }
-      : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false }
-      : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : "not_decided_yet", mayBeLate: p.late }
-      : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false },
+    means: !p ? { kind: "none", name: null, time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
+      : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
+      : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
+      : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
+    runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
     actions: f.actions.map((kind) => ({ kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : "now" as const, quote: "" })),
     otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
   };
@@ -205,6 +207,10 @@ describe("2차 검사 대조(compareClaims)", () => {
     ["수단 바뀜", (c) => ({ ...c, means: { ...c.means, kind: "ambulance" } })],
     ["수단 이름 다름", (c) => ({ ...c, means: { ...c.means, name: "대용량 전원 장치" } })],
     ["경고 없음", (c) => ({ ...c, supplyMayRunOutBeforeHelp: false })],
+    ["경고 대상 틀림", (c) => ({ ...c, runOutWhich: "cylinder" })],
+    ["기기 이름 틀림", (c) => ({ ...c, device: "산소발생기" })],
+    ["수단 덧붙임", (c) => ({ ...c, means: { ...c.means, extraDetails: ["산소통을 싣고 온다"] } })],
+    ["구급대 연결 지어냄", (c) => ({ ...c, means: { ...c.means, connected: "yes" } })],
     ["산소통 바꿔 쓰기를 도착 뒤로", (c) => ({ ...c, actions: [...c.actions, { kind: "SWITCH_TO_CYLINDER", when: "after_condition", quote: "도착하면 바꿔 쓰세요" }] })],
     ["정하지 않은 지시", (c) => ({ ...c, actions: [...c.actions, { kind: "OTHER", when: "now", quote: "119에는 전화하지 마세요" }] })],
     ["할 일 빠짐", (c) => ({ ...c, actions: c.actions.slice(1) })],

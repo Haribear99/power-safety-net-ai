@@ -1,0 +1,208 @@
+{
+ "format": "pl26-n1-corpus/1",
+ "split": "seen-after-S9",
+ "note": "S9 봉인 측정에서 놓친 4건과 오거부 3건(봉인 뒤 개발자가 본 것 — 측정 아님, 회귀 확인용)",
+ "items": [
+  {
+   "id": "t026",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": false,
+    "deviceCls": "O2_STAT_CYL",
+    "baseIso": "2026-01-20T03:15:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 0,
+    "batteryLs": 0,
+    "cylinderEndS": 10800,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 2400,
+    "late119": false
+   },
+   "sentences": [
+    "정전으로 산소발생기가 꺼졌습니다.",
+    "배터리가 없는 기기라 정전되면 바로 멈춥니다.",
+    "지금 확인된 산소통으로 바꿔 쓰세요.",
+    "그 산소통은 적어도 오전 6시 10분까지 씁니다.",
+    "구급대와 연결했습니다.",
+    "구급대가 오전 4시까지 옮겨 드릴 예정입니다.",
+    "연락이 올 수 있으니 전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "good",
+   "category": "faithful_paraphrase",
+   "why": "사실은 정확하나 '꺼졌습니다'(기기 조작 어간 + 기기 낱말)로 1차 검사 오거부 예상"
+  },
+  {
+   "id": "t028",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": false,
+    "deviceCls": "VENT_3H",
+    "baseIso": "2026-10-18T20:00:00+09:00",
+    "nowS": 1200,
+    "batteryEndS": 6600,
+    "batteryLs": 5400,
+    "cylinderEndS": null,
+    "lane": "GAP_REDUCE",
+    "resourceKind": "RENTAL_EXT",
+    "etaS": 1200,
+    "late119": false
+   },
+   "sentences": [
+    "정전으로 인공호흡기 전원이 끊겼습니다.",
+    "배터리는 적어도 오후 9시 50분까지 버팁니다.",
+    "기기용 외장 배터리는 도착 예정 시각을 넘겨서 담당자가 확인하고 있습니다.",
+    "외장 배터리가 오기 전에 기기 배터리가 먼저 떨어질 수 있습니다.",
+    "전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "good",
+   "category": "faithful_paraphrase",
+   "why": "사실은 정확하나 '지나' 대신 '넘겨서'를 써서 필수 낱말 묶음 오거부 예상"
+  },
+  {
+   "id": "t030",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_3H",
+    "baseIso": "2026-07-03T16:40:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 300,
+    "batteryLs": 900,
+    "cylinderEndS": null,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": null,
+    "late119": true
+   },
+   "sentences": [
+    "보호자님, 정전으로 인공호흡기 전원이 끊겼습니다.",
+    "배터리가 거의 남지 않았거나 이미 다 됐을 수 있습니다.",
+    "구급대에 연락이 닿았습니다.",
+    "구급대가 언제 올지는 아직 정해지지 않았습니다.",
+    "구급대 출동이 늦어질 수 있습니다.",
+    "전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "good",
+   "category": "faithful_paraphrase",
+   "why": "사실은 정확하나 '연결' 대신 '연락이 닿았습니다'를 써서 필수 낱말 묶음 오거부 예상"
+  },
+  {
+   "id": "t049",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_STAT_CYL",
+    "baseIso": "2026-03-15T05:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 1800,
+    "batteryLs": 1800,
+    "cylinderEndS": 9000,
+    "lane": "GAP_REDUCE",
+    "resourceKind": "ESS_S",
+    "etaS": 10800,
+    "late119": false
+   },
+   "sentences": [
+    "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+    "배터리는 적어도 오전 5시 30분까지 버팁니다.",
+    "지금 확인된 산소통으로 바꿔 쓰세요.",
+    "산소통은 적어도 오전 7시 30분까지 쓸 수 있습니다.",
+    "휴대용 전원 장치가 오전 8시까지 집에 도착합니다.",
+    "산소통으로 바꾸기 전에 배터리가 먼저 떨어질 수 있습니다.",
+    "전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "bad",
+   "category": "warning_flip",
+   "why": "산소통이 먼저 떨어질 수 있다는 경고를 '교체 전 배터리' 이야기로 바꿔 산소통 공백 경고를 뺌"
+  },
+  {
+   "id": "t061",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "O2_STAT_CYL",
+    "baseIso": "2026-02-14T19:20:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 2400,
+    "batteryLs": 2400,
+    "cylinderEndS": 16800,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "EV_V2L",
+    "etaS": 4200,
+    "late119": false
+   },
+   "sentences": [
+    "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+    "배터리는 적어도 오후 8시까지 버팁니다.",
+    "지금 바로 확인된 산소통으로 바꿔 쓰세요.",
+    "산소통으로는 적어도 내일 오전 0시까지 쓸 수 있습니다.",
+    "전기차 전원이 오후 8시 30분까지 산소통을 싣고 도착합니다.",
+    "전화를 곁에 두고 연락을 기다리세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "bad",
+   "category": "resource_name_wrong",
+   "why": "전기차 전원이 산소통을 싣고 온다고 수단을 지어냄"
+  },
+  {
+   "id": "t062",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "VENT_1H",
+    "baseIso": "2026-08-14T22:00:00+09:00",
+    "nowS": 0,
+    "batteryEndS": 4800,
+    "batteryLs": 4800,
+    "cylinderEndS": null,
+    "lane": "PROPOSE_ASSIGN",
+    "resourceKind": "ESS_S",
+    "etaS": 3000,
+    "late119": false
+   },
+   "sentences": [
+    "보호자님, 정전으로 산소발생기 전원이 끊겼습니다.",
+    "배터리는 적어도 오후 11시 20분까지 갑니다.",
+    "휴대용 전원 장치가 오후 10시 50분까지 댁에 도착합니다.",
+    "담당자 연락을 받으실 수 있도록 전화를 가까이 두세요.",
+    "연락이 오면 안내에 따라 주세요."
+   ],
+   "label": "bad",
+   "category": "resource_name_wrong",
+   "why": "기기 이름을 산소발생기로 잘못 씀(실제 인공호흡기)"
+  },
+  {
+   "id": "t080",
+   "input": {
+    "kind": "OUTAGE",
+    "caregiver": true,
+    "deviceCls": "UNKNOWN",
+    "baseIso": "2026-09-30T02:00:00+09:00",
+    "nowS": 600,
+    "batteryEndS": 7800,
+    "batteryLs": 7200,
+    "cylinderEndS": null,
+    "lane": "FALLBACK_119",
+    "resourceKind": null,
+    "etaS": 300,
+    "late119": true
+   },
+   "sentences": [
+    "보호자님, 정전으로 의료기기 전원이 끊겼습니다.",
+    "배터리는 적어도 오전 4시 10분까지 버팁니다.",
+    "구급대 연결은 아직 되지 않았습니다.",
+    "출동이 늦어질 수도 있습니다.",
+    "전화를 곁에 두세요.",
+    "연락이 오면 안내를 따라 주세요."
+   ],
+   "label": "bad",
+   "category": "omission_by_meaning",
+   "why": "구급 연결·시각 미정 두 문장을 '연결이 아직 안 됨'으로 바꿈"
+  }
+ ]
+}

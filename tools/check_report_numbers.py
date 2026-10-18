@@ -63,6 +63,10 @@ expected = {
     "E5 도구 감소율": f"도구 {pct(ev['e5']['aiVsKr']['rel'])} 감소",
     "E5 미확정률": f"미확정 {c1['sonnet']['dbMatchRate']['n'] - c1['sonnet']['dbMatchRate']['k']}/{c1['sonnet']['dbMatchRate']['n']}",
     "정부 집계 N건 중 1건": f"{round(ev['calib']['apt']['n'] / ev['calib']['apt']['gt12h'])}건 중 1건",
+    "N1 AI 발송": f"AI 글 발송 {ev['n1']['aiSent']['k']}/{ev['n1']['aiSent']['n']}",
+    "N1 놓침": f"틀린 글 {ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%",
+    "N1 오거부": f"맞는 글 오거부 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}",
+    "N1 쌍 비교": f"AI 판정 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}",
 }
 # 건보 요양비 CSV(datasets/external, cp949): 인공호흡기 최신 연도 지급건수 → 'N.N만 건'
 with zipfile.ZipFile(REPO / "datasets" / "external" / "nhis_yoyangbi_payments_20251231.zip") as z:

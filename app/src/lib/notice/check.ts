@@ -6,11 +6,12 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v6";
+export const CHECK_VERSION = "n1-check-v7"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결 여부·경고 대상·수단 덧붙임 추가
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
 export const Claims = z.object({
+  device: z.string().max(40).nullable(),
   battery: z.object({
     kind: z.enum(["lasts_until", "lasts_for", "less_than", "no_battery_stops", "maybe_already_out", "unknown_being_checked", "not_mentioned", "other"]),
     time: T,
@@ -22,8 +23,11 @@ export const Claims = z.object({
     time: T,
     timeMeaning: z.enum(["arrive_by", "finish_by", "after", "not_decided_yet", "passed_being_checked", "none", "other"]),
     mayBeLate: z.boolean(),
+    connected: z.enum(["yes", "no", "not_mentioned"]),
+    extraDetails: z.array(z.string().max(80)).max(6),
   }),
   supplyMayRunOutBeforeHelp: z.boolean(),
+  runOutWhich: z.enum(["battery", "cylinder", "unclear", "none"]),
   actions: z.array(z.object({ kind: z.enum(ACTIONS), when: z.enum(["now", "after_condition", "unspecified"]), quote: z.string().max(80) })).max(12),
   otherTimesOrDurations: z.array(z.string().max(40)).max(10),
   reassuranceOrPromise: z.boolean(),
@@ -35,6 +39,7 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
 글은 정전 때 전기로 움직이는 의료기기를 쓰는 집에 보낸 안내문이다.
 
 항목
+- device: 글에 나온 의료기기 이름을 글자 그대로(예: '인공호흡기', '휴대용 산소발생기'). 없으면 null.
 - battery: 기기 배터리에 대해 말한 것.
   lasts_until = '적어도 ~까지 버틴다/쓸 수 있다'처럼 그 시각까지 간다고 함(time = 그 시각 표기),
   lasts_for = '완전히 충전하면 (적어도) ~시간 버틴다/쓸 수 있다'(time = 그 시간 표기), less_than = '~도 못 버틴다'(time = 그 표기),
@@ -46,7 +51,10 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
   name = 글에 나온 수단 이름 그대로(없으면 null). time = 수단에 붙은 시각 표기 그대로.
   timeMeaning = arrive_by(그 시각까지 도착) | finish_by(그 시각까지 옮기기를 마침) | after(그 시각 이후·지나서) | not_decided_yet(언제 올지 아직 안 정해짐) | passed_being_checked(도착 예정 시각이 지나 확인 중) | none | other.
   mayBeLate = 늦어질 수 있다고 했는가.
+  connected = 구급대와 이미 연결했다고 했으면 yes, 아직 연결되지 않았다고 했으면 no, 말하지 않았으면 not_mentioned.
+  extraDetails = 수단에 대해 이름·시각 말고 덧붙인 내용(예: '산소통을 싣고 온다', '직접 연결해 준다', '두 대가 간다')을 그대로. 없으면 빈 배열.
 - supplyMayRunOutBeforeHelp: 도움(전원 장치·구급대 등)이 오기 전에 배터리나 산소통이 먼저 떨어질 수 있다고 했는가.
+- runOutWhich: 그 경고가 가리키는 것 — battery(배터리) | cylinder(산소통) | unclear(분명하지 않음) | none(경고 없음).
 - actions: 읽는 사람에게 하라고(또는 하지 말라고) 한 모든 것. 하나도 빼지 않는다.
   KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배달 산소통을 기다리지 말고'처럼 지금 바꾸라는 말도 여기),
   CHARGE_DEVICE(평소 기기 배터리 충전), CHARGE_EXT(외장 배터리 충전), CHECK_CYLINDER(산소통 미리 확인), PLAN_WITH_STAFF(정전 때 쓸 방법을 담당자와 미리 정함),
@@ -100,6 +108,14 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
     if (m.kind !== "shelter" || m.time != null || m.mayBeLate) bad("CLAIM_MISMATCH", `수단: 글은 ${m.kind}/${m.time ?? ""}, 사실은 shelter(시각 없음)`);
   }
   if (c.supplyMayRunOutBeforeHelp !== f.warnRunOutFirst) bad("CLAIM_MISMATCH", `먼저 떨어짐 경고: 글 ${c.supplyMayRunOutBeforeHelp}, 사실 ${f.warnRunOutFirst}`);
+  // 경고가 가리키는 것: 산소통이 있으면 산소통, 없으면 배터리(봉인 S9 놓침 t049)
+  if (f.warnRunOutFirst && c.runOutWhich !== (f.cylinder ? "cylinder" : "battery")) bad("CLAIM_MISMATCH", `경고 대상: 글 ${c.runOutWhich}, 사실 ${f.cylinder ? "cylinder" : "battery"}`);
+  // 기기 이름(봉인 S9 놓침 t062): 말했다면 사실과 같아야 한다
+  if (c.device != null && !norm(f.device).endsWith(norm(c.device)) && norm(f.device) !== "의료기기") bad("CLAIM_MISMATCH", `기기 이름: 글 ${c.device}, 사실 ${f.device}`);
+  // 수단에 덧붙인 내용(봉인 S9 놓침 t061)
+  if (m.extraDetails.length) bad("CLAIM_MISMATCH", `수단에 덧붙인 내용: ${m.extraDetails.join(", ")}`);
+  // 구급대 연결(봉인 S9 놓침 t080): 119 결정이면 '연결했다'여야 하고, 아니면 연결을 말하지 않아야 한다
+  if (p?.type === "CALL119" ? m.connected !== "yes" : m.connected === "yes") bad("CLAIM_MISMATCH", `구급대 연결: 글 ${m.connected}`);
   // 산소통으로 바꿔 쓰기는 지금(배달을 기다리면 안 됨)
   for (const a of c.actions) if (a.kind === "SWITCH_TO_CYLINDER" && a.when !== "now") bad("CLAIM_UNSAFE", `산소통 바꿔 쓰기를 지금이 아니라 ${a.when}로 말함: 「${a.quote}」`);
   // 할 일: 정확히 같은 집합, OTHER 없음

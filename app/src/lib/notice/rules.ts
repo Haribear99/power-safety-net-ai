@@ -60,7 +60,7 @@ export function requirements(f: NoticeFacts): Requirements {
   if (p?.type === "ASSIGN" || p?.type === "GAP") {
     if (p.arriveBy) must(p.arriveBy, "ARRIVAL_T");
     if (p.etaPassed) sent([p.resource, "지나"], `${p.resource} 도착 예정 시각이 지나 담당자가 확인 중이다`);
-    else sent([p.resource, "도착"], `${p.resource}이(가) 집에 도착한다`);
+    else sent([p.resource, "도착"], `${josa(p.resource, "이가")} 집에 도착한다`);
   }
   if (f.warnRunOutFirst) sent(f.cylinder ? ["산소통", "먼저"] : ["배터리", "먼저"], f.cylinder ? "도움이 오기 전에 산소통이 먼저 떨어질 수 있다" : "도움이 오기 전에 배터리가 먼저 떨어질 수 있다");
   if (p?.type === "CALL119") {

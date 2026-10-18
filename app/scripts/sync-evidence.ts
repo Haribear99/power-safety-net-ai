@@ -228,6 +228,25 @@ if (e6) {
   };
 }
 
+// ---- N1: 보호자 알림 AI 문장 + 두 단계 검사(S9 봉인 실행, scripts/n1-analyze.ts) ----
+type RateN = { k: number; n: number; rate: number | null; wilson95: number[] | null };
+const n1 = take("out/n1_sealed.json") as {
+  notices: { aiSent: RateN; templateFalseReject: RateN; sentBodyGate1Violations: RateN; judge: { ai: number; template: number; same: number; fail: number }; latencyE2E: { p50: number | null; p95: number | null } };
+  corpus: { badMissed: RateN; badCaught: RateN; badCaughtGate1: RateN; badCaughtGate2: RateN; goodFalseReject: RateN; byCategory: Record<string, { n: number; caught: number }> };
+  costUsd: number;
+  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
+} | null;
+if (n1) {
+  const r = (x: RateN) => ({ k: x.k, n: x.n, lo: x.wilson95?.[0] ?? null, hi: x.wilson95?.[1] ?? null });
+  out.n1 = {
+    aiSent: r(n1.notices.aiSent), templateFalseReject: r(n1.notices.templateFalseReject),
+    badMissed: r(n1.corpus.badMissed), badCaughtGate1: r(n1.corpus.badCaughtGate1), badCaughtGate2: r(n1.corpus.badCaughtGate2), goodFalseReject: r(n1.corpus.goodFalseReject),
+    missedCategories: Object.entries(n1.corpus.byCategory).filter(([, v]) => v.caught < v.n).map(([k, v]) => ({ category: k, missed: v.n - v.caught, n: v.n })),
+    judge: n1.notices.judge, latencyP50: n1.notices.latencyE2E.p50,
+    prereg: { hit: n1.prereg.hit, total: n1.prereg.total, missed: n1.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
+  };
+}
+
 // ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----
 // 7.x(E6)는 레드팀 3라운드가 봉인 E5 시드 400추첨으로 같은 평시 순위의 효과를 먼저 보고한 뒤 쓴 예측이라 '확인' 쪽에 넣는다(레드팀 4라운드)
 {
@@ -237,9 +256,11 @@ if (e6) {
     ...(e4?.prereg.items ?? []),
     ...(e5?.prereg.items ?? []),
     ...(e6?.prereg.items ?? []),
+    ...(n1?.prereg.items ?? []),
   ];
   const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
-  const post = items.filter((x) => /^(2\.|3\.|5\.|7\.)/.test(x.id) && x.hit != null);
+  // 9.x(N1)는 dev를 보고 문턱을 정했으므로 '확인' 쪽(predictions_n1.md에 공개)
+  const post = items.filter((x) => /^(2\.|3\.|5\.|7\.|9\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
       before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
