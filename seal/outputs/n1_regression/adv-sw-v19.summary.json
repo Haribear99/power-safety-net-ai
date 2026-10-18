@@ -1,0 +1,410 @@
+{
+ "promptVersion": "n1-v13",
+ "checkVersion": "n1-check-v19",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-sw-v19",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_switch.json",
+  "sha256": "3f9fae991e72509bf79ad1566da1eb9ff61a89df2d54bcea265266788bdae920",
+  "n": 40,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 32,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.10717919976468034
+    ]
+   },
+   "badCaught": {
+    "k": 32,
+    "n": 32,
+    "rate": 1,
+    "wilson95": [
+     0.8928208002353198,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 32,
+    "n": 32,
+    "rate": 1,
+    "wilson95": [
+     0.8928208002353198,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 32,
+    "n": 32,
+    "rate": 1,
+    "wilson95": [
+     0.8928208002353198,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "byCategory": {
+    "switch_on_arrival": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_contact": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_before_out": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_arrival_soft": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_wait": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_after": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_guidance": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_permission": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    }
+   }
+  },
+  "costUsd": 0.5368680000000001,
+  "rows": [
+   {
+    "id": "sw-00-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}

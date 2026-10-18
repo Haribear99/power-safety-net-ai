@@ -31,7 +31,8 @@ const corpusArg = arg("corpus");
 const tag = sealed ? "sealed" : arg("tag", "dev")!;
 const noJudge = argv.includes("--no-judge");
 const limit = Number(arg("limit", "9999"));
-const pool: Pool = sealed ? "sealed" : "dev";
+// dev 풀이 소진되면 로컬 추가 충전 풀(dev_topup, .env.local CLAUDE_DEV_TOPUP_USD)을 쓴다
+const pool: Pool = sealed ? "sealed" : Number(process.env.CLAUDE_DEV_TOPUP_USD ?? 0) > 0 ? "dev_topup" : "dev";
 if (!sealed && split === "test") throw new Error("시험셋은 --sealed로만(봉인 실행 1회)");
 const spendFile = path.join(repo, "out", "spend.jsonl");
 
@@ -47,7 +48,7 @@ export const JudgeOut = z.object({ choice: z.enum(["A", "B", "SAME"]), reason: z
 interface Item { id: string; stratum: string; input: NoticeInputT }
 interface CorpusItem { id: string; input: NoticeInputT; sentences: string[]; label: "bad" | "good"; category: string }
 
-/** 사전점검(c1-run.ts와 같은 식. c1-run.ts를 import하면 그 main()이 실행되므로 옮겨 적음): 로컬 기록 대 Upstash dev+sealed */
+/** 사전점검(c1-run.ts와 같은 식. c1-run.ts를 import하면 그 main()이 실행되므로 옮겨 적음): 로컬 기록 대 Upstash dev+sealed+dev_topup */
 function ledgerBalanceUsd(lines: string[]): number {
   let s = 0;
   for (const l of lines) {
@@ -183,8 +184,8 @@ async function main() {
   if (!be) { console.error("Upstash 환경변수 없음 — 스크립트는 폴백 없이 종료"); process.exit(2); }
   mkdirSync(path.dirname(spendFile), { recursive: true });
   const local = existsSync(spendFile) ? ledgerBalanceUsd(readFileSync(spendFile, "utf-8").split("\n")) : 0;
-  const remote = ((await be.get(keys.pool("dev"))) + (await be.get(keys.pool("sealed")))) / MICRO;
-  console.log(`사전점검: 로컬 ${local.toFixed(4)} · Upstash dev+sealed ${remote.toFixed(4)}`);
+  const remote = ((await be.get(keys.pool("dev"))) + (await be.get(keys.pool("sealed"))) + (await be.get(keys.pool("dev_topup")))) / MICRO;
+  console.log(`사전점검: 로컬 ${local.toFixed(4)} · Upstash dev+sealed+dev_topup ${remote.toFixed(4)}`);
   if (Math.abs(local - remote) > 0.1) { console.error("차이 $0.10 초과 — 중단"); process.exit(3); }
 
   const outDir = sealed ? path.join(repo, "out", "sealed", "n1") : path.join(repo, "out", "n1", tag);

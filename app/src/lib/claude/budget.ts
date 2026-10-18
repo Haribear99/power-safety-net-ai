@@ -9,12 +9,12 @@
  */
 import { PRICE_PER_MTOK, type ModelKey } from "./models";
 
-export type Pool = "dev" | "sealed" | "public" | "judge" | "notice" | "notice_judge" | "reserve";
-export const POOLS: readonly Pool[] = ["dev", "sealed", "public", "judge", "notice", "notice_judge", "reserve"];
+export type Pool = "dev" | "dev_topup" | "sealed" | "public" | "judge" | "notice" | "notice_judge" | "reserve";
+export const POOLS: readonly Pool[] = ["dev", "dev_topup", "sealed", "public", "judge", "notice", "notice_judge", "reserve"];
 
 export const MICRO = 1_000_000;
 export const FREEZE_TOTAL_USD = 35;
-const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge", "notice", "notice_judge"];
+const FREEZE_EXEMPT: readonly Pool[] = ["sealed", "public", "judge", "notice", "notice_judge", "dev_topup"];
 
 export interface Usage {
   input_tokens: number;
@@ -40,6 +40,8 @@ export function poolLimitUsd(pool: Pool): number {
   const t = totalBudgetUsd();
   switch (pool) {
     case "dev": return t * 0.55;
+    // 추가 충전분(10/18 사용자 'API 토큰을 더 충전'): 로컬 .env.local의 CLAUDE_DEV_TOPUP_USD로만 켜진다(운영 배포본엔 값이 없어 0). 총액 카운터도 따로 둬 운영 풀의 총액 한도를 건드리지 않는다
+    case "dev_topup": return Number(process.env.CLAUDE_DEV_TOPUP_USD ?? 0);
     case "sealed": return t * 0.12;
     case "public": return t * 0.12;
     case "judge": return 3.0;
@@ -69,6 +71,7 @@ export const keys = {
   pool: (p: Pool) => `pl26:budget:${p}`,
   day: (p: Pool, d: string) => `pl26:budget:${p}:day:${d}`,
   total: "pl26:budget:total",
+  totalTopup: "pl26:budget:total_topup",
 };
 
 /**
@@ -177,10 +180,10 @@ export async function reserve(be: BudgetBackend, pool: Pool, usd: number, now = 
   const micro = Math.ceil(usd * MICRO);
   const poolSpent = (await be.get(keys.pool(pool))) / MICRO;
   const dl = dayLimitUsd(pool, poolSpent, now);
-  const k = [keys.pool(pool), dl == null ? "" : keys.day(pool, kstDate(now)), keys.total];
+  const k = [keys.pool(pool), dl == null ? "" : keys.day(pool, kstDate(now)), pool === "dev_topup" ? keys.totalTopup : keys.total];
   const ok = await be.reserve(k, [
     micro, Math.floor(poolLimitUsd(pool) * MICRO), dl == null ? -1 : Math.floor(dl * MICRO),
-    Math.floor(totalBudgetUsd() * MICRO), FREEZE_EXEMPT.includes(pool) ? -1 : FREEZE_TOTAL_USD * MICRO, 48 * 3600,
+    Math.floor((pool === "dev_topup" ? poolLimitUsd(pool) : totalBudgetUsd()) * MICRO), FREEZE_EXEMPT.includes(pool) ? -1 : FREEZE_TOTAL_USD * MICRO, 48 * 3600,
   ]);
   return ok === 1 ? { pool, keys: k, micro } : null;
 }

@@ -1,0 +1,158 @@
+{
+ "promptVersion": "n1-v13",
+ "checkVersion": "n1-check-v19",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "warn-v19",
+ "sealed": false,
+ "set": {
+  "file": "datasets/notice/dev_warn.json",
+  "sha256": "be431a6307e8b1694a9f36e1fa507a627e76a647539a37c207a992f2ab72623f",
+  "n": 6
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 6,
+    "n": 6,
+    "rate": 1,
+    "wilson95": [
+     0.6096657083436265,
+     1
+    ]
+   },
+   "gate1Pass": {
+    "k": 6,
+    "n": 6,
+    "rate": 1,
+    "wilson95": [
+     0.6096657083436265,
+     1
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 6,
+    "n": 6,
+    "rate": 1,
+    "wilson95": [
+     0.6096657083436265,
+     1
+    ]
+   },
+   "gate1FactError": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "callFail": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "templateFalseReject": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "rejectCodes": {},
+   "judge": {
+    "ai": 0,
+    "template": 0,
+    "same": 0,
+    "fail": 0,
+    "aiFirstPickAi": 0,
+    "aiFirst": 0
+   },
+   "latencyE2E": {
+    "p50": 8591,
+    "p95": 12488,
+    "n": 6,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 0.19667320000000002,
+  "judgeCostUsd": 0,
+  "rows": [
+   {
+    "id": "wn-00",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "wn-01",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "wn-02",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "wn-03",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "wn-04",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "wn-05",
+    "stratum": "OUTAGE:UNTIL:warn-margin",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   }
+  ]
+ }
+}

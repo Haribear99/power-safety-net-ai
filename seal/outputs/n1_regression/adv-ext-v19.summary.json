@@ -1,0 +1,212 @@
+{
+ "promptVersion": "n1-v13",
+ "checkVersion": "n1-check-v19",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-ext-v19",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_ext.json",
+  "sha256": "3fc811082abea6279e51ba4726a9fa667f4ac82753e0f8693afcfa18aba70621",
+  "n": 16,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 12,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.2424940095530979
+    ]
+   },
+   "badCaught": {
+    "k": 12,
+    "n": 12,
+    "rate": 1,
+    "wilson95": [
+     0.7575059904469021,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 12,
+    "n": 12,
+    "rate": 1,
+    "wilson95": [
+     0.7575059904469021,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 12,
+    "n": 12,
+    "rate": 1,
+    "wilson95": [
+     0.7575059904469021,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 4,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.4898908403969213
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 4,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.4898908403969213
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 4,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.4898908403969213
+    ]
+   },
+   "byCategory": {
+    "ext_as_internal": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_added_on_top": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_negated": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    }
+   }
+  },
+  "costUsd": 0.17673519999999998,
+  "rows": [
+   {
+    "id": "ext-00-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-01-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-02-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-03-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}
