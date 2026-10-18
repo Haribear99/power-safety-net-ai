@@ -7,7 +7,8 @@ import { compose, speechText, type Composed } from "@/lib/notice/compose";
 import { buildFacts, type NoticeInputT } from "@/lib/notice/facts";
 import { requirements } from "@/lib/notice/rules";
 
-export function NoticePanel({ input, title }: { input: NoticeInputT; title: string }) {
+/** audience: operator(담당자 화면, 검사 탈락 원문·사유를 보임) | household(가구 화면, 원문은 숨기고 한 줄만) */
+export function NoticePanel({ input, title, audience = "operator" }: { input: NoticeInputT; title: string; audience?: "operator" | "household" }) {
   const facts = useMemo(() => buildFacts(input), [input]);
   const req = useMemo(() => requirements(facts), [facts]);
   // 사실 묶음(10분 단위 표기)이 바뀔 때만 이전 결과를 버린다 — 모의 시계가 흘러도 같은 사실이면 AI 글이 유지된다
@@ -64,10 +65,13 @@ export function NoticePanel({ input, title }: { input: NoticeInputT; title: stri
             {cur.composed.sentences.map((s, i) => <li key={i}>{s}</li>)}
           </ol>
           <p className="mt-1 text-[12px] text-muted">{cur.composed.footer}</p>
-          <p className="mt-1 text-[12px] text-muted">(운영자용) {cur.source}{cur.composed.source === "ai" ? " · 1차 규칙 검사 + 2차 다른 AI 역추출 대조 통과. 시연용이며 담당자가 확인한 뒤 보낸다는 전제(실제 발송 기능 없음)" : ""}</p>
+          {audience === "operator" && <p className="mt-1 text-[12px] text-muted">(운영자용) {cur.source}{cur.composed.source === "ai" ? " · 1차 규칙 검사 + 2차 다른 AI 역추출 대조 통과. 시연용이며 담당자가 확인한 뒤 보낸다는 전제(실제 발송 기능 없음)" : ""}</p>}
         </div>
       </div>
-      {cur.composed.violations.length > 0 && (
+      {cur.composed.violations.length > 0 && audience === "household" && (
+        <p className="mt-2 rounded bg-gap-soft p-2 text-[13px] text-gap" data-testid="notice-rejected">AI 문장이 검사를 통과하지 못해 고정 문안을 보여 드립니다.</p>
+      )}
+      {cur.composed.violations.length > 0 && audience === "operator" && (
         <details className="mt-2 rounded bg-gap-soft p-2 text-gap" open data-testid="notice-rejected">
           <summary className="cursor-pointer font-semibold">AI 문장 {cur.composed.rejectedAt === "gate2" ? "2차(역추출) 검사" : "1차(규칙) 검사"} 탈락 {cur.composed.violations.length}건 — 보내지 않음</summary>
           <ul className="mt-1 list-disc pl-5 text-[13px]">{cur.composed.violations.map((v, i) => <li key={i}>{v.code}: {v.detail}{v.sentence ? ` — 「${v.sentence}」` : ""}</li>)}</ul>

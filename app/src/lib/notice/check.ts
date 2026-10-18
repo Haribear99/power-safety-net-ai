@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v9"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외, 산소통 '배달 기다리지 마세요' 허용
+export const CHECK_VERSION = "n1-check-v10"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음), 금지 지시 예외를 '배달 기다리지 마세요'로 좁힘
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
@@ -61,7 +61,7 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
 - supplyMayRunOutBeforeHelp: 도움(전원 장치·구급대 등)이 오기 전에 배터리나 산소통이 먼저 떨어질 수 있다고 했는가.
 - runOutWhich: 그 경고가 가리키는 것 — battery(배터리) | cylinder(산소통) | unclear(분명하지 않음) | none(경고 없음).
 - actions: 읽는 사람에게 하라고(또는 하지 말라고) 한 모든 것. 하나도 빼지 않는다.
-  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배달 산소통을 기다리지 말고'처럼 지금 바꾸라는 말도 여기),
+  KEEP_PHONE(연락을 받을 수 있게 전화를 곁에 두거나 연락을 기다림), FOLLOW_STAFF(연락이 오면 안내를 따름), SWITCH_TO_CYLINDER(산소통으로 바꿔 씀. '배터리가 떨어지면 바꿔 쓰세요'는 when=after_condition, '배달 산소통을 기다리지 마세요'는 negated=true로 따로),
   CHARGE_DEVICE(평소 기기 배터리 충전), CHARGE_EXT(외장 배터리 충전), CHECK_CYLINDER(산소통 미리 확인), PLAN_WITH_STAFF(정전 때 쓸 방법을 담당자와 미리 정함),
   GENERAL_PREPARE('정전에 미리 대비하세요'처럼 구체적 행동 없는 일반 당부),
   OTHER(그 밖의 모든 지시 — 하지 말라는 말, 전화 걸기, 기기 조작, 이동, 연락 없이 기다리라는 말 등). quote = 그 지시 문장 일부를 그대로.
@@ -127,14 +127,20 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   if (f.battery.state === "HOURS" && c.battery.condition !== "full_charge") bad("CLAIM_MISMATCH", `배터리 전제: 글 ${c.battery.condition}, 사실 full_charge`);
   // 구급대 연결(봉인 S9 놓침 t080): 119 결정이면 '연결했다'여야 하고, 아니면 연결을 말하지 않아야 한다
   if (p?.type === "CALL119" ? m.connected !== "yes" : m.connected === "yes") bad("CLAIM_MISMATCH", `구급대 연결: 글 ${m.connected}`);
-  // 산소통으로 바꿔 쓰기는 지금(배달을 기다리면 안 됨)
-  for (const a of c.actions) if (a.kind === "SWITCH_TO_CYLINDER" && a.when !== "now") bad("CLAIM_UNSAFE", `산소통 바꿔 쓰기를 지금이 아니라 ${a.when}로 말함: 「${a.quote}」`);
-  // 할 일: 정확히 같은 집합, OTHER 없음
-  const got = new Set<string>(c.actions.map((a) => a.kind));
-  const want = new Set<string>(f.actions as Action[]);
+  // 산소통 바꿔 쓰기 시점: 배터리가 없거나 떨어졌으면 지금, 배터리가 아직 버티면 배터리가 떨어진 뒤
+  const switchWhen = f.actions.includes("SWITCH_TO_CYLINDER") ? "now" : f.actions.includes("SWITCH_AFTER_BATTERY") ? "after_condition" : null;
+  const switches = c.actions.filter((a) => a.kind === "SWITCH_TO_CYLINDER" && !a.negated);
+  for (const a of switches) if (a.when !== switchWhen) bad("CLAIM_UNSAFE", `산소통 바꿔 쓰기 시점: 글 ${a.when}, 사실 ${switchWhen ?? "없음"}: 「${a.quote}」`);
+  // 할 일: 정확히 같은 집합, OTHER 없음(부정 지시는 할 일 충족으로 세지 않는다)
+  const got = new Set<string>(c.actions.filter((a) => !a.negated).map((a) => a.kind));
+  const want = new Set<string>((f.actions as Action[]).map((a) => (a === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" : a)));
   for (const a of c.actions) if (a.kind === "OTHER") bad("CLAIM_UNSAFE", `정하지 않은 지시: 「${a.quote}」`);
-  // 「추가 산소통 배달을 기다리지 마세요」는 '지금 바꿔 쓰기'의 일부라 허용
-  for (const a of c.actions) if (a.negated && a.kind !== "SWITCH_TO_CYLINDER") bad("CLAIM_UNSAFE", `하지 말라는 지시: 「${a.quote}」`);
+  // 금지 지시 예외는 하나뿐: 지금 바꿔 쓰는 집에서 「추가 산소통 배달을 기다리지 마세요」(바꿔 쓰기 문장이 따로 있고, 문장에 배달·기다리가 있을 때)
+  for (const a of c.actions) {
+    if (!a.negated) continue;
+    const ok = a.kind === "SWITCH_TO_CYLINDER" && switchWhen === "now" && switches.length > 0 && /배달|기다리/.test(a.quote) && !/바꾸|바꿔|쓰지/.test(a.quote.replace(/기다리지/g, ""));
+    if (!ok) bad("CLAIM_UNSAFE", `하지 말라는 지시: 「${a.quote}」`);
+  }
   // 상황: 정전 중 안내는 정전 중, 평시 안내는 정전 전(「정전이 끝났습니다」 차단)
   const wantSit = f.kind === "OUTAGE" ? "outage_now" : "before_outage";
   if (c.situation !== wantSit && c.situation !== "not_mentioned") bad("CLAIM_MISMATCH", `상황: 글 ${c.situation}, 사실 ${wantSit}`);

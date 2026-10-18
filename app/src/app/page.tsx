@@ -7,7 +7,7 @@ import { computeRestoration } from "@/lib/engine/restoration";
 import { TwoClocks } from "@/components/TwoClocks";
 import { GapWidget, type WidgetCause, type WidgetDevice } from "@/components/GapWidget";
 import { ClosingCard } from "@/components/ClosingCard";
-import { aptCalib, sweepN } from "@/lib/evidence";
+import { aptCalib, n1Evidence, sweepN } from "@/lib/evidence";
 
 const DEVICE_CHIPS: { specId: string; label: string; source: string }[] = [
   { specId: "PERFECTO2", label: "산소발생기 · 배터리 없음", source: "사양: Invacare Perfecto2 사용자 설명서(거치형, 내장배터리 없음)" },
@@ -80,6 +80,7 @@ export default function Home() {
           <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>을 검증된 규칙으로 계산합니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
           <li>하한을 <strong>복구 가정 범위</strong>와 <strong>비상전원 도착 시각</strong>에 비교해 처리 순서와 추천을 냅니다.</li>
           <li><strong>담당자가 승인</strong>해야 배정되고, 119에는 위치·기기·예상 안전시간 세 가지만 넘어갑니다.</li>
+          <NoticeItem />
         </ol>
       </section>
 
@@ -94,5 +95,18 @@ export default function Home() {
         </nav>
       </footer>
     </main>
+  );
+}
+
+/** 사전등록(S9) 2절: 랜딩에도 9.1·9.3·9.2를 Wilson 95% CI와 함께 싣는다 */
+function NoticeItem() {
+  const n = n1Evidence();
+  const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${Math.round((x.lo ?? 0) * 1000) / 10}~${Math.round((x.hi ?? 0) * 1000) / 10}%)`;
+  return (
+    <li>
+      승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
+      {n ? ` 봉인 측정: AI 글 통과 ${ci(n.aiSent)}, 레드팀 에이전트가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
+      <Link className="underline" href="/lab#notice">자세히</Link>
+    </li>
   );
 }

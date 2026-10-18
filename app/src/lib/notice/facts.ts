@@ -49,8 +49,10 @@ export const NoticeInput = z.discriminatedUnion("kind", [
     batteryEndS: S.nullable(),
     /** 배터리 하한 시간(0이면 배터리 없음). null = 수동검토 */
     batteryLs: DUR.nullable(),
-    /** 산소통으로 바꿔 단 뒤의 소진 하한 절대 시각. null = 확인 산소통 없음 */
+    /** 산소통으로 바꿔 단 뒤의 소진 하한 절대 시각(배터리 다음 산소통 순서). null = 확인 산소통 없음 */
     cylinderEndS: S.nullable(),
+    /** 확인 산소통 하한 시간(초). 0 = 없음. 배터리가 없거나 떨어졌으면 '지금 바꿔 쓰기' 기준 끝 = 지금 + 이 값 */
+    cylinderS: DUR,
     lane: z.enum(NOTICE_LANES),
     resourceKind: z.enum(RESOURCE_KINDS).nullable(),
     /** 자원: 도착 절대 시각, 119: 이송 완료 예상 절대 시각. 없으면 null */
@@ -84,15 +86,16 @@ export type Plan =
   | { type: "CALL119"; doneBy: string | null; late: boolean; etaPassed: boolean }
   | { type: "SHELTER" };
 /** 읽는 사람이 할 일(코드가 정한다. AI 글도 고정 문안도 정확히 이 목록만 말한다) */
-export type Action = "KEEP_PHONE" | "FOLLOW_STAFF" | "SWITCH_TO_CYLINDER" | "CHARGE_DEVICE" | "CHARGE_EXT" | "CHECK_CYLINDER" | "PLAN_WITH_STAFF";
+export type Action = "KEEP_PHONE" | "FOLLOW_STAFF" | "SWITCH_TO_CYLINDER" | "SWITCH_AFTER_BATTERY" | "CHARGE_DEVICE" | "CHARGE_EXT" | "CHECK_CYLINDER" | "PLAN_WITH_STAFF";
 export const ACTION_KO: Record<Action, string> = {
   KEEP_PHONE: "연락을 받을 수 있게 전화를 곁에 둔다",
   FOLLOW_STAFF: "연락이 오면 안내를 따른다",
   SWITCH_TO_CYLINDER: "지금 바로 집에 있는 확인된 산소통으로 바꿔 쓴다",
+  SWITCH_AFTER_BATTERY: "배터리가 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓴다",
   CHARGE_DEVICE: "평소에 기기 배터리를 늘 충전해 둔다",
   CHARGE_EXT: "외장 배터리도 충전해 둔다",
   CHECK_CYLINDER: "산소통을 미리 확인해 둔다",
-  PLAN_WITH_STAFF: "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다",
+  PLAN_WITH_STAFF: "정전 때 쓸 다른 방법과 갈 곳을 담당자와 미리 정해 둔다",
 };
 
 export interface NoticeFacts {
@@ -192,8 +195,12 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   }
   let cylinder: Cylinder | null = null;
   let cylShownS: number | null = null;
+  // 배터리가 아직 버티면(UNTIL) 배터리 다음에 산소통(끝 = 입력값), 아니면 지금 바꿔 달므로 끝 = min(입력값, 지금 + 산소통 시간)
+  const switchNow = battery.state !== "UNTIL";
   if (input.cylinderEndS != null) {
-    cylShownS = endState(input.cylinderEndS);
+    // 예전 형식 입력(cylinderS 없음, S9 봉인 파일 등)은 예전처럼 입력 끝을 그대로 쓴다
+    const cs = (input as { cylinderS?: number }).cylinderS;
+    cylShownS = endState(switchNow && cs != null ? Math.min(input.cylinderEndS, nowS + cs) : input.cylinderEndS);
     cylinder = cylShownS == null ? { state: "MAYBE_OUT" } : { state: "UNTIL", text: clockLabel(baseIso, cylShownS, nowS) };
   }
   // 보호 수단의 끝(표시): 산소통이 있으면 산소통, 없으면 배터리. 이미 떨어졌을 수 있거나(MAYBE_OUT) 배터리 없음이면 null
@@ -207,22 +214,25 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
     case "PROPOSE_ASSIGN":
     case "GAP_REDUCE": {
       const resource = input.resourceKind ? RESOURCE_NOUN[input.resourceKind] : RESOURCE_UNKNOWN_NOUN;
-      plan = { type: input.lane === "PROPOSE_ASSIGN" ? "ASSIGN" : "GAP", resource, arriveBy: eta, etaPassed: input.etaS != null && input.etaS <= nowS };
-      // 보호 수단 끝이 보이는 경우만: 공백 단축 배정이거나, 표시 도착 시각 ≥ 표시 보호 끝(반올림 역전 포함)
-      warnRunOutFirst = supplyShownS != null && (input.lane === "GAP_REDUCE" || helpLate);
+      const passed = input.etaS != null && input.etaS <= nowS;
+      plan = { type: input.lane === "PROPOSE_ASSIGN" ? "ASSIGN" : "GAP", resource, arriveBy: eta, etaPassed: passed };
+      // 보호 수단 끝이 보이는 경우만: 공백 단축 배정, 표시 도착 ≥ 표시 보호 끝(반올림 역전 포함), 도착 예정이 지남(보수)
+      warnRunOutFirst = supplyShownS != null && (input.lane === "GAP_REDUCE" || helpLate || passed);
       break;
     }
     case "FALLBACK_119":
       // 이송 완료 예상 시각이 없으면(「수정」으로 119를 고른 경우 등) 늦음·먼저 소진을 보수적으로 경고한다
-      plan = { type: "CALL119", doneBy: eta, late: input.late119 || input.etaS == null, etaPassed: input.etaS != null && input.etaS <= nowS };
-      warnRunOutFirst = helpLate || (input.etaS == null && supplyShownS != null);
+      // 이송 예정 시각이 지났어도 같은 보수 규칙(통합 레드팀 2라운드)
+      const passed = input.etaS != null && input.etaS <= nowS;
+      plan = { type: "CALL119", doneBy: eta, late: input.late119 || input.etaS == null || passed, etaPassed: passed };
+      warnRunOutFirst = helpLate || ((input.etaS == null || passed) && supplyShownS != null);
       break;
     case "FALLBACK_SHELTER":
       plan = { type: "SHELTER" };
       break;
   }
   const actions: Action[] = [];
-  if (cylinder) actions.push("SWITCH_TO_CYLINDER");
+  if (cylinder) actions.push(switchNow ? "SWITCH_TO_CYLINDER" : "SWITCH_AFTER_BATTERY");
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
   return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, extDeclared: false, actions };
 }
@@ -235,8 +245,15 @@ export function deviceClassOf(hh: HouseholdView, db: EngineDb = DEFAULT_DB): Dev
   return cls === "O2_STAT" && hh.cylinder?.declared ? "O2_STAT_CYL" : cls;
 }
 
+/** 산소통을 대체 수단으로 쓰는 기기(산소발생기 계열)만 산소통을 셈한다. 인공호흡기에 '산소통으로 바꿔 쓰세요'를 내지 않는다 */
+const CYL_DEVICES: readonly DeviceClass[] = ["O2_STAT", "O2_STAT_CYL", "O2_PORT"];
+
 /** 배터리만(실린더 제외) 하한과, 확인 실린더를 더한 하한 */
 function split(hh: HouseholdView, db: EngineDb) {
+  if (hh.cylinder && !CYL_DEVICES.includes(deviceClassOf(hh, db))) {
+    const nc = computeLowerBoundDetail({ ...hh, cylinder: undefined }, db);
+    return { all: nc, noCyl: nc, cylS: 0 };
+  }
   const all = computeLowerBoundDetail(hh, db);
   const noCyl = hh.cylinder ? computeLowerBoundDetail({ ...hh, cylinder: undefined }, db) : all;
   const cylS = all.Ls != null && noCyl.Ls != null ? all.Ls - noCyl.Ls : 0;
@@ -265,7 +282,7 @@ export function outageInput(args: {
   if (batteryEndS != null && args.hh.lEndPrev != null && cylS > 0) batteryEndS = Math.min(batteryEndS, qT(args.hh.lEndPrev) - cylS);
   return {
     kind: "OUTAGE", caregiver: args.hh.caregiver, deviceCls: deviceClassOf(args.hh, args.db), baseIso: args.baseIso, nowS: args.nowS,
-    batteryEndS, batteryLs: noCyl.Ls, cylinderEndS: cylS > 0 ? all.endS : null,
+    batteryEndS, batteryLs: noCyl.Ls, cylinderEndS: cylS > 0 ? all.endS : null, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119,
   };
 }

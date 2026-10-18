@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
 import { BANNED, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v8";
+export const NOTICE_PROMPT_VERSION = "n1-v9";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -44,7 +44,8 @@ function cylinderKo(f: NoticeFacts): string | null {
   const c = f.cylinder;
   if (!c) return null;
   if (c.state === "MAYBE_OUT") return "확인된 산소통이 있지만 이미 거의 다 썼을 수 있다";
-  return c.state === "UNTIL" ? `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 적어도 ${c.text}까지 쓴다` : `확인된 산소통은 적어도 ${c.text} 쓴다`;
+  if (c.state === "HOURS") return `확인된 산소통은 적어도 ${c.text} 쓴다`;
+  return f.actions.includes("SWITCH_AFTER_BATTERY") ? `배터리가 떨어지면 집에 있는 확인된 산소통으로 바꿔 쓰고, 그러면 적어도 ${c.text}까지 쓴다` : `집에 있는 확인된 산소통으로 지금 바꿔 쓰면 적어도 ${c.text}까지 쓴다`;
 }
 function planKo(f: NoticeFacts): string | null {
   const p = f.plan;
@@ -53,7 +54,7 @@ function planKo(f: NoticeFacts): string | null {
     case "ASSIGN":
     case "GAP":
       return `${p.resource}을(를) 집으로 보낸다. ${p.arriveBy ? `${p.arriveBy}까지 도착` : p.etaPassed ? "도착 예정 시각이 지나 담당자가 확인 중" : "도착 시각은 아직 없음"}`;
-    case "CALL119": return `구급대와 연결했다. ${p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 줄 예정` : "구급대가 언제 올지는 아직 정해지지 않았다"}${p.late ? ". 출동이 늦어질 수 있다" : ""}`;
+    case "CALL119": return `구급대와 연결했다. ${p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 줄 예정` : p.etaPassed ? "구급대 이송 예정 시각이 지나 담당자가 확인하고 있다" : "구급대가 언제 올지는 아직 정해지지 않았다"}${p.late ? ". 출동이 늦어질 수 있다" : ""}`;
     case "SHELTER": return "가까운 쉼터로 옮기도록 담당자가 연락한다";
   }
 }
@@ -71,7 +72,7 @@ export function noticeUser(f: NoticeFacts): string {
     배터리: batteryKo(f),
     ...(cyl ? { 산소통: cyl } : {}),
     ...(plan ? { 담당자결정: plan } : {}),
-    ...(f.warnRunOutFirst ? { 경고: f.cylinder ? "도움이 오기 전에 산소통이 먼저 떨어질 수 있다" : "도움이 오기 전에 배터리가 먼저 떨어질 수 있다" } : {}),
+    ...(f.warnRunOutFirst ? { 경고: `${f.plan?.type === "CALL119" ? "구급대" : f.plan && "resource" in f.plan ? f.plan.resource : "도움"}가 오기 전에 ${f.cylinder ? "산소통" : "배터리"}가 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다)` } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),
     할일: f.actions.map((a) => (a === "SWITCH_TO_CYLINDER" && f.plan && "resource" in f.plan && f.plan.resource.includes("산소통") ? `${ACTION_KO[a]}(추가 산소통 배달을 기다리지 않음)` : ACTION_KO[a])),
     그대로써야할표기: req.mustInclude.map((m) => ({ 표기: m.text, 뜻: m.hint })),

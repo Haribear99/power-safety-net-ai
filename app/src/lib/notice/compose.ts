@@ -9,6 +9,9 @@ export const FOOTER = {
   ai: "※ AI가 쓴 글입니다. 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
   fallback: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
   template: "※ 시각과 할 일은 담당자가 정했습니다. 시연용 안내입니다.",
+  // 평시 대비 안내는 담당자 결정이 아니라 기기 사양 계산이다(통합 레드팀 2라운드)
+  prepAi: "※ AI가 쓴 글입니다. 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
+  prep: "※ 시간은 기기 사양으로 계산한 값입니다. 시연용 안내입니다.",
 } as const;
 
 /** 2차 검사 결과: 뽑은 주장, 또는 검사 실패(실패 시 닫힘) */
@@ -24,7 +27,9 @@ export interface Composed {
   footer: string;
 }
 
-const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">): Composed => ({ ...rest, sentences: [...body, ...tailSentences(f)] });
+const done = (f: NoticeFacts, body: string[], rest: Omit<Composed, "sentences">): Composed => ({
+  ...rest, footer: f.kind === "PREP" ? (rest.source === "ai" ? FOOTER.prepAi : FOOTER.prep) : rest.footer, sentences: [...body, ...tailSentences(f)],
+});
 
 /** ai = AI 본문과 2차 검사 결과(없으면 고정 문안). 2차 검사 없이 AI 본문을 내보내는 경로는 없다 */
 export function compose(f: NoticeFacts, ai: { sentences: readonly string[]; check: Check2 | null } | null): Composed {

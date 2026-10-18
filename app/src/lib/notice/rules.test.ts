@@ -28,7 +28,7 @@ function allInputs(): NoticeInputT[] {
       out.push({
         kind: "OUTAGE", caregiver, deviceCls, baseIso: BASE, nowS,
         batteryEndS: bat == null ? null : nowS + bat, batteryLs: bat == null ? null : bat === 0 ? 0 : 3600,
-        cylinderEndS: cyl == null ? null : nowS + cyl, lane,
+        cylinderEndS: cyl == null ? null : nowS + cyl, cylinderS: cyl == null ? 0 : 2 * 3600, lane,
         resourceKind: r() < 0.1 ? null : RES[Math.floor(r() * RES.length)], etaS: eta == null ? null : nowS + eta + Math.floor(r() * 3600), late119,
       });
     }
@@ -58,7 +58,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
-    actions: f.actions.map((kind) => ({ kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : "now" as const, negated: false, quote: "" })),
+    actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" || kind === "SWITCH_AFTER_BATTERY" ? "after_condition" as const : "now" as const, negated: false, quote: "" })),
     otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
   };
 }
@@ -84,7 +84,7 @@ describe("고정 문안", () => {
 });
 
 const IN = (o: Partial<Extract<NoticeInputT, { kind: "OUTAGE" }>>): NoticeInputT => ({
-  kind: "OUTAGE", caregiver: true, deviceCls: "VENT_1H", baseIso: BASE, nowS: 0, batteryEndS: 4800, batteryLs: 3600, cylinderEndS: null,
+  kind: "OUTAGE", caregiver: true, deviceCls: "VENT_1H", baseIso: BASE, nowS: 0, batteryEndS: 4800, batteryLs: 3600, cylinderEndS: null, cylinderS: 0,
   lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 3000, late119: false, ...o,
 });
 const gap = buildFacts(IN({ lane: "GAP_REDUCE", resourceKind: "RENTAL_EXT", etaS: 2 * 3600 + 600 }));
@@ -239,6 +239,61 @@ describe("통합 레드팀 1라운드 회귀", () => {
     const b = outageInput({ hh: { ...base, tReport: 2, lEndPrev: 10 }, baseIso: BASE, nowS: 7200, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
     if (a.kind !== "OUTAGE" || b.kind !== "OUTAGE") throw new Error();
     expect((b.batteryEndS ?? 0)).toBeLessThanOrEqual(Math.max(a.batteryEndS ?? 0, 0));
+  });
+});
+
+describe("통합 레드팀 2라운드 회귀", () => {
+  const vent: HouseholdView = {
+    id: "H3", pseudonym: "H-003", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "LTV1150", specBy: "db_exact", batteryAgeY: 1, charge: { value: 100, source: "device_screen" } },
+    ext: [], cylinder: { declared: true, opVerified: { count: 1, hoursLo: 10, auditId: "A1" } },
+  };
+  it("인공호흡기에는 산소통을 셈하지 않는다(산소통으로 바꿔 쓰라는 안내 없음)", () => {
+    const i = outageInput({ hh: vent, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!;
+    const f = buildFacts(i);
+    expect(f.cylinder).toBeNull();
+    expect(templateSentences(f).join(" ")).not.toContain("산소통");
+  });
+  it("배터리가 아직 있으면 '배터리가 떨어지면 바꿔 쓰기', 없으면 '지금'·산소통 끝 = 지금+산소통 시간", () => {
+    const after = buildFacts(IN({ deviceCls: "O2_PORT", lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, batteryEndS: 7200, cylinderEndS: 7200 + 36000, cylinderS: 36000 }));
+    expect(after.actions).toContain("SWITCH_AFTER_BATTERY");
+    expect(templateSentences(after).join(" ")).toContain("배터리가 떨어지면 확인된 산소통으로");
+    const now = buildFacts(IN({ deviceCls: "O2_STAT", lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200 }));
+    expect(now.actions).toContain("SWITCH_TO_CYLINDER");
+    expect(now.cylinder).toEqual({ state: "UNTIL", text: "내일 오전 1시" }); // 지금 23:00 + 산소통 2h = 01:00(입력 끝보다 이름)
+  });
+  it("고정 문안: 경고는 수단 문장 뒤, 앞 문장이 '적어도 …까지 버팁니다'가 아니다", () => {
+    for (const i of [IN({ lane: "GAP_REDUCE", etaS: 9000 }), IN({ lane: "FALLBACK_119", resourceKind: null, etaS: null }), IN({ lane: "FALLBACK_119", resourceKind: null, nowS: 5000, batteryEndS: 9000, etaS: 4000 })]) {
+      const t = templateSentences(buildFacts(i));
+      const k = t.findIndex((s) => s.includes("먼저 떨어질"));
+      expect(k).toBeGreaterThan(0);
+      expect(t[k - 1]).not.toContain("버팁니다");
+      expect(t[k]).toMatch(/(오기 전에)/);
+    }
+  });
+  it("평시 고정 문장은 45자 이내, 배터리 없는 기기엔 절전 문장 없음", () => {
+    for (const bs of [0, 9000, null]) for (const ext of [true, false]) {
+      const f = buildFacts({ kind: "PREP", caregiver: true, deviceCls: "O2_STAT", batteryS: bs, cylinderS: 0, extDeclared: ext });
+      for (const s of tailSentences(f)) expect(s.length).toBeLessThanOrEqual(45);
+      if (bs === 0) expect(tailSentences(f).join(" ")).not.toContain("절전");
+    }
+  });
+  it("1차: 산소통 바꿔 쓰기 문장에 부정어가 있으면 필수 충족이 아님", () => {
+    const f = buildFacts(IN({ deviceCls: "O2_STAT", lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200 }));
+    const t = templateSentences(f).map((s) => s.replace("지금 확인된 산소통으로 바꿔 쓰세요.", "지금 산소통으로 바꿔 쓰지는 마세요."));
+    expect(verify(f, t).violations.map((v) => v.code)).toContain("MISSING_SENTENCE");
+  });
+  it("1차: 이송 시각이 지났는데 '아직'이면 거부", () => {
+    const f = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, nowS: 5000, batteryEndS: 9000, etaS: 4000 }));
+    expect(verify(f, [...templateSentences(f), "구급대가 언제 올지는 아직 모릅니다."]).ok).toBe(false);
+  });
+  it("2차: '지금 산소통으로 바꿔 쓰지 마세요'는 거부, '추가 산소통 배달을 기다리지 마세요'는 허용", () => {
+    const f = buildFacts(IN({ deviceCls: "O2_STAT", lane: "PROPOSE_ASSIGN", resourceKind: "O2_CYL_DELIVERY", batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200, etaS: 9000 }));
+    const base = truthClaims(f);
+    const bad = { ...base, actions: [...base.actions.filter((a) => a.kind !== "SWITCH_TO_CYLINDER"), { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "지금 산소통으로 바꿔 쓰지 마세요" }] };
+    expect(compareClaims(f, bad).length).toBeGreaterThan(0);
+    const ok = { ...base, actions: [...base.actions, { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "추가 산소통 배달은 기다리지 마세요" }] };
+    expect(compareClaims(f, ok)).toEqual([]);
   });
 });
 

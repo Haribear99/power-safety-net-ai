@@ -412,9 +412,10 @@ function NoticeCheck() {
   const r = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(${pct1(x.k / x.n)}, 95% ${pct1(x.lo)}~${pct1(x.hi)})`;
   const KO: Record<string, string> = {
     time_value: "시각 값", date_shift: "날짜 밀기", time_role_swap: "시각 맞바꿈", time_meaning: "시각 뜻(까지→이후 등)", negation: "부정", warning_flip: "경고 뒤집기",
-    late_flip: "늦음 뒤집기", state_flip: "배터리·산소통 상태 뒤집기", means_wrong: "수단 틀림", resource_name_wrong: "수단 이름 틀림", extra_instruction: "정하지 않은 지시",
+    late_flip: "늦음 뒤집기", state_flip: "배터리·산소통 상태 뒤집기", means_wrong: "수단 틀림", resource_name_wrong: "수단·기기 이름 틀림", extra_instruction: "정하지 않은 지시",
     contradict_tail: "119·123 문장과 어긋남", reassurance: "안심 약속", medical_or_device: "의료·기기 조작", risky_action: "위험 행동", omission_by_meaning: "뜻으로 빠뜨림",
     subtle_paraphrase_error: "미묘한 바꿔쓰기 오류", switch_not_now: "산소통 교체 미룸",
+    // 작성자 범주 이름 resource_name_wrong에는 수단 덧붙임(t061)과 기기 이름 틀림(t062)이 함께 들어 있다
   };
   return (
     <div data-testid="n1">
@@ -423,7 +424,7 @@ function NoticeCheck() {
         1차로 규칙이 글자를, 2차로 다른 AI(Claude Opus)가 사실표 없이 글만 읽고 뽑은 내용을 규칙이 결정 기록과 대조합니다. 둘 다 맞을 때만 AI 글이, 아니면 고정 문안이 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음). 119·123 문장은 늘 고정입니다.
       </p>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px]">
-        <li>개발 세션과 분리된 Claude Opus 레드팀 에이전트가 틀리게 쓴 글 {n.badMissed.n}건(라벨은 작성자 판단, 범주 예시는 개발 세션이 줌, 내용은 봉인 실행 전 미열람) 중 두 검사를 모두 통과한 글: <strong>{r(n.badMissed)}</strong>. 2차 검사도 Opus라 맹점이 겹쳐 실제보다 적게 놓쳤을 수 있습니다. 1차 검사만이면 {n.badCaughtGate1.k}건, 2차 검사만이면 {n.badCaughtGate2.k}건을 막았습니다.
+        <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트가 틀리게 쓴 글 {n.badMissed.n}건(라벨은 작성자 판단, 범주 예시와 작성 중 유형 일부는 개발 세션이 제안, 내용은 봉인 실행 전 미열람) 중 두 검사를 모두 통과한 글: <strong>{r(n.badMissed)}</strong>. 2차 검사도 Opus라 맹점이 겹쳐 실제보다 적게 놓쳤을 수 있습니다. 1차 검사만이면 {n.badCaughtGate1.k}건, 2차 검사만이면 {n.badCaughtGate2.k}건을 막았습니다.
           {n.missedCategories.length ? ` 놓친 범주: ${n.missedCategories.map((m) => `${KO[m.category] ?? m.category} ${m.missed}/${m.n}`).join(", ")}.` : ""}</li>
         <li>같은 모음의 맞는 글 {n.goodFalseReject.n}건 중 잘못 막은 글: {r(n.goodFalseReject)}. 막히면 고정 문안이 후보가 되므로 안내가 끊기지는 않습니다.</li>
         <li>봉인 시험셋 {n.aiSent.n}건(봉인 뒤 공개 난수로 만든 결정 장면)에서 AI 글이 그대로 나간 비율: {r(n.aiSent)}. 정답 글(고정 문안)을 2차 검사가 잘못 막은 비율 {r(n.templateFalseReject)}. 지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사).</li>
@@ -431,7 +432,7 @@ function NoticeCheck() {
       </ul>
       <p className="mt-1 text-[13px] text-muted">
         검사가 보는 범위: 시각 표기·날짜, 수단과 이름, 먼저 떨어질 수 있다는 경고, 늦음, 할 일(정해진 것만), 안심 약속·의료·기기 조작·위험 행동. 문장의 모든 뜻을 보장하지는 않습니다(2차 검사도 AI).
-        예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘(구조상 보장 항목 {n.prereg.structural.map((x) => x.id).join(", ")}는 집계에서 뺌).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text} → 실제 ${m.value}`).join(" · ") : ""}
+        예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘(구조상 보장 항목 {n.prereg.structural.map((x) => x.id).join(", ")}는 집계에서 뺌).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text}(봉인 원문) → 실제 ${m.value}`).join(" · ") : ""}
         {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전이며, 새 사례로 측정하지 않았습니다.
       </p>
     </div>

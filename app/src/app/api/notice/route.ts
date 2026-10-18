@@ -54,8 +54,9 @@ export async function POST(req: Request) {
       }
       if (accessCodeOk(code)) {
         pool = "judge";
-        if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 60, 7200))) {
-          return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 시간당 한도(60회)를 넘었습니다. 다음 정시 이후 다시 시도해 주세요" }, { status: 429 });
+        // judge 풀은 라벨 판독 심사와 함께 쓰므로 알림 몫을 시간 20회·하루 40회로 묶는다(통합 레드팀 2라운드)
+        if (!(await hit(be, `pl26:rl:judge:notice:${hourKey()}:${codeKey(code)}`, 20, 7200)) || !(await hit(be, `pl26:rl:judge:notice:day:${new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)}`, 40, 2 * 86400))) {
+          return NextResponse.json({ error: "rate_limited", message: "심사용 코드의 알림 한도(시간 20회·하루 40회)를 넘었습니다. 고정 문안은 계속 볼 수 있습니다" }, { status: 429 });
         }
       } else {
         if (!(await hit(be, `pl26:rl:badcode:${hourKey()}:${ip}`, 5, 7200))) await be.raw(["SET", `pl26:rl:badcode-block:${ip}`, "1", "EX", 3600]);

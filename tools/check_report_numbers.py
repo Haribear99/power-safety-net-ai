@@ -65,8 +65,9 @@ expected = {
     "정부 집계 N건 중 1건": f"{round(ev['calib']['apt']['n'] / ev['calib']['apt']['gt12h'])}건 중 1건",
     "N1 AI 통과": f"AI 글 통과 {ev['n1']['aiSent']['k']}/{ev['n1']['aiSent']['n']}(95% {ev['n1']['aiSent']['lo'] * 100:.0f}~{ev['n1']['aiSent']['hi'] * 100:.0f}%)",
     "N1 놓침": f"{ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%, 95% {ev['n1']['badMissed']['lo'] * 100:.1f}~{ev['n1']['badMissed']['hi'] * 100:.1f}%",
-    "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}",
-    "N1 쌍 비교": f"AI 판정 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}",
+    "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}(95% {ev['n1']['goodFalseReject']['lo'] * 100:.1f}~{ev['n1']['goodFalseReject']['hi'] * 100:.1f}%)",
+    "N1 쌍 비교(탐색 표지)": f"AI 판정 탐색 {ev['n1']['judge']['ai']}:{ev['n1']['judge']['template']}·같음 {ev['n1']['judge']['same']}",
+    "N1 측정 버전 표기": "봉인 당시 검사 기준",
     "N1 사용 규칙(9.1 틀림 시 표기)": "시연용·담당자 확인 뒤 발송",
 }
 # 건보 요양비 CSV(datasets/external, cp949): 인공호흡기 최신 연도 지급건수 → 'N.N만 건'

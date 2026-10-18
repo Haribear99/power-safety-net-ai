@@ -29,8 +29,9 @@ export const ROLE_KO: Record<Role, string> = {
 };
 
 export interface Allowed { text: string; roles: Role[] }
-export interface SentenceReq { all: string[]; hint: string }
-export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[] }
+/** all = 한 문장에 함께 있어야 할 낱말, none = 그 문장에 있으면 안 되는 낱말(부정 등) */
+export interface SentenceReq { all: string[]; hint: string; none?: string[] }
+export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[]; forbidSentences: SentenceReq[] }
 
 export const LIMITS = { minSentences: 3, maxSentences: 10, maxSentenceChars: 45, maxTotalChars: 380 } as const;
 
@@ -38,12 +39,15 @@ export function requirements(f: NoticeFacts): Requirements {
   const allowed: Allowed[] = [];
   const mustInclude: Requirements["mustInclude"] = [];
   const mustSentences: SentenceReq[] = [];
+  const forbidSentences: SentenceReq[] = [];
+  const NEG = ["않", "말고", "마세", "필요 없", "필요가 없"];
   const must = (text: string, role: Role) => {
     const a = allowed.find((x) => x.text === text);
     if (a) { if (!a.roles.includes(role)) a.roles.push(role); } else allowed.push({ text, roles: [role] });
     if (!mustInclude.some((m) => m.text === text)) mustInclude.push({ text, hint: ROLE_KO[role] });
   };
-  const sent = (all: string[], hint: string) => mustSentences.push({ all, hint });
+  const sent = (all: string[], hint: string, none?: string[]) => mustSentences.push({ all, hint, ...(none ? { none } : {}) });
+  const forbid = (all: string[], hint: string) => forbidSentences.push({ all, hint });
 
   const b = f.battery;
   if (b.state === "UNTIL") must(b.text, "BATTERY_T");
@@ -68,6 +72,9 @@ export function requirements(f: NoticeFacts): Requirements {
     if (p.doneBy) must(p.doneBy, "T119");
     else if (p.etaPassed) sent(["구급", "지나"], "구급대 이송 예정 시각이 지나 담당자가 확인 중이다");
     else sent(["구급", "아직"], "구급대가 언제 올지는 아직 정해지지 않았다");
+    // 사실과 반대 상태 말 금지(통합 레드팀 2라운드)
+    if (p.etaPassed) forbid(["구급", "아직"], "이송 예정 시각이 지났는데 '아직 정해지지 않았다'");
+    if (!p.etaPassed) forbid(["구급", "지나"], "이송 예정 시각이 지나지 않았는데 '지났다'");
     if (p.late) sent(["늦"], "구급대 출동이 늦어질 수 있다");
   }
   if (p?.type === "SHELTER") sent(["쉼터"], "가까운 쉼터로 옮기도록 담당자가 연락한다");
@@ -75,13 +82,14 @@ export function requirements(f: NoticeFacts): Requirements {
   for (const a of f.actions) {
     if (a === "KEEP_PHONE") sent(["전화"], "연락을 받을 수 있게 전화를 곁에 둔다");
     if (a === "FOLLOW_STAFF") sent(["안내", "따"], "연락이 오면 안내를 따른다");
-    if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다");
+    if (a === "SWITCH_TO_CYLINDER") sent(["산소통", "바꿔", "지금"], "지금 바로 확인된 산소통으로 바꿔 쓴다", NEG);
+    if (a === "SWITCH_AFTER_BATTERY") sent(["산소통", "바꿔", "배터리"], "배터리가 떨어지면 확인된 산소통으로 바꿔 쓴다", NEG);
     if (a === "CHARGE_DEVICE") sent(["충전"], "평소에 배터리를 늘 충전해 둔다");
     if (a === "CHARGE_EXT") sent(["외장", "충전"], "외장 배터리도 충전해 둔다");
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");
-    if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다");
+    if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법과 갈 곳을 담당자와 미리 정해 둔다");
   }
-  return { allowed, mustInclude, mustSentences };
+  return { allowed, mustInclude, mustSentences, forbidSentences };
 }
 
 // ---------- 금지 표현 ----------
@@ -170,7 +178,8 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
     if (nw) v.push({ code: "NUMBER_WORD", detail: `표기 밖 시간 낱말 「${nw[0]}」`, sentence: s });
     if (hits.length > 1) v.push({ code: "MULTI_TIME", detail: `시각·시간 ${hits.length}개`, sentence: s });
     for (const h of hits) {
-      const r0 = strip(s, [h]).rest;
+      // 「정전에」「집 안에」 같은 말의 '전에'·'안에'는 뜻 뒤집기가 아니다
+      const r0 = strip(s, [h]).rest.replace(/정전\s?(전)?에|집\s?안에/g, "");
       const roleOk = (r: Role) => ROLE_WORDS[r].some((w) => r0.includes(w)) && !ROLE_FORBID[r].some((w) => r0.includes(w));
       if (!h.roles.some(roleOk)) v.push({ code: "ROLE_MISMATCH", detail: `「${h.text}」(${h.roles.map((r) => ROLE_KO[r]).join("/")})의 뜻 낱말이 맞지 않음`, sentence: s });
     }
@@ -182,7 +191,8 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
     for (const w of unsup) if (s.includes(w)) v.push({ code: "UNSUPPORTED", detail: `정하지 않은 수단 「${w}」`, sentence: s });
   }
   for (const m of req.mustInclude) if (!found.get(m.text)) v.push({ code: "MISSING_TEXT", detail: `「${m.text}」(${m.hint}) 없음` });
-  for (const m of req.mustSentences) if (!sentences.some((s) => m.all.every((w) => s.includes(w)))) v.push({ code: "MISSING_SENTENCE", detail: `${m.all.join("+")} 한 문장 없음(${m.hint})` });
+  for (const m of req.mustSentences) if (!sentences.some((s) => m.all.every((w) => s.includes(w)) && !(m.none ?? []).some((w) => s.includes(w)))) v.push({ code: "MISSING_SENTENCE", detail: `${m.all.join("+")} 한 문장 없음(${m.hint})` });
+  for (const m of req.forbidSentences) for (const s of sentences) if (m.all.every((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s });
   return { ok: v.length === 0, violations: v, sentences };
 }
 
@@ -205,7 +215,12 @@ export function josa(word: string, pair: "이가" | "은는"): string {
 export function tailSentences(f: NoticeFacts): string[] {
   return f.kind === "OUTAGE"
     ? ["위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
-    : ["정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요.", "절전 기능이 있는지는 담당 의료진이나 대여업체에 물어 두고, 설정은 혼자 바꾸지 마세요.", "정전되면 한전 123에 알리세요.", "위급하면 바로 119에 전화하세요."];
+    : [
+      // 갈 곳: PLAN_WITH_STAFF 문장에 이미 있으면 빼고, 절전: 배터리 없는 기기면 뺀다(통합 레드팀 2라운드). 한 문장 45자 이내
+      ...(f.actions.includes("PLAN_WITH_STAFF") ? [] : ["정전이 길어질 때 갈 곳을 담당자와 미리 정해 두세요."]),
+      ...(f.battery.state === "NONE" ? [] : ["절전 기능이 있는지 담당 의료진에게 물어 두세요.", "기기 설정은 혼자 바꾸지 마세요."]),
+      "위급하면 바로 119에 전화하세요.", "정전되면 한전 123에 알리세요.",
+    ];
 }
 
 /** 고정 문안 본문(1차 검사를 늘 통과 — rules.test.ts에서 모든 조합 시험). 같은 사실·할 일을 AI 글과 똑같이 담는다 */
@@ -220,7 +235,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     if (b.state === "UNKNOWN") out.push("배터리가 얼마나 갈지 담당자가 확인하고 있습니다.");
     if (b.state === "NONE") out.push(`${josa(f.device, "은는")} 배터리가 없어 정전되면 바로 멈춥니다.`);
     if (c) {
-      out.push("지금 확인된 산소통으로 바꿔 쓰세요.");
+      out.push(f.actions.includes("SWITCH_AFTER_BATTERY") ? "배터리가 떨어지면 확인된 산소통으로 바꿔 쓰세요." : "지금 확인된 산소통으로 바꿔 쓰세요.");
       out.push(c.state === "UNTIL" ? `산소통은 적어도 ${c.text}까지 씁니다.` : "산소통도 이미 거의 다 썼을 수 있습니다.");
     }
     const p = f.plan;
@@ -229,11 +244,14 @@ export function templateSentences(f: NoticeFacts): string[] {
       else if (p.etaPassed) out.push(`${p.resource} 도착 예정 시각이 지나 담당자가 확인하고 있습니다.`);
       else out.push(`${josa(p.resource, "이가")} 집에 도착하도록 보내고 있습니다.`);
     }
-    if (f.warnRunOutFirst) out.push(f.cylinder ? "그 전에 산소통이 먼저 떨어질 수 있습니다." : "그 전에 배터리가 먼저 떨어질 수 있습니다.");
+    // 경고는 수단 문장 뒤에, 무엇이 오기 전인지 주어를 밝혀 쓴다(앞 문장의 '적어도 …까지'와 모순되지 않게)
+    const supply = f.cylinder ? "산소통" : "배터리";
+    if (f.warnRunOutFirst && (p?.type === "ASSIGN" || p?.type === "GAP")) out.push(`${josa(p.resource, "이가")} 오기 전에 ${supply}${supply === "산소통" ? "이" : "가"} 먼저 떨어질 수 있습니다.`);
     if (p?.type === "CALL119") {
       out.push("구급대와 연결했습니다.");
       out.push(p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 드릴 예정입니다.` : p.etaPassed ? "구급대 이송 예정 시각이 지나 담당자가 확인하고 있습니다." : "구급대가 언제 올지는 아직 정해지지 않았습니다.");
       if (p.late) out.push("구급대 출동이 늦어질 수 있습니다.");
+      if (f.warnRunOutFirst) out.push(`구급대가 오기 전에 ${supply}${supply === "산소통" ? "이" : "가"} 먼저 떨어질 수 있습니다.`);
     }
     if (p?.type === "SHELTER") out.push("가까운 쉼터로 옮기도록 담당자가 연락드립니다.");
     out.push("연락을 받을 수 있게 전화를 곁에 두세요.");
@@ -250,7 +268,7 @@ export function templateSentences(f: NoticeFacts): string[] {
     if (a === "CHARGE_DEVICE") out.push("평소에 기기 배터리를 늘 충전해 두세요.");
     if (a === "CHARGE_EXT") out.push("외장 배터리도 늘 충전해 두세요.");
     if (a === "CHECK_CYLINDER") out.push("산소통을 미리 확인해 두세요.");
-    if (a === "PLAN_WITH_STAFF") out.push("정전 때 쓸 다른 방법을 담당자와 미리 정해 두세요.");
+    if (a === "PLAN_WITH_STAFF") out.push("정전 때 쓸 다른 방법과 갈 곳을 담당자와 정해 두세요.");
   }
   return out;
 }

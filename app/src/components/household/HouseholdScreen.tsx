@@ -177,7 +177,7 @@ function LowerBoundForm({ specId }: { specId: string }) {
       {lb.flags.length ? <p className="mt-1 text-[13px] text-warn">{lb.flags.map((f) => FLAG_KO[f]).join(" · ")}</p> : null}
       <p className="mt-2 text-[13px] text-muted">입력해도 하한은 제조사 사양의 90%(+운영자 확인분)를 넘지 못합니다 · 충전량 입력은 현재 상태 갱신용 · AI 판독 기종은 운영자 「기종 확인」 전까지 이웃 기종 최소값으로 계산합니다</p>
       <label className="mt-3 flex gap-2 text-[14px]"><input type="checkbox" checked={cg} onChange={(e) => setCg(e.target.checked)} />보호자가 있음(없으면 본인에게 쓰는 안내)</label>
-      <NoticePanel input={prep} title="대비 안내(쉬운 글·음성): 완충·외장배터리·갈 곳·연락처" />
+      <NoticePanel input={prep} title="대비 안내(쉬운 글·음성): 완충·외장배터리·갈 곳·연락처" audience="household" />
     </div>
   );
 }

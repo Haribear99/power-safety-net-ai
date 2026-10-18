@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BEFORE_MEASURE, c1Evidence, diffSummary, type C1Rate } from "@/lib/evidence";
+import { BEFORE_MEASURE, c1Evidence, diffSummary, n1Evidence, type C1Rate } from "@/lib/evidence";
 
 const r = (x: C1Rate | { k: number; n: number }) => `${x.k}/${x.n}`;
 const ci = (x: C1Rate) => `95% CI ${(x.ciLo * 100).toFixed(1)}~${(x.ciHi * 100).toFixed(1)}%`;
@@ -51,13 +51,36 @@ export default function LedgerPage() {
           <p className="mt-1 text-[13px] text-muted">AI가 정한 기종도 담당자가 「기종 확인」을 하기 전까지는 비슷한 이름 기종 중 가장 짧은 배터리 시간으로 계산합니다. 원시 응답(요청 ID 포함)은 저장소 out/sealed/c1에 있습니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></p>
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
+      <NoticeLedger />
       <h2 id="judge" className="mt-6 text-[18px] font-bold">심사위원 3분 경로</h2>
       <ol className="mt-1 list-decimal pl-5">
         <li><Link className="underline" href="/">첫 화면</Link>: 두 시계와 판단식 한 줄</li>
-        <li><Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link>: 「모의 정전 발생」 → 표에서 가구 선택 → 승인은 직접 누르세요</li>
+        <li><Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link>: 「모의 정전 발생」 → 표에서 가구 선택 → 승인은 직접 누르세요 → 아래 「보호자 알림」에서 「AI로 쉬운 글 쓰기」·「소리로 듣기」</li>
         <li><Link className="underline" href="/ops/119">119 화면</Link>: 승인된 119 연계 건만 3필드</li>
       </ol>
       <p className="mt-6"><Link className="underline" href="/">← 처음으로</Link></p>
     </main>
+  );
+}
+
+/** AI가 하는 일 ②: 보호자 알림(봉인 S9, evidence.n1) */
+function NoticeLedger() {
+  const n = n1Evidence();
+  const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${((x.lo ?? 0) * 100).toFixed(1)}~${((x.hi ?? 0) * 100).toFixed(1)}%)`;
+  return (
+    <>
+      <h2 className="mt-6 text-[18px] font-bold">AI가 하는 일 ②: 보호자 알림(생성 Claude Sonnet, 검사 Claude Opus)</h2>
+      {n ? (
+        <div className="mt-1 text-[14px]">
+          <p>담당자가 정한 시각·할 일을 AI가 쉬운 글로 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다. 아니면 고정 문안입니다. 시연용이며 실제 발송 기능은 없습니다.</p>
+          <ul className="mt-1 list-disc pl-5">
+            <li>봉인 시험셋(봉인 뒤 공개 난수로 생성) AI 글 통과 {ci(n.aiSent)}, 고정 문안을 잘못 막음 {ci(n.templateFalseReject)}</li>
+            <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
+            <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 약 $0.03. 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
+          </ul>
+          <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. <Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
+        </div>
+      ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
+    </>
   );
 }
