@@ -1,0 +1,295 @@
+{
+ "promptVersion": "n1-v14",
+ "checkVersion": "n1-check-v20",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-dev-v20",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev.json",
+  "sha256": "63d9ca0e401cf587e300e1c29fab63408dc44e0cef8d2361dabc8551883bcc59",
+  "n": 21,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 15,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.20388330359648707
+    ]
+   },
+   "badCaught": {
+    "k": 15,
+    "n": 15,
+    "rate": 1,
+    "wilson95": [
+     0.7961166964035129,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 13,
+    "n": 15,
+    "rate": 0.8666666666666667,
+    "wilson95": [
+     0.6211801694601944,
+     0.9626387412357151
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 15,
+    "n": 15,
+    "rate": 1,
+    "wilson95": [
+     0.7961166964035129,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 5,
+    "n": 6,
+    "rate": 0.8333333333333334,
+    "wilson95": [
+     0.4364971749742326,
+     0.969946630588185
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 5,
+    "n": 6,
+    "rate": 0.8333333333333334,
+    "wilson95": [
+     0.4364971749742326,
+     0.969946630588185
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 5,
+    "n": 6,
+    "rate": 0.8333333333333334,
+    "wilson95": [
+     0.4364971749742326,
+     0.969946630588185
+    ]
+   },
+   "byCategory": {
+    "warning_flip": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "late_flip": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "state_flip": {
+     "n": 3,
+     "caught1": 2,
+     "caught2": 3,
+     "caught": 3
+    },
+    "meaning_shift": {
+     "n": 2,
+     "caught1": 1,
+     "caught2": 2,
+     "caught": 2
+    },
+    "time_swap": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "unsupported_means": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "reassurance": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "extra_instruction": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 2,
+     "caught": 2
+    },
+    "risky": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "time_meaning": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    },
+    "omission_meaning": {
+     "n": 1,
+     "caught1": 1,
+     "caught2": 1,
+     "caught": 1
+    }
+   }
+  },
+  "costUsd": 0.2415716,
+  "rows": [
+   {
+    "id": "d01",
+    "label": "bad",
+    "category": "warning_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d02",
+    "label": "bad",
+    "category": "late_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d03",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "d04",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d05",
+    "label": "bad",
+    "category": "state_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d06",
+    "label": "bad",
+    "category": "meaning_shift",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d07",
+    "label": "bad",
+    "category": "meaning_shift",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "d08",
+    "label": "bad",
+    "category": "time_swap",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d09",
+    "label": "bad",
+    "category": "unsupported_means",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d10",
+    "label": "bad",
+    "category": "reassurance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d11",
+    "label": "bad",
+    "category": "extra_instruction",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d12",
+    "label": "bad",
+    "category": "extra_instruction",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d13",
+    "label": "bad",
+    "category": "risky",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d14",
+    "label": "bad",
+    "category": "time_meaning",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "d15",
+    "label": "bad",
+    "category": "omission_meaning",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "g01",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "g02",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "g03",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "g04",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "g05",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "g06",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": true
+   }
+  ]
+ }
+}

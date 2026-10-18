@@ -54,6 +54,10 @@ for (const c of cases.slice(0, 4)) {
   const put = (s: string) => [...t.slice(0, k), ...s.split(/(?<=\.)\s+/), ...t.slice(k + 1)];
   BAD.forEach(([cat, mk], j) => items.push({ id: `${c.id}-b${j}`, input: c.input, label: "bad", category: cat, sentences: put(mk(noun)) }));
   GOOD.forEach(([cat, mk], j) => items.push({ id: `${c.id}-g${j}`, input: c.input, label: "good", category: cat, sentences: put(mk()) }));
+  // 12라운드: 산소통 시각을 '지금 바꿔 쓰면'의 끝처럼 씀(사실은 배터리 다음)
+  const cx = f.cylinder?.state === "UNTIL" ? f.cylinder.text : "";
+  const kc = t.findIndex((s) => cx && s.includes(cx));
+  if (kc >= 0) items.push({ id: `${c.id}-b9`, input: c.input, label: "bad", category: "cylinder_time_now_condition", sentences: t.map((s, i) => (i === kc ? `지금 산소통으로 바꿔 쓰면 산소통은 계산상 ${cx}까지 씁니다.` : s)) });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_switch.json"), JSON.stringify({
   format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 7라운드 회귀용(개발자 작성, 측정 아님). 바꿔 쓰기 문장만 바꿨다.", items,

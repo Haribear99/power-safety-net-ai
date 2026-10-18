@@ -33,6 +33,7 @@ function footerFor(f: NoticeFacts, ai: boolean): string {
   }
   const parts: string[] = [];
   if (f.battery.state === "UNTIL") parts.push(BATTERY_BASIS[f.batteryBasis ?? "none"].replace("계산했고", f.batteryWithExt ? "확인된 외장 배터리 사양까지 합쳐 계산했고" : "계산했고"));
+  if (f.batteryExtExcluded) parts.push("확인된 외장 배터리는 보수적으로 빼고 계산했고");
   if (f.cylinder?.state === "UNTIL") parts.push("산소통 시각은 담당자가 확인한 값으로 계산했고");
   // '과 시각'은 글에 도움 시각이 있을 때만(통합 레드팀 5라운드)
   const p = f.plan;

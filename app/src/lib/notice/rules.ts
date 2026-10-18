@@ -62,7 +62,11 @@ export function requirements(f: NoticeFacts): Requirements {
   if (b.state === "UNKNOWN") sent(["배터리", "담당자"], "배터리가 얼마나 가는지 담당자가 확인 중이다");
   if (b.state === "NONE") sent(["멈"], "배터리가 없어 정전되면 바로 멈춘다"); // 「배터리가 없습니다. 그래서 바로 멈춥니다」처럼 나눠 써도 된다(뜻은 2차 검사)
   const c = f.cylinder;
-  if (c?.state === "UNTIL") must(c.text, "CYL_T");
+  if (c?.state === "UNTIL") {
+    must(c.text, "CYL_T");
+    // 산소통 시각의 조건은 사실과 같아야 한다: 배터리 다음이면 '지금·바로'로, 지금이면 '떨어지면·다 되면'으로 쓰지 않는다(통합 레드팀 12라운드)
+    sent([c.text], "산소통 시각(바꿔 쓰는 때와 맞게)", f.actions.includes("SWITCH_AFTER_BATTERY") ? ["지금", "바로", "당장", "곧바로"] : ["떨어지면", "다 되면", "뒤에", "다음에"]);
+  }
   if (c?.state === "HOURS") must(c.text, "CYL_H");
   if (c?.state === "MAYBE_OUT") sent(["산소통", "이미"], "산소통도 이미 거의 다 썼을 수 있다");
   const p = f.plan;

@@ -1,0 +1,247 @@
+{
+ "promptVersion": "n1-v14",
+ "checkVersion": "n1-check-v20",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-warn-v20",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_warn.json",
+  "sha256": "f5e6f9fb4a0e3ca47cbc8dcb604e6a359d3baa46db4289b7672271829d3ff20f",
+  "n": 21,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 16,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.1936076829974049
+    ]
+   },
+   "badCaught": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 16,
+    "n": 16,
+    "rate": 1,
+    "wilson95": [
+     0.8063923170025951,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 5,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.43448246865939283
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 5,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.43448246865939283
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 5,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.43448246865939283
+    ]
+   },
+   "byCategory": {
+    "at_least_guarantee": {
+     "n": 6,
+     "caught1": 6,
+     "caught2": 6,
+     "caught": 6
+    },
+    "warning_conditional": {
+     "n": 5,
+     "caught1": 5,
+     "caught2": 5,
+     "caught": 5
+    },
+    "guarantee_synonym": {
+     "n": 5,
+     "caught1": 5,
+     "caught2": 5,
+     "caught": 5
+    }
+   }
+  },
+  "costUsd": 0.2494996,
+  "rows": [
+   {
+    "id": "wn-00-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-00-b1",
+    "label": "bad",
+    "category": "warning_conditional",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "wn-00-b2",
+    "label": "bad",
+    "category": "guarantee_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-01-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-01-b1",
+    "label": "bad",
+    "category": "warning_conditional",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "wn-01-b2",
+    "label": "bad",
+    "category": "guarantee_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-02-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-02-b1",
+    "label": "bad",
+    "category": "warning_conditional",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "wn-02-b2",
+    "label": "bad",
+    "category": "guarantee_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-03-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-03-b1",
+    "label": "bad",
+    "category": "warning_conditional",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "wn-03-b2",
+    "label": "bad",
+    "category": "guarantee_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-04-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-05-b0",
+    "label": "bad",
+    "category": "at_least_guarantee",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-05-b1",
+    "label": "bad",
+    "category": "warning_conditional",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "wn-05-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "wn-05-b2",
+    "label": "bad",
+    "category": "guarantee_synonym",
+    "gate1": true,
+    "gate2": true
+   }
+  ]
+ }
+}

@@ -53,7 +53,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
     staffPromises: promises,
     device: f.device,
     battery: { kind: bk[b.state], time: b.state === "UNTIL" || b.state === "HOURS" ? b.text : b.state === "UNDER30" ? "30분" : null, condition: b.state === "HOURS" || b.state === "UNDER30" ? "full_charge" : "unspecified", includesExternal: f.batteryWithExt ? "yes" : "not_mentioned" },
-    cylinder: !c ? { kind: "not_mentioned", time: null } : c.state === "MAYBE_OUT" ? { kind: "maybe_already_out", time: null } : { kind: c.state === "UNTIL" ? "lasts_until" : "lasts_for", time: c.text },
+    cylinder: !c ? { kind: "not_mentioned", time: null, condition: "unspecified" } : c.state === "MAYBE_OUT" ? { kind: "maybe_already_out", time: null, condition: "unspecified" } : { kind: c.state === "UNTIL" ? "lasts_until" : "lasts_for", time: c.text, condition: c.state === "UNTIL" ? (f.actions.includes("SWITCH_TO_CYLINDER") ? "now" : "after_battery_out") : "unspecified" },
     means: !p ? { kind: "none", name: null, time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : p.etaPassed ? "passed_being_checked" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
@@ -266,7 +266,8 @@ describe("통합 레드팀 2라운드 회귀", () => {
     expect(templateSentences(after).join(" ")).toContain("배터리가 떨어지면 확인된 산소통으로");
     const now = buildFacts(IN({ deviceCls: "O2_STAT", lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200 }));
     expect(now.actions).toContain("SWITCH_TO_CYLINDER");
-    expect(now.cylinder).toEqual({ state: "UNTIL", text: "내일 오전 1시" }); // 지금 23:00 + 산소통 2h = 01:00(입력 끝보다 이름)
+    // 12라운드: 기준 시각은 지금이 아니라 처음 바꿔 써야 했던 때(배터리 없음이면 배터리 끝 22:00) → 22:00 + 2h = 0시(보수)
+    expect(now.cylinder).toEqual({ state: "UNTIL", text: "내일 오전 0시" });
   });
   it("고정 문안: 경고는 수단 문장 뒤, 앞 문장이 '적어도 …까지 버팁니다'가 아니다", () => {
     for (const i of [IN({ lane: "GAP_REDUCE", etaS: 9000 }), IN({ lane: "FALLBACK_119", resourceKind: null, etaS: null }), IN({ lane: "FALLBACK_119", resourceKind: null, nowS: 5000, batteryEndS: 9000, etaS: 4000 })]) {
@@ -527,7 +528,7 @@ describe("통합 레드팀 10라운드 회귀", () => {
     for (const w of ["최소한", "넉넉히", "거뜬히", "족히"]) expect(verify(f, t.map((s) => s.replace("계산상", w))).ok, w).toBe(false);
     expect(verify(f, [...t, "그 전에는 멈추지 않습니다."]).ok).toBe(false);
   });
-  it("확인 외장+산소통 집에서 내장 몫이 거의 없으면 외장을 빼지 않는다('이미 떨어짐·지금 산소통'으로 떨어지지 않음)", () => {
+  it("확인 외장+산소통 집은 내장 몫이 거의 없어도 외장을 늘 뺀다(12라운드 정책: 시계와 무관, 꼬리말에 밝힘)", () => {
     const hh: HouseholdView = {
       id: "H10", pseudonym: "H-010", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
       device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 0, source: "device_screen" } },
@@ -535,9 +536,10 @@ describe("통합 레드팀 10라운드 회귀", () => {
       cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C10" } },
     };
     const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
-    expect(f.battery.state).toBe("UNTIL");
-    expect(f.batteryWithExt).toBe(true);
-    expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
+    expect(f.batteryWithExt).toBeUndefined();
+    expect(f.batteryExtExcluded).toBe(true);
+    expect(f.actions).toContain("SWITCH_TO_CYLINDER");
+    expect(compose(f, null).footer).toContain("외장 배터리는 보수적으로 빼고");
   });
 });
 
@@ -575,6 +577,41 @@ describe("통합 레드팀 11라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 12라운드 회귀", () => {
+  const sw = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+  it("배터리 다음 바꿔 쓰기인데 '지금 바꿔 쓰면 산소통은 X까지'는 1·2차 거부", () => {
+    expect(sw.actions).toContain("SWITCH_AFTER_BATTERY");
+    const t = templateSentences(sw);
+    expect(verify(sw, t).ok).toBe(true);
+    const cx = sw.cylinder?.state === "UNTIL" ? sw.cylinder.text : "";
+    expect(verify(sw, t.map((s) => (s.includes(cx) ? `지금 산소통으로 바꿔 쓰면 산소통은 계산상 ${cx}까지 씁니다.` : s))).ok).toBe(false);
+    const c = truthClaims(sw);
+    expect(compareClaims(sw, c)).toEqual([]);
+    expect(compareClaims(sw, { ...c, cylinder: { ...c.cylinder, condition: "now" } }).length).toBeGreaterThan(0);
+    expect(compareClaims(sw, { ...c, cylinder: { ...c.cylinder, condition: "unspecified" } })).toEqual([]);
+  });
+  it("도착을 고정하고 시계만 흘려도 산소통 표시 끝은 늘지 않고, 경고는 한 번 붙으면 사라지지 않는다", () => {
+    const hh: HouseholdView = {
+      id: "H12", pseudonym: "H-012", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 7, source: "device_screen" } },
+      ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A12" } }],
+      cylinder: { declared: true, opVerified: { count: 1, hoursLo: 1, auditId: "C12" } },
+    };
+    const toMin = (txt?: string) => { const m = /(내일 )?(오전|오후) (\d+)시(?: (\d+)분)?/.exec(txt ?? ""); if (!m) return null; let h = Number(m[3]) % 12; if (m[2] === "오후") h += 12; return (m[1] ? 1440 : 0) + h * 60 + Number(m[4] ?? 0); };
+    for (const eta of [2 * 3600, 3 * 3600]) {
+      let warned = false, prevCyl: number | null = null;
+      for (let now = 0; now <= 2 * 3600; now += 60) {
+        const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: now, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: eta, late119: false })!);
+        const cm = f.cylinder?.state === "UNTIL" ? toMin(f.cylinder.text) : null;
+        if (cm != null && prevCyl != null) expect(cm, `eta ${eta} now ${now}`).toBeLessThanOrEqual(prevCyl);
+        if (cm != null) prevCyl = cm;
+        if (warned && f.cylinder?.state === "UNTIL") expect(f.warnRunOutFirst, `eta ${eta} now ${now}`).toBe(true);
+        warned = warned || f.warnRunOutFirst;
+      }
+    }
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [
@@ -598,7 +635,7 @@ describe("2차 검사 대조(compareClaims)", () => {
     ["표기 밖 시간", (c) => ({ ...c, otherTimesOrDurations: ["이틀"] })],
     ["안심", (c) => ({ ...c, reassuranceOrPromise: true })],
     ["위험 행동", (c) => ({ ...c, medicalOrDeviceOrRiskyInstruction: true })],
-    ["산소통 지어냄", (c) => ({ ...c, cylinder: { kind: "lasts_until", time: "오전 3시" } })],
+    ["산소통 지어냄", (c) => ({ ...c, cylinder: { kind: "lasts_until", time: "오전 3시", condition: "unspecified" } })],
   ];
   it("정답 주장이면 AI 본문이 나간다", () => {
     const c = compose(gap, { sentences: templateSentences(gap), check: { claims: ok } });

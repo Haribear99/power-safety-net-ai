@@ -338,7 +338,7 @@ function n1Examples(defectIds: readonly string[] = []) {
     pick("산소발생기 · 확인된 산소통", (r) => r.facts.kind === "OUTAGE" && r.facts.cylinder != null),
     pick("119 연계", (r) => r.facts.kind === "OUTAGE" && r.facts.plan?.type === "CALL119" && !r.facts.cylinder),
     // 외장 신고 집은 고르지 않는다: 봉인 당시 글은 확인 외장 합산을 밝히지 않았다(통합 레드팀 8라운드)
-    pick("평시 대비", (r) => r.facts.kind === "PREP" && !r.facts.extDeclared),
+    pick("평시 대비", (r) => r.facts.kind === "PREP"), // 외장 합산 미표기·없는 약속 글은 defectIds로 빠진다(12라운드)
   ].filter(Boolean);
 }
 type RateN = { k: number; n: number; rate: number | null; wilson95: number[] | null };

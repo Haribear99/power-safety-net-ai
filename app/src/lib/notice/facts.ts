@@ -64,13 +64,15 @@ export const NoticeInput = z.discriminatedUnion("kind", [
     batteryExtS: DUR.optional(),
     /** 배터리 시각의 근거(꼬리말용): 알린 충전량 / 충전량 모름(낮춘 가정) / 기기 화면 남은 시간 / 담당자 입력 하한. 없으면 꼬리말에 근거를 적지 않는다 */
     batteryBasis: z.enum(["charge", "chargeUnknown", "screen", "operator"]).optional(),
+    /** 확인 산소통이 있어 확인 외장 배터리 몫을 배터리 시각에서 뺐음(꼬리말 근거용, 통합 레드팀 12라운드) */
+    batteryExtExcluded: z.boolean().optional(),
   }).strict(),
 ]);
 export type NoticeInputT = z.infer<typeof NoticeInput>;
 
 export const DEVICE_NOUN: Record<DeviceClass, string> = {
   O2_STAT: "산소발생기", O2_STAT_CYL: "산소발생기", VENT_1H: "인공호흡기", VENT_3H: "인공호흡기", O2_PORT: "휴대용 산소발생기",
-  VENT_8H: "인공호흡기", VENT_8H_EXT2: "인공호흡기", INTERMITTENT: "가래 흡인기", UNKNOWN: "의료기기",
+  VENT_8H: "인공호흡기", VENT_8H_EXT2: "인공호흡기", INTERMITTENT: "기침유발기", UNKNOWN: "의료기기",
 };
 export const RESOURCE_NOUN: Record<ResourceKind, string> = {
   ESS_S: "휴대용 전원 장치", ESS_L: "대용량 전원 장치", MOBILE_GEN: "이동식 발전기", RENTAL_EXT: "기기용 외장 배터리",
@@ -119,6 +121,8 @@ export interface NoticeFacts {
   actions: Action[];
   /** 배터리 시간·시각에 확인 외장 배터리가 합쳐져 있음(HOURS·UNTIL일 때만). 글은 '외장 배터리까지 합쳐'라고 써야 한다 */
   batteryWithExt?: true;
+  /** 확인 외장 배터리 몫을 배터리 시각에서 뺐음(꼬리말만 쓴다) */
+  batteryExtExcluded?: true;
   /** OUTAGE 배터리 시각의 근거(꼬리말만 쓴다. 본문·검사와 무관) */
   batteryBasis?: "charge" | "chargeUnknown" | "screen" | "operator";
 }
@@ -216,7 +220,12 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   if (input.cylinderEndS != null) {
     // 예전 형식 입력(cylinderS 없음, S9 봉인 파일 등)은 예전처럼 입력 끝을 그대로 쓴다
     const cs = (input as { cylinderS?: number }).cylinderS;
-    cylShownS = endState(switchNow && cs != null ? Math.min(input.cylinderEndS, nowS + cs) : input.cylinderEndS);
+    // '지금 바꿔 쓰기'의 기준 시각: 지금이 아니라 처음 '이미 떨어졌을 수 있음'이 된 시각(표시 끝 − 10분). 시계가 흘러도 산소통 끝이 늘지 않게(통합 레드팀 12라운드)
+    // 배터리 없음(NONE)이면 배터리 끝(신고 시각) 그대로, 이미 떨어졌을 수 있음(MAYBE_OUT)이면 표시 끝 − 10분, 수동검토면 지금
+    const anchor = input.batteryEndS == null ? nowS
+      : battery.state === "NONE" ? Math.min(nowS, input.batteryEndS)
+      : Math.min(nowS, Math.max(0, round10(baseIso, input.batteryEndS, "floor") - TEN_MIN));
+    cylShownS = endState(switchNow && cs != null ? Math.min(input.cylinderEndS, anchor + cs) : input.cylinderEndS);
     cylinder = cylShownS == null ? { state: "MAYBE_OUT" } : { state: "UNTIL", text: clockLabel(baseIso, cylShownS, nowS) };
   }
   // 보호 수단의 끝(표시): 산소통이 있으면 산소통, 없으면 배터리. 이미 떨어졌을 수 있거나(MAYBE_OUT) 배터리 없음이면 null
@@ -254,7 +263,7 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
   const warnTight = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS <= supplyShownS;
   const withExt = battery.state === "UNTIL" && (input.batteryExtS ?? 0) > 0;
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}), ...(input.batteryExtExcluded ? { batteryExtExcluded: true as const } : {}) };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
@@ -322,8 +331,9 @@ export function outageInput(args: {
   const extS0 = extShare(hh, noCyl.Ls, db);
   // 내장 몫이 거의 없으면(10분 미만) 빼지 않고 외장 합산으로 둔다: 빼면 '배터리 이미 떨어짐·지금 산소통'이 되어 남은 외장을 알리지 않는다(통합 레드팀 10라운드)
   // 판정은 표시 규칙과 같게(10분 내림 뒤 지금부터 10분 이상): 원값으로 보면 1분 사이에 안내가 뒤집힌다(통합 레드팀 11라운드)
-  const dropExt = cylS > 0 && extS0 > 0 && batteryEndS != null && round10(args.baseIso, batteryEndS - extS0, "floor") - args.nowS >= TEN_MIN;
-  if (dropExt && batteryEndS != null) batteryEndS = Math.max(args.nowS, batteryEndS - extS0);
+  // 산소통이 있으면 외장 몫은 늘 뺀다(보수). 내장 잔량에 따라 빼고 말고를 바꾸면 시계가 흐를 때 안내가 뒤집힌다(통합 레드팀 11·12라운드)
+  const dropExt = cylS > 0 && extS0 > 0 && batteryEndS != null;
+  if (dropExt && batteryEndS != null) batteryEndS = Math.max(0, batteryEndS - extS0);
   const batteryLsOut = dropExt && batteryLs != null ? Math.max(batteryLs > 0 ? 1 : 0, batteryLs - extS0) : batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
   const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;
@@ -334,7 +344,7 @@ export function outageInput(args: {
     kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs: batteryLsOut, cylinderEndS, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119, batteryBasis,
-    ...(!dropExt && extS0 > 0 ? { batteryExtS: extS0 } : {}),
+    ...(!dropExt && extS0 > 0 ? { batteryExtS: extS0 } : {}), ...(dropExt ? { batteryExtExcluded: true } : {}),
   };
 }
 
