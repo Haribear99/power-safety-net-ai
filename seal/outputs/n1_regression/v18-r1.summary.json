@@ -1,0 +1,393 @@
+{
+ "promptVersion": "n1-v13",
+ "checkVersion": "n1-check-v18",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "v18-r1",
+ "sealed": false,
+ "set": {
+  "file": "datasets/notice/dev.json",
+  "sha256": "8f4be712c99619face3e9326019e8c393c374d3990e053cb1d8fcbc5fbebb525",
+  "n": 40
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 22,
+    "n": 28,
+    "rate": 0.7857142857142857,
+    "wilson95": [
+     0.6046141419113311,
+     0.8978753972661142
+    ]
+   },
+   "gate1Pass": {
+    "k": 26,
+    "n": 28,
+    "rate": 0.9285714285714286,
+    "wilson95": [
+     0.7735463727026133,
+     0.9801879360635548
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 22,
+    "n": 26,
+    "rate": 0.8461538461538461,
+    "wilson95": [
+     0.6646880050648342,
+     0.9384996631922972
+    ]
+   },
+   "gate1FactError": {
+    "k": 0,
+    "n": 28,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.12064330643947074
+    ]
+   },
+   "callFail": {
+    "k": 1,
+    "n": 28,
+    "rate": 0.03571428571428571,
+    "wilson95": [
+     0.0063325197789164955,
+     0.17712197905773489
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 28,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.12064330643947074
+    ]
+   },
+   "templateFalseReject": {
+    "k": 5,
+    "n": 28,
+    "rate": 0.17857142857142858,
+    "wilson95": [
+     0.07878501895759982,
+     0.3559142494677742
+    ]
+   },
+   "rejectCodes": {
+    "gate1:FORMAT_LEN": 2,
+    "gate2:CHECK_FAILED": 4
+   },
+   "judge": {
+    "ai": 0,
+    "template": 0,
+    "same": 0,
+    "fail": 0,
+    "aiFirstPickAi": 0,
+    "aiFirst": 0
+   },
+   "latencyE2E": {
+    "p50": 7685,
+    "p95": 10066,
+    "n": 28,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 0.6211838,
+  "judgeCostUsd": 0,
+  "rows": [
+   {
+    "id": "dev-000",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-001",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-002",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-003",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-004",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-005",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-006",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-007",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-008",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-009",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-010",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-011",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-012",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-013",
+    "stratum": "OUTAGE:NONE:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-014",
+    "stratum": "OUTAGE:NONE:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-015",
+    "stratum": "OUTAGE:NONE:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-016",
+    "stratum": "OUTAGE:NONE:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-017",
+    "stratum": "OUTAGE:UNKNOWN:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-018",
+    "stratum": "OUTAGE:UNKNOWN:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-019",
+    "stratum": "OUTAGE:UNKNOWN:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-020",
+    "stratum": "OUTAGE:UNKNOWN:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-021",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-022",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-023",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": true,
+    "judged": null
+   },
+   {
+    "id": "dev-024",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CHECK_FAILED"
+    ],
+    "templateRejected": true,
+    "judged": null
+   },
+   {
+    "id": "dev-025",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CHECK_FAILED"
+    ],
+    "templateRejected": true,
+    "judged": null
+   },
+   {
+    "id": "dev-026",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:보호자",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CHECK_FAILED"
+    ],
+    "templateRejected": true,
+    "judged": null
+   },
+   {
+    "id": "dev-027",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CHECK_FAILED"
+    ],
+    "templateRejected": true,
+    "judged": null
+   }
+  ]
+ }
+}

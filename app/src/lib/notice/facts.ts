@@ -113,8 +113,8 @@ export interface NoticeFacts {
   plan: Plan | null;          // PREP은 null
   /** 도움(전원 도착·119 이송 완료, 표시 시각)이 보호 수단(산소통이 있으면 산소통, 없으면 배터리)의 끝(표시 시각)보다 늦거나 같거나, 예정이 지났으면 경고 */
   warnRunOutFirst: boolean;
-  /** 경고가 '표시 시각이 같음' 때문이면 true: 「적어도 X까지 / X까지 도착 / 먼저 떨어짐」 모순을 피해 「도착이 늦어지면 먼저 떨어질 수 있다」로 쓴다 */
-  warnSameTime: boolean;
+  /** 경고가 '표시 도착 ≤ 표시 보호 끝(30분 여유 안)' 때문이면 true: 「계산보다 일찍 떨어지면 도착 전에 멈출 수 있다」로 쓴다(통합 레드팀 10라운드: 같은 시각만 조건부로 약하게 쓰던 역전을 없앰) */
+  warnTight: boolean;
   extDeclared: boolean;       // PREP만 의미
   actions: Action[];
   /** 배터리 시간·시각에 확인 외장 배터리가 합쳐져 있음(HOURS·UNTIL일 때만). 글은 '외장 배터리까지 합쳐'라고 써야 한다 */
@@ -189,11 +189,11 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
     const cylinder: Cylinder | null = ct ? { state: "HOURS", text: ct } : null;
     const actions: Action[] = [];
     if (battery.state !== "NONE") actions.push("CHARGE_DEVICE");
-    if (input.extDeclared) actions.push("CHARGE_EXT");
+    if (input.extDeclared && battery.state !== "NONE") actions.push("CHARGE_EXT"); // 배터리 없는 기기면 신고 외장을 충전하라고 하지 않는다(바로 멈춤과 어긋남, 통합 레드팀 10라운드)
     if (cylinder) actions.push("CHECK_CYLINDER");
     if (battery.state === "NONE" && !cylinder) actions.push("PLAN_WITH_STAFF");
     const withExt = battery.state === "HOURS" && (input.batteryExtS ?? 0) > 0;
-    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, warnSameTime: false, extDeclared: input.extDeclared, actions, ...(withExt ? { batteryWithExt: true as const } : {}) };
+    return { kind: "PREP", audience, device, battery, cylinder, plan: null, warnRunOutFirst: false, warnTight: false, extDeclared: input.extDeclared, actions, ...(withExt ? { batteryWithExt: true as const } : {}) };
   }
   const { baseIso, nowS } = input;
   // 표시 시각(내림)이 지금부터 10분 안이면 '이미 떨어졌을 수 있음'
@@ -252,9 +252,9 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   const actions: Action[] = [];
   if (cylinder) actions.push(switchNow ? "SWITCH_TO_CYLINDER" : "SWITCH_AFTER_BATTERY");
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
-  const warnSameTime = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS === supplyShownS;
+  const warnTight = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS <= supplyShownS;
   const withExt = battery.state === "UNTIL" && (input.batteryExtS ?? 0) > 0;
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnSameTime, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
@@ -320,7 +320,8 @@ export function outageInput(args: {
   const batteryLs = noCyl.Ls === 0 && hasBattery ? 1 : noCyl.Ls;
   // 확인 산소통이 있으면 외장 배터리 몫은 빼고 셈한다: '배터리가 떨어지면 산소통으로'가 내장 소진 때 바꿔 쓰는 경우에도 산소통 끝·경고가 맞게(보수, 통합 레드팀 9라운드)
   const extS0 = extShare(hh, noCyl.Ls, db);
-  const dropExt = cylS > 0 && extS0 > 0;
+  // 내장 몫이 거의 없으면(10분 미만) 빼지 않고 외장 합산으로 둔다: 빼면 '배터리 이미 떨어짐·지금 산소통'이 되어 남은 외장을 알리지 않는다(통합 레드팀 10라운드)
+  const dropExt = cylS > 0 && extS0 > 0 && batteryEndS != null && batteryEndS - extS0 - args.nowS >= 600;
   if (dropExt && batteryEndS != null) batteryEndS = Math.max(args.nowS, batteryEndS - extS0);
   const batteryLsOut = dropExt && batteryLs != null ? Math.max(batteryLs > 0 ? 1 : 0, batteryLs - extS0) : batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다

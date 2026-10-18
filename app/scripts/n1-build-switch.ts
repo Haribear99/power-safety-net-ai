@@ -125,11 +125,13 @@ for (const c of warnCases) {
   const ki = t.findIndex((s) => s.includes(bt) && s.includes("계산상"));
   const atLeast = t.map((s, i) => (i === ki ? s.replace("계산상", "적어도") : s));
   warnItems.push({ id: `${c.id}-b0`, input: c.input, label: "bad", category: "at_least_guarantee", sentences: atLeast });
-  if (f.warnRunOutFirst && !f.warnSameTime) {
-    const kw = t.findIndex((s) => s.includes("먼저 떨어질"));
+  if (f.warnRunOutFirst) {
+    const kw = t.findIndex((s) => s.includes("먼저 떨어질") || s.includes("일찍 떨어지면"));
     const help = f.plan?.type === "CALL119" ? "구급대가" : "도착이";
     warnItems.push({ id: `${c.id}-b1`, input: c.input, label: "bad", category: "warning_conditional", sentences: t.map((s, i) => (i === kw ? `${help} 늦어지면 배터리가 먼저 떨어질 수 있습니다.` : s)) });
-    warnItems.push({ id: `${c.id}-g0`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === kw ? "도움이 오기 전에 배터리가 먼저 다 떨어질 수 있습니다." : s)) });
+    warnItems.push({ id: `${c.id}-g0`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === kw ? (f.warnTight ? "배터리가 계산보다 일찍 다 떨어지면 도착 전에 기기가 멈출 수 있습니다." : "도움이 오기 전에 배터리가 먼저 다 떨어질 수 있습니다.") : s)) });
+    // 10라운드: 하한 보장 동의어
+    warnItems.push({ id: `${c.id}-b2`, input: c.input, label: "bad", category: "guarantee_synonym", sentences: atLeast.map((s) => s.replace("적어도", "최소한")) });
   }
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_warn.json"), JSON.stringify({

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { buildFacts, clockText, durationText, NOTICE_LANES, NoticeInput, outageInput, prepInput, RESOURCE_UNKNOWN_NOUN, validBaseIso, type NoticeFacts, type NoticeInputT } from "./facts";
 import { compose, speechText } from "./compose";
 import { compareClaims, type ClaimsT } from "./check";
-import { FACT_ERROR, josa, requirements, tailSentences, templateSentences, verify } from "./rules";
+import { FACT_ERROR, josa, requirements, ROLE_KO, tailSentences, templateSentences, verify } from "./rules";
 import { noticeUser } from "./prompt";
 import type { HouseholdView } from "../domain/types";
 
@@ -58,7 +58,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
       : p.type === "ASSIGN" || p.type === "GAP" ? { kind: "power_equipment", name: p.resource, time: p.arriveBy, timeMeaning: p.arriveBy ? "arrive_by" : p.etaPassed ? "passed_being_checked" : "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] }
       : p.type === "CALL119" ? { kind: "ambulance", name: "구급대", time: p.doneBy, timeMeaning: p.doneBy ? "finish_by" : p.etaPassed ? "passed_being_checked" : "not_decided_yet", mayBeLate: p.late, connected: "yes", extraDetails: [] }
       : { kind: "shelter", name: "쉼터", time: null, timeMeaning: "none", mayBeLate: false, connected: "not_mentioned", extraDetails: [] },
-    warningOnlyIfHelpLate: Boolean(f.warnSameTime),
+    warningOnlyIfHelpLate: false,
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
     actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, negated: false, quote: "" })),
@@ -303,19 +303,21 @@ describe("통합 레드팀 2라운드 회귀", () => {
 });
 
 describe("통합 레드팀 4라운드 회귀", () => {
-  it("표시 시각이 같으면 경고는 '도착이 늦어지면 …먼저'(적어도 X까지 / X까지 도착 / 먼저 떨어짐 모순 없음)", () => {
+  it("도착이 계산상 끝과 같거나 30분 안이면 경고는 '계산보다 일찍 떨어지면 도착 전에 멈출 수 있다'(조건부 '늦어지면' 없음, 10라운드)", () => {
     const f = buildFacts(IN({ batteryEndS: 3000, etaS: 2950 })); // 둘 다 22:50
-    expect(f).toMatchObject({ warnRunOutFirst: true, warnSameTime: true });
+    expect(f).toMatchObject({ warnRunOutFirst: true, warnTight: true });
     const t = templateSentences(f).join(" ");
-    expect(t).toContain("도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다");
-    expect(t).not.toContain("오기 전에");
+    expect(t).toContain("배터리가 계산보다 일찍 떨어지면 도착 전에 기기가 멈출 수 있습니다");
+    expect(t).not.toContain("늦어지면");
+    expect(verify(f, templateSentences(f)).ok).toBe(true);
     const c = buildFacts(IN({ lane: "FALLBACK_119", resourceKind: null, batteryEndS: 3000, etaS: 2950 }));
-    expect(templateSentences(c).join(" ")).toContain("구급대가 늦어지면 배터리가 먼저");
+    expect(templateSentences(c).join(" ")).toContain("구급대 도착 전에 기기가 멈출");
+    expect(verify(f, templateSentences(f).map((s) => (s.includes("일찍 떨어지면") ? "도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다." : s))).ok).toBe(false);
   });
   it("모든 조합에서 '오기 전에 먼저' 경고가 있으면 표시 도착이 보호 끝보다 늦거나 시각이 없다", () => {
     for (const i of allInputs()) {
       const f = buildFacts(i);
-      if (!f.warnRunOutFirst || f.warnSameTime) continue;
+      if (!f.warnRunOutFirst || f.warnTight) continue;
       const p = f.plan;
       const help = p && p.type !== "SHELTER" ? (p.type === "CALL119" ? p.doneBy : p.arriveBy) : null;
       if (help == null) continue;
@@ -476,7 +478,7 @@ describe("통합 레드팀 9라운드 회귀", () => {
   });
   it("표시 시각이 같지 않은 경고를 '늦어지면'에 달면 1·2차 거부", () => {
     const f = buildFacts(IN({ lane: "GAP_REDUCE", resourceKind: "MOBILE_GEN", etaS: 4800 + 3 * 3600 }));
-    expect(f).toMatchObject({ warnRunOutFirst: true, warnSameTime: false });
+    expect(f).toMatchObject({ warnRunOutFirst: true, warnTight: false });
     const t = templateSentences(f);
     expect(verify(f, t).ok).toBe(true);
     expect(verify(f, t.map((s) => (s.includes("먼저 떨어질") ? "도착이 늦어지면 배터리가 먼저 떨어질 수 있습니다." : s))).ok).toBe(false);
@@ -510,6 +512,31 @@ describe("통합 레드팀 9라운드 회귀", () => {
     if (inner.kind !== "OUTAGE") throw new Error();
     expect(i.batteryEndS).toBe(inner.batteryEndS);
     expect(i.cylinderEndS).toBe(inner.cylinderEndS);
+  });
+});
+
+describe("통합 레드팀 10라운드 회귀", () => {
+  it("사실표·화면 뜻 설명(ROLE_KO)과 생성 프롬프트에 '적어도'가 없다", () => {
+    for (const v of Object.values(ROLE_KO)) expect(v).not.toContain("적어도");
+    for (const i of allInputs().slice(0, 400)) expect(noticeUser(buildFacts(i))).not.toContain("적어도");
+  });
+  it("하한 보장 동의어('최소한'·'넉넉히'·'거뜬히'·'그 전에는 멈추지 않습니다')는 1차 거부", () => {
+    const f = buildFacts(IN({ lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null }));
+    const t = templateSentences(f);
+    for (const w of ["최소한", "넉넉히", "거뜬히", "족히"]) expect(verify(f, t.map((s) => s.replace("계산상", w))).ok, w).toBe(false);
+    expect(verify(f, [...t, "그 전에는 멈추지 않습니다."]).ok).toBe(false);
+  });
+  it("확인 외장+산소통 집에서 내장 몫이 거의 없으면 외장을 빼지 않는다('이미 떨어짐·지금 산소통'으로 떨어지지 않음)", () => {
+    const hh: HouseholdView = {
+      id: "H10", pseudonym: "H-010", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+      device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: 0, source: "device_screen" } },
+      ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A10" } }],
+      cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C10" } },
+    };
+    const f = buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "FALLBACK_SHELTER", resourceKind: null, etaS: null, late119: false })!);
+    expect(f.battery.state).toBe("UNTIL");
+    expect(f.batteryWithExt).toBe(true);
+    expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
   });
 });
 

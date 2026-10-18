@@ -6,6 +6,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
 import { wilson } from "../src/lib/sim/analyze";
+import { buildFacts, type NoticeInputT } from "../src/lib/notice/facts";
 
 const repo = path.resolve(__dirname, "..", "..");
 const out: Record<string, unknown> = { format: "pl26-evidence/1" };
@@ -256,8 +257,9 @@ function n1JudgeSplit() {
   if (!existsSync(dir)) return {};
   const split = { contradiction: { n: 0, judged: 0, ai: 0, template: 0, same: 0 }, rest: { ai: 0, template: 0, same: 0 }, aiSameTime: { n: 0, inContradiction: 0, ai: 0, template: 0, same: 0 } };
   const atLeast = { k: 0, n: 0 };
+  const sameTimeIds: string[] = [], sentContradictionIds: string[] = [];
   for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
-    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { facts: N1Facts; composed: { source: string }; judged: { pick?: "ai" | "template" | "same" } | null };
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { id: string; facts: N1Facts; composed: { source: string }; judged: { pick?: "ai" | "template" | "same" } | null };
     const F = r.facts;
     const warn = Boolean(F.warnBatteryFirst ?? F.warnRunOutFirst);
     const sup = F.cylinder ? F.cylinder.text : F.battery.text;
@@ -267,7 +269,9 @@ function n1JudgeSplit() {
     const pick = r.judged?.pick;
     if (pick) (c ? split.contradiction : split.rest)[pick]++;
     if (pick && c) split.contradiction.judged++;
+    if (c && !pick) sentContradictionIds.push(r.id);
     if (r.composed.source === "ai" && n1SameTimeWarn(F)) {
+      sameTimeIds.push(r.id);
       split.aiSameTime.n++;
       if (pick) split.aiSameTime[pick]++;
       if (c) split.aiSameTime.inContradiction++;
@@ -290,8 +294,16 @@ function n1JudgeSplit() {
   const extF = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "n1_ext_sealed.json");
   const ext = existsSync(extF) ? (JSON.parse(readFileSync(extF, "utf-8")) as { undisclosed: { k: number; ai: number; ids: string[] } }).undisclosed : null;
   const sentContradiction = split.contradiction.n - split.contradiction.judged;
-  const sentDefects = split.aiSameTime.n + sentContradiction + (ext?.k ?? 0);
-  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, sentDefects };
+  // 지금 경고 기준(표시 도착이 보호 끝 30분 전 이내)이면 경고가 붙었을 텐데 봉인 때 경고 없이 나간 글(통합 레드팀 10라운드)
+  const marginMissed: string[] = [];
+  for (const f of readdirSync(dir).filter((x) => /^test-\d+\.json$/.test(x))) {
+    const r = JSON.parse(readFileSync(path.join(dir, f), "utf-8")) as { id: string; input: NoticeInputT; facts: N1Facts };
+    if (r.input.kind !== "OUTAGE" || r.facts.warnBatteryFirst || r.facts.warnRunOutFirst) continue;
+    if (buildFacts(r.input).warnRunOutFirst) marginMissed.push(r.id);
+  }
+  const defectIds = new Set([...sameTimeIds, ...sentContradictionIds, ...(ext?.ids ?? []), ...marginMissed]);
+  const sentDefects = defectIds.size;
+  return { judgeSplit: { ...split, atLeastDropped: atLeast, signP: Math.round(signP * 1000) / 1000, sentContradiction }, extUndisclosed: ext, marginMissed, sentDefects };
 }
 /** 봉인 실행 건당 비용(생성 + 2차 검사, 운영과 같은 경로. 고정 문안 검사·쌍 비교 제외) */
 function n1Cost() {

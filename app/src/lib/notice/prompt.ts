@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ACTION_KO, type NoticeFacts } from "./facts";
 import { BANNED, josa, LIMITS, requirements } from "./rules";
 
-export const NOTICE_PROMPT_VERSION = "n1-v12";
+export const NOTICE_PROMPT_VERSION = "n1-v13";
 
 export const NoticeOut = z.object({ sentences: z.array(z.string().max(200)).min(1).max(12) });
 export type NoticeOutT = z.infer<typeof NoticeOut>;
@@ -75,8 +75,8 @@ export function noticeUser(f: NoticeFacts): string {
     ...(f.warnRunOutFirst ? { 경고: (() => {
       const help = f.plan?.type === "CALL119" ? "구급대" : f.plan && "resource" in f.plan ? f.plan.resource : "도움";
       const sup = josa(f.cylinder ? "산소통" : "배터리", "이가");
-      return f.warnSameTime
-        ? `도착 시각과 ${f.cylinder ? "산소통" : "배터리"} 시각이 같다. '${help}${f.plan?.type === "CALL119" ? "가" : "의 도착이"} 늦어지면 ${sup} 먼저 떨어질 수 있다'로 쓴다(도움 수단 문장 뒤)`
+      return f.warnTight
+        ? `도착 시각이 ${f.cylinder ? "산소통" : "배터리"} 계산상 시각과 가깝다. '${sup} 계산보다 일찍 떨어지면 도착 전에 ${f.cylinder ? "산소가 끊길" : "기기가 멈출"} 수 있다'로 쓴다(도움 수단 문장 뒤. '늦어지면'처럼 도움 쪽 조건을 달지 않는다)`
         : `${josa(help, "이가")} 오기 전에 ${sup} 먼저 떨어질 수 있다(이 경고는 도움 수단 문장 뒤에 쓴다. '늦어지면'처럼 조건을 달지 않는다)`;
     })() } : {}),
     ...(f.kind === "PREP" && f.extDeclared ? { 외장배터리: "가지고 있다고 신고함" } : {}),

@@ -1,0 +1,168 @@
+{
+ "promptVersion": "n1-v13",
+ "checkVersion": "n1-check-v18",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "ext-v18",
+ "sealed": false,
+ "set": {
+  "file": "datasets/notice/dev_ext.json",
+  "sha256": "3ba810a8ae0a4b9d2615f0014a68472001428ed12be9c71e303e743079e02f7a",
+  "n": 6
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 4,
+    "n": 6,
+    "rate": 0.6666666666666666,
+    "wilson95": [
+     0.29999331299474324,
+     0.9032285897864654
+    ]
+   },
+   "gate1Pass": {
+    "k": 4,
+    "n": 6,
+    "rate": 0.6666666666666666,
+    "wilson95": [
+     0.29999331299474324,
+     0.9032285897864654
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 4,
+    "n": 4,
+    "rate": 1,
+    "wilson95": [
+     0.5101091596030786,
+     0.9999999999999999
+    ]
+   },
+   "gate1FactError": {
+    "k": 1,
+    "n": 6,
+    "rate": 0.16666666666666666,
+    "wilson95": [
+     0.030053369411815023,
+     0.5635028250257673
+    ]
+   },
+   "callFail": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "templateFalseReject": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "rejectCodes": {
+    "gate1:FORMAT_LEN": 2,
+    "gate1:NUMBER_WORD": 1,
+    "gate1:ROLE_MISMATCH": 1
+   },
+   "judge": {
+    "ai": 0,
+    "template": 0,
+    "same": 0,
+    "fail": 0,
+    "aiFirstPickAi": 0,
+    "aiFirst": 0
+   },
+   "latencyE2E": {
+    "p50": 7490,
+    "p95": 7623,
+    "n": 6,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 0.12924760000000002,
+  "judgeCostUsd": 0,
+  "rows": [
+   {
+    "id": "ext-00",
+    "stratum": "PREP:battery+ext",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "ext-01",
+    "stratum": "PREP:battery+ext",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate1",
+    "violations": [
+     "FORMAT_LEN",
+     "NUMBER_WORD",
+     "ROLE_MISMATCH"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "ext-02",
+    "stratum": "OUTAGE:battery+ext",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "ext-03",
+    "stratum": "OUTAGE:battery+ext",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "ext-04",
+    "stratum": "OUTAGE:battery+ext",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "ext-05",
+    "stratum": "OUTAGE:battery+ext",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   }
+  ]
+ }
+}

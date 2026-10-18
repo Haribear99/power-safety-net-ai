@@ -7,7 +7,7 @@ import { computeRestoration } from "@/lib/engine/restoration";
 import { TwoClocks } from "@/components/TwoClocks";
 import { GapWidget, type WidgetCause, type WidgetDevice } from "@/components/GapWidget";
 import { ClosingCard } from "@/components/ClosingCard";
-import { aptCalib, n1Evidence, sweepN } from "@/lib/evidence";
+import { aptCalib, kpiOverPredict, n1Evidence, sweepN } from "@/lib/evidence";
 
 const DEVICE_CHIPS: { specId: string; label: string; source: string }[] = [
   { specId: "PERFECTO2", label: "산소발생기 · 배터리 없음", source: "사양: Invacare Perfecto2 사용자 설명서(거치형, 내장배터리 없음)" },
@@ -77,7 +77,7 @@ export default function Home() {
       <section className="mt-8" aria-labelledby="how">
         <h2 id="how" className="text-[18px] font-bold">이 도구가 하는 일</h2>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-[16px] leading-7">
-          <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>을 검증된 규칙으로 계산합니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
+          <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>(계산값)을 검증 가능한 규칙으로 계산합니다.{(() => { const k = kpiOverPredict(); return k ? ` 모의에서는 이 하한이 실제보다 긴 경우가 ${((100 * k.rule.k) / k.rule.n).toFixed(1)}%였습니다(원안 목표 0건 미달, 사후 집계, ` : ""; })()}{kpiOverPredict() && <><Link className="underline" href="/lab#prereg">랩 ⑥</Link>). </>} <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
           <li>하한을 <strong>복구 가정 범위</strong>와 <strong>비상전원 도착 시각</strong>에 비교해 처리 순서와 추천을 냅니다.</li>
           <li><strong>담당자가 승인</strong>해야 배정되고, 119에는 위치·기기·예상 안전시간 세 가지만 넘어갑니다.</li>
           <NoticeItem />
@@ -104,8 +104,8 @@ function NoticeItem() {
   const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${Math.round((x.lo ?? 0) * 1000) / 10}~${Math.round((x.hi ?? 0) * 1000) / 10}%)`;
   return (
     <li>
-      승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
-      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순·외장 합산 미표기 등, 모두 고침)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
+      승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조(검사 범위: 시각·수단·경고·할 일·금지 표현)를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
+      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순 ${n.judgeSplit.aiSameTime.n}·모순 고정 문안 ${n.judgeSplit.sentContradiction}·외장 합산 미표기 ${n.extUndisclosed?.k ?? "—"}·경고 여유 미달 ${n.marginMissed?.length ?? "—"}, 모두 고침)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
       <Link className="underline" href="/lab#notice">자세히</Link>
     </li>
   );

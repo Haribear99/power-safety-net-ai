@@ -25,8 +25,8 @@ export const ROLE_FORBID: Record<Role, readonly string[]> = {
   CYL_H: ["도착", "배터리", "충전", "적어도", ...FLIP],
 };
 export const ROLE_KO: Record<Role, string> = {
-  BATTERY_T: "배터리가 적어도 버티는 시각", CYL_T: "산소통으로 바꿔 쓰면 적어도 버티는 시각", ARRIVAL_T: "도착 시각",
-  T119: "구급대 이송 완료 예상 시각", CHARGE_H: "완충 시 적어도 버티는 시간", CHARGE_LT: "완충해도 못 버티는 시간", CYL_H: "확인된 산소통이 적어도 버티는 시간",
+  BATTERY_T: "배터리가 계산상 버티는 시각", CYL_T: "산소통으로 바꿔 쓰면 계산상 버티는 시각", ARRIVAL_T: "도착 시각",
+  T119: "구급대 이송 완료 예상 시각", CHARGE_H: "완충 시 계산상 버티는 시간", CHARGE_LT: "완충해도 못 버티는 시간", CYL_H: "확인된 산소통이 계산상 쓰는 시간",
 };
 
 export interface Allowed { text: string; roles: Role[] }
@@ -72,9 +72,10 @@ export function requirements(f: NoticeFacts): Requirements {
     else sent([p.resource, "도착"], `${josa(p.resource, "이가")} 집에 도착한다`);
   }
   const supplyW = f.cylinder ? "산소통" : "배터리";
-  if (f.warnRunOutFirst && f.warnSameTime) sent([supplyW, "먼저", "늦어지면"], `도착이 늦어지면 ${supplyW}가 먼저 떨어질 수 있다(표시 시각이 같음)`);
-  // 표시 시각이 같지 않으면 경고는 조건 없이: '늦어지면 먼저'는 '제때 오면 괜찮다'로 읽힌다(통합 레드팀 9라운드)
-  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`, ["늦어지면", "늦으면", "늦게", "지연", "못 오면"]);
+  // 경고는 '도움이 늦어지면'에 달지 않는다: '제때 오면 괜찮다'로 읽힌다(통합 레드팀 9·10라운드)
+  const COND = ["늦어지면", "늦어질", "늦으면", "늦게", "지연", "못 오면", "미뤄", "제시간"];
+  if (f.warnRunOutFirst && f.warnTight) sent([supplyW, "일찍"], `${supplyW}가 계산보다 일찍 떨어지면 도움이 오기 전에 멈출 수 있다(도착이 계산상 끝과 가까움)`, COND);
+  else if (f.warnRunOutFirst) sent([supplyW, "먼저"], `도움이 오기 전에 ${supplyW}가 먼저 떨어질 수 있다`, COND);
   if (p?.type === "CALL119") {
     sent(["구급", "연결"], "구급대와 연결했다");
     if (p.doneBy) must(p.doneBy, "T119");
@@ -103,7 +104,9 @@ export function requirements(f: NoticeFacts): Requirements {
 
 // ---------- 금지 표현 ----------
 export const BANNED: Record<"GUARANTEE" | "VAGUE_TIME" | "MEDICAL" | "RISKY" | "JARGON" | "STATE", readonly string[]> = {
-  GUARANTEE: ["안전합니다", "안전해요", "안전하", "안심", "걱정하지", "걱정 마", "걱정 없", "걱정은", "괜찮", "문제없", "문제 없", "반드시", "확실", "보장", "틀림없", "꼭 도착", "충분"],
+  GUARANTEE: ["안전합니다", "안전해요", "안전하", "안심", "걱정하지", "걱정 마", "걱정 없", "걱정은", "괜찮", "문제없", "문제 없", "반드시", "확실", "보장", "틀림없", "꼭 도착", "충분",
+    // 하한 보장 동의어(통합 레드팀 10라운드)
+    "최소", "넉넉", "거뜬", "족히", "든든", "무리 없이", "마음 놓", "일은 없", "멈추지 않", "끄떡없", "너끈"],
   VAGUE_TIME: ["곧", "금방", "잠시", "조금만", "한참", "머지않아", "얼마 뒤", "얼마 후", "언제든"],
   MEDICAL: ["설정", "유량", "산소량", "농도", "복용", "진단", "처방", "숨", "호흡이", "증상", "의식", "맥박", "심폐"],
   RISKY: ["시동", "발전", "연장선", "콘센트", "멀티탭", "이웃", "촛불", "가스", "차에", "차량", "엘리베이터", "직접 운전", "직접 모시"],
@@ -243,6 +246,13 @@ export function tailSentences(f: NoticeFacts): string[] {
     ];
 }
 
+/** 도착이 계산상 끝과 가까울 때의 경고(표시 도착 ≤ 표시 보호 끝, 30분 여유 안). 조건은 '계산보다 일찍 떨어지면'뿐(통합 레드팀 10라운드) */
+function tightWarn(f: NoticeFacts): string {
+  const sup = f.cylinder ? "산소통" : "배터리";
+  const at = f.plan?.type === "CALL119" ? "구급대 도착 전에" : "도착 전에";
+  return `${josa(sup, "이가")} 계산보다 일찍 떨어지면 ${at} ${f.cylinder ? "산소가 끊길" : "기기가 멈출"} 수 있습니다.`;
+}
+
 /** 고정 문안 본문(1차 검사를 늘 통과 — rules.test.ts에서 모든 조합 시험). 같은 사실·할 일을 AI 글과 똑같이 담는다 */
 export function templateSentences(f: NoticeFacts): string[] {
   const out: string[] = [];
@@ -267,12 +277,12 @@ export function templateSentences(f: NoticeFacts): string[] {
     // 경고는 수단 문장 뒤에, 무엇이 오기 전인지 주어를 밝혀 쓴다(앞 문장의 '적어도 …까지'와 모순되지 않게)
     const supply = f.cylinder ? "산소통" : "배터리";
     const supplyJ = josa(supply, "이가");
-    if (f.warnRunOutFirst && (p?.type === "ASSIGN" || p?.type === "GAP")) out.push(f.warnSameTime ? `도착이 늦어지면 ${supplyJ} 먼저 떨어질 수 있습니다.` : `${josa(p.resource, "이가")} 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
+    if (f.warnRunOutFirst && (p?.type === "ASSIGN" || p?.type === "GAP")) out.push(f.warnTight ? tightWarn(f) : `${josa(p.resource, "이가")} 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
     if (p?.type === "CALL119") {
       out.push("구급대와 연결했습니다.");
       out.push(p.doneBy ? `구급대가 ${p.doneBy}까지 옮겨 드릴 예정입니다.` : p.etaPassed ? "구급대 이송 예정 시각이 지나 담당자가 확인하고 있습니다." : "구급대가 언제 올지는 아직 정해지지 않았습니다.");
       if (p.late) out.push("구급대 출동이 늦어질 수 있습니다.");
-      if (f.warnRunOutFirst) out.push(f.warnSameTime ? `구급대가 늦어지면 ${supplyJ} 먼저 떨어질 수 있습니다.` : `구급대가 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
+      if (f.warnRunOutFirst) out.push(f.warnTight ? tightWarn(f) : `구급대가 오기 전에 ${supplyJ} 먼저 떨어질 수 있습니다.`);
     }
     if (p?.type === "SHELTER") out.push("가까운 쉼터로 옮기도록 담당자가 연락드립니다.");
     out.push("연락을 받을 수 있게 전화를 곁에 두세요.");
