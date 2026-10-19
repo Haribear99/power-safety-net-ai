@@ -54,6 +54,7 @@ export function NoticePanel({ input, title, audience = "operator" }: { input: No
             {req.mustInclude.map((m) => <li key={m.text}><span className="font-mono">{m.text}</span> <span className="text-muted">— {m.hint}</span></li>)}
             {req.mustSentences.map((m) => <li key={m.all.join("+")} className="text-muted">{m.hint}</li>)}
             <li className="text-muted">119·123 문장은 늘 고정 문장으로 붙음</li>
+            {facts.innerMaybeOut ? <li className="text-muted">기기 배터리 몫이 바닥일 수 있어 &lsquo;집에 있는 외장 배터리가 꽂혀 있는지 확인&rsquo; 고정 문장이 붙음(검사 대상 아님)</li> : null}
           </ul>
           <p className="mt-1 text-[12px] text-muted">시각은 보수 쪽으로 10분 단위 반올림(배터리는 내림, 도착은 올림)</p>
         </div>

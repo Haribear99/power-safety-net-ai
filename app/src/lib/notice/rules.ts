@@ -25,15 +25,18 @@ export const ROLE_FORBID: Record<Role, readonly string[]> = {
   CYL_H: ["도착", "배터리", "충전", "적어도", ...FLIP],
 };
 export const ROLE_KO: Record<Role, string> = {
-  BATTERY_T: "배터리가 계산상 버티는 시각", CYL_T: "산소통으로 바꿔 쓰면 계산상 버티는 시각", ARRIVAL_T: "도착 시각",
+  BATTERY_T: "배터리가 계산상 버티는 시각", CYL_T: "산소통이 계산상 버티는 시각", ARRIVAL_T: "도착 시각",
   T119: "구급대 이송 완료 예상 시각", CHARGE_H: "완충 시 계산상 버티는 시간", CHARGE_LT: "완충해도 못 버티는 시간", CYL_H: "확인된 산소통이 계산상 쓰는 시간",
 };
 
 export interface Allowed { text: string; roles: Role[] }
 /** all = 한 문장에 함께 있어야 할 낱말, none = 그 문장에 있으면 안 되는 낱말(부정 등) */
 export interface SentenceReq { all: string[]; hint: string; none?: string[] }
-/** 범위 문장 검사: with 낱말을 모두, any 낱말을 하나 이상 담은 문장은 need를 모두 담고 none은 담지 않아야 한다(통합 레드팀 14라운드) */
-export interface ScopedReq { with: string[]; any: string[]; need: string[]; none: string[]; hint: string }
+/**
+ * 범위 문장 검사(통합 레드팀 14·15라운드): 산소통(「산소 통」「실린더」 포함, 원문 기준)과 any 낱말 하나 이상(정해진 수단 이름 안 낱말은 빼고 본다)을 담은 문장은
+ * need를 모두 담고 none은 담지 않아야 한다. skipNeedWith 표기가 든 문장(산소통 시각 문장)은 need를 묻지 않는다(그 문장의 뜻 낱말은 역할 규칙이 본다)
+ */
+export interface ScopedReq { any: string[]; need: string[]; none: string[]; hint: string; skipNeedWith?: string }
 export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[]; forbidSentences: SentenceReq[]; scopedSentences: ScopedReq[] }
 
 export const LIMITS = { minSentences: 3, maxSentences: 10, maxSentenceChars: 45, maxTotalChars: 380 } as const;
@@ -107,20 +110,26 @@ export function requirements(f: NoticeFacts): Requirements {
     if (a === "CHECK_CYLINDER") sent(["산소통", "확인"], "산소통을 미리 확인해 둔다");
     if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다");
   }
+  // 산소통을 쓰게 하는 동사(바꿔 쓰기·달기·허락형 '써도 됩니다'·'쓸 수 있습니다', 통합 레드팀 15라운드: '바꿔'만 보던 것을 넓힘)
+  const USE = ["바꿔", "바꾸", "갈아", "교체", "달아", "달면", "달고", "대 주", "대세", "쓰세", "써", "쓰셔", "쓰시", "쓸 수", "쓰십", "쓰면", "사용", "이용", "이어", "넘어가", "연결", "꽂"];
+  const WHEN_NOT_AFTER = ["지금", "바로", "당장", "곧바로", "미리", ...SWITCH_EXTRA, "전에", "전이", "기 전", "없이", ...NEG];
   // 깨끗한 문장이 하나 있어도 틀린 문장을 덧붙이면 막는다: 반대 조건 낱말이 든 모든 문장을 거부(통합 레드팀 13라운드)
   if (f.actions.includes("SWITCH_AFTER_BATTERY")) {
     for (const w of ["지금", "바로", "당장", "곧바로", "미리", ...SWITCH_EXTRA, "전에"]) forbid(["산소통", "바꿔", w], `산소통 바꿔 쓰기에 '${w}'(배터리가 떨어진 뒤가 아님)`);
     if (c?.state === "UNTIL") for (const w of ["지금", "바로", "당장", "곧바로"]) forbid([c.text, w], `산소통 시각에 '${w}'(배터리 다음 바꿔 쓰기의 끝)`);
     // 확인 외장 집: 산소통 바꿔 쓰기·배터리를 함께 말하는 모든 문장은 '외장 배터리까지'여야 한다. 맞는 문장 옆에 '내장 배터리가 떨어지면 …'을 덧붙이거나
     // '외장 배터리 대신·보다·두고'로 뜻을 뒤집으면 거부(통합 레드팀 14라운드: 13라운드의 '내장' 거부는 필수 문장 하나에만 걸렸다)
+    // 15라운드: 동의어·허락형·'그 전이라도'까지 같은 기준(외장 없는 집도)
     if (f.batteryWithExt) {
-      scopedSentences.push({ with: ["산소통"], any: ["바꿔", "갈아", "쓰세", "배터리", "연결"], need: ["외장 배터리까지"], none: ["내장", "내부", "본체", "기기 배터리", "대신", "보다", "두고", "먼저", "남겨", "비상용", "하나", "첫", "끼운", "끼워", "아껴"], hint: "산소통 바꿔 쓰기는 외장 배터리까지 다 떨어진 뒤" });
+      scopedSentences.push({ any: [...USE, "배터리", "전지"], need: ["외장 배터리까지"], none: [...WHEN_NOT_AFTER, "내장", "내부", "본체", "기기 배터리", "대신", "보다", "두고", "먼저", "남겨", "비상용", "첫", "끼운", "끼워", "아껴"], hint: "산소통 바꿔 쓰기는 외장 배터리까지 다 떨어진 뒤", ...(c?.state === "UNTIL" ? { skipNeedWith: c.text } : {}) });
       for (const w of ["내장", "내부", "본체"]) forbid([w], `확인 외장 집에서 '${w}' 배터리만 따로 말함`);
-    }
+      for (const w of ["두세", "그대로", "남겨", "아껴", "나중"]) forbid(["외장", w], `확인 외장 배터리를 쓰지 말고 두라는 말('${w}')`);
+    } else scopedSentences.push({ any: USE, need: [], none: WHEN_NOT_AFTER, hint: "산소통 바꿔 쓰기는 배터리가 떨어진 뒤" });
   }
   if (f.actions.includes("SWITCH_TO_CYLINDER")) {
     for (const w of ["떨어지면", "다 되면", "뒤에", "다음에", ...SWITCH_EXTRA]) forbid(["산소통", "바꿔", w], `지금 바꿔 쓰기에 '${w}'`);
     if (c?.state === "UNTIL") for (const w of ["떨어지면", "다 되면", "뒤에", "다음에"]) forbid([c.text, w], `산소통 시각에 '${w}'(지금 바꿔 쓰기의 끝)`);
+    scopedSentences.push({ any: USE, need: [], none: ["떨어지면", "다 되면", "뒤에", "다음에", "나중", "기다", ...SWITCH_EXTRA, ...NEG], hint: "산소통은 지금 바꿔 쓴다(15라운드: 동의어·허락형)" });
   }
   if (f.warnRunOutFirst) {
     for (const w of COND) forbid([supplyW, "떨어", w], `경고에 '${w}' 조건`);
@@ -233,9 +242,12 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
   for (const m of req.mustSentences) if (!sentences.some((s) => m.all.every((w) => s.includes(w)) && !(m.none ?? []).some((w) => s.includes(w)))) v.push({ code: "MISSING_SENTENCE", detail: `${m.all.join("+")} 한 문장 없음(${m.hint})` });
   for (const m of req.forbidSentences) for (const s of sentences) if (m.all.every((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s });
   for (const m of req.scopedSentences) for (const s0 of sentences) {
-    const s = res ? s0.split(res).join("") : s0; // 정해진 수단 이름(「기기용 외장 배터리」)의 낱말은 빼고 본다
-    if (!m.with.every((w) => s.includes(w)) || !m.any.some((w) => s.includes(w))) continue;
-    if (!m.need.every((w) => s.includes(w)) || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
+    // 산소통은 원문에서 찾는다(수단 「추가 산소통」을 지우면 범위가 빠지던 15라운드 결함). 다른 낱말은 정해진 수단 이름(「기기용 외장 배터리」)을 빼고 본다
+    if (!/산소\s*통|실린더/.test(s0)) continue;
+    const s = res ? s0.split(res).join("") : s0;
+    if (!m.any.some((w) => s.includes(w))) continue;
+    const needOk = (m.skipNeedWith != null && s.includes(m.skipNeedWith)) || m.need.every((w) => s.includes(w));
+    if (!needOk || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
   }
   return { ok: v.length === 0, violations: v, sentences };
 }
@@ -270,7 +282,8 @@ export function tailSentences(f: NoticeFacts): string[] {
   return f.kind === "OUTAGE"
     ? [
       // 외장을 합친 시각은 남아도 기기 배터리는 이미 바닥일 수 있다: 외장으로 이어 쓰는지 확인(통합 레드팀 14라운드)
-      ...(f.innerMaybeOut ? ["기기 배터리는 이미 떨어졌을 수 있으니 외장 배터리가 꽂혀 있는지 확인하세요."] : []),
+      // 배달 오는 외장 배터리(RENTAL_EXT)와 헷갈리지 않게 '집에 있는'(15라운드)
+      ...(f.innerMaybeOut ? ["기기 배터리는 이미 떨어졌을 수 있습니다.", "집에 있는 외장 배터리가 꽂혀 있는지 확인하세요."] : []),
       ...caveat, "위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
     : [
       ...caveat,

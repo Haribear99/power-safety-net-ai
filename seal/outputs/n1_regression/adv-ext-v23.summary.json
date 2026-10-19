@@ -1,0 +1,438 @@
+{
+ "promptVersion": "n1-v17",
+ "checkVersion": "n1-check-v22",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-ext-v23",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_ext.json",
+  "sha256": "23ee7242ff2db48391cd753a3a0255282974d7a4a6c707370c0be3ccaa919d2e",
+  "n": 44,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 34,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.10151455559221921
+    ]
+   },
+   "badCaught": {
+    "k": 34,
+    "n": 34,
+    "rate": 1,
+    "wilson95": [
+     0.8984854444077807,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 34,
+    "n": 34,
+    "rate": 1,
+    "wilson95": [
+     0.8984854444077807,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 34,
+    "n": 34,
+    "rate": 1,
+    "wilson95": [
+     0.8984854444077807,
+     0.9999999999999999
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 10,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.2775328030260577
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 10,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.2775328030260577
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 10,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.2775328030260577
+    ]
+   },
+   "byCategory": {
+    "ext_as_internal": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_added_on_top": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_negated": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_switch_internal_only": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 2,
+     "caught": 2
+    },
+    "ext_switch_appended": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_switch_negated_ext": {
+     "n": 6,
+     "caught1": 6,
+     "caught2": 6,
+     "caught": 6
+    },
+    "ext_switch_synonym": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 8,
+     "caught": 8
+    },
+    "ext_switch_resource_name": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 2,
+     "caught": 2
+    }
+   }
+  },
+  "costUsd": 0.6288560000000001,
+  "rows": [
+   {
+    "id": "ext-00-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-01-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-02-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-03-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-a0",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-a1",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n0",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n1",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n2",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s0",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s1",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s2",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s3",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-d0",
+    "label": "bad",
+    "category": "ext_switch_resource_name",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-a0",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-a1",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n0",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n1",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n2",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s0",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s1",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s2",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s3",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-d0",
+    "label": "bad",
+    "category": "ext_switch_resource_name",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}

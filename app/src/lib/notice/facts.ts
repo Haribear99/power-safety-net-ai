@@ -119,7 +119,8 @@ export interface NoticeFacts {
   actions: Action[];
   /** 배터리 시간·시각에 확인 외장 배터리가 합쳐져 있음(HOURS·UNTIL일 때만). 글은 '외장 배터리까지 합쳐'라고 써야 한다 */
   batteryWithExt?: true;
-  /** OUTAGE·확인 외장 합산인데 기기(내장) 배터리만의 표시 끝이 지금부터 10분 안이거나 지남: 코드가 '외장 배터리가 꽂혀 있는지 확인' 문장을 붙인다(통합 레드팀 14라운드) */
+  /** OUTAGE·휴대용 산소발생기(외장 팩을 갈아 끼우는 기기)·확인 외장 합산인데 기기 배터리 몫의 표시 끝(합친 끝 − 실효 외장 몫)이 지금부터 10분 안이거나 지남(충전량과 무관하게 시간이 지나도 켜짐):
+   *  코드가 '집에 있는 외장 배터리가 꽂혀 있는지 확인' 문장을 붙인다(통합 레드팀 14·15라운드) */
   innerMaybeOut?: true;
   /** OUTAGE 배터리 시각의 근거(꼬리말만 쓴다. 본문·검사와 무관) */
   batteryBasis?: "charge" | "chargeUnknown" | "screen" | "operator";
@@ -262,7 +263,8 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   const warnTight = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS <= supplyShownS;
   const withExt = battery.state === "UNTIL" && (input.batteryExtS ?? 0) > 0;
   // 외장을 합친 끝은 남아도 기기 배터리 몫은 이미 바닥일 수 있다(내장 0% + 확인 외장, 통합 레드팀 14라운드)
-  const innerOut = withExt && input.batteryEndS != null && endState(input.batteryEndS - (input.batteryExtS ?? 0)) == null;
+  // 외장 팩을 갈아 끼우는 기기만(외장을 먼저 쓰거나 꽂아 둔 채 넘어가는 인공호흡기는 순서가 달라 뺀다, 15라운드)
+  const innerOut = withExt && input.deviceCls === "O2_PORT" && input.batteryEndS != null && endState(input.batteryEndS - (input.batteryExtS ?? 0)) == null;
   return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(innerOut ? { innerMaybeOut: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
 }
 
@@ -330,6 +332,10 @@ export function outageInput(args: {
   // 확인 외장 배터리 몫은 늘 포함한다(엔진 배정 근거와 같게). 산소통이 있으면 바꿔 쓰기 문장이 '외장 배터리까지 다 떨어지면'이 된다.
   // 9·12라운드의 '산소통 집은 외장을 뺀다'는 남은 외장을 알리지 않고 없는 공백을 경고해(13라운드) 되돌렸다. 시계와 무관하다
   const extS0 = extShare(hh, noCyl.Ls, db);
+  // 실효 외장 몫: 재신고 단조 묶음(lEndPrev)이 배터리 끝을 당겼으면 외장 몫도 그만큼 줄어든다. 기기 배터리 끝 = max(합친 끝 − 외장 몫, 외장 없이 같은 묶음으로 센 끝)
+  // (외장 확인 전 끝으로 묶인 집에서 외장을 확인하면 외장이 한 시간도 더해지지 않았는데 '외장까지 합쳐'·'기기 배터리 바닥'을 쓰던 결함, 통합 레드팀 15라운드)
+  const innerOnly = extS0 > 0 && batteryEndS != null ? computeLowerBoundDetail({ ...hh, ext: [], cylinder: undefined, lEndPrev: prevB }, db).endS : null;
+  const extEff = extS0 > 0 && batteryEndS != null ? Math.max(0, batteryEndS - Math.max(batteryEndS - extS0, innerOnly ?? batteryEndS - extS0)) : 0;
   const batteryLsOut = batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
   const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;
@@ -340,7 +346,7 @@ export function outageInput(args: {
     kind: "OUTAGE", caregiver: hh.caregiver, deviceCls: deviceClassOf(hh, db), baseIso: args.baseIso, nowS: args.nowS,
     batteryEndS, batteryLs: batteryLsOut, cylinderEndS, cylinderS: cylS,
     lane: args.lane as NoticeLane, resourceKind: args.resourceKind, etaS: args.etaS, late119: args.late119, batteryBasis,
-    ...(extS0 > 0 ? { batteryExtS: extS0 } : {}),
+    ...(extEff > 0 ? { batteryExtS: extEff } : {}),
   };
 }
 

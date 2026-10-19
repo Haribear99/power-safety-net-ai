@@ -670,7 +670,7 @@ describe("통합 레드팀 14라운드 회귀", () => {
     expect(compareClaims(g, truthClaims(g))).toEqual([]);
   });
   it("확인 외장 집에서 기기 배터리 몫이 바닥이면 코드가 '외장 배터리가 꽂혀 있는지 확인' 문장을 붙이고, 시계가 흘러도 사라지지 않는다", () => {
-    const line = "기기 배터리는 이미 떨어졌을 수 있으니 외장 배터리가 꽂혀 있는지 확인하세요.";
+    const line = "집에 있는 외장 배터리가 꽂혀 있는지 확인하세요."; // 15라운드: 두 문장으로 나눔
     for (const cylinder of [true, false]) {
       let seen = 0;
       for (let nowS = 0; nowS <= 3600; nowS += 60) {
@@ -685,6 +685,70 @@ describe("통합 레드팀 14라운드 회귀", () => {
       expect(full.innerMaybeOut).toBeUndefined();
       expect(compose(full, null).sentences).not.toContain(line);
     }
+  });
+});
+
+describe("통합 레드팀 15라운드 회귀", () => {
+  const hhExt = (charge: number, cylinder: boolean, extVerified = 1, extra: Partial<HouseholdView> = {}): HouseholdView => ({
+    id: "H15", pseudonym: "H-015", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: charge, source: "device_screen" } },
+    ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: extVerified, chargeConfirmed: null, extAgeY: null, auditId: "A15" } }],
+    ...(cylinder ? { cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C15" } } } : {}),
+    ...extra,
+  });
+  const factsOf = (hh: HouseholdView, nowS = 0, resourceKind: "ESS_S" | "O2_CYL_DELIVERY" | "RENTAL_EXT" = "ESS_S") =>
+    buildFacts(outageInput({ hh, baseIso: BASE, nowS, lane: "PROPOSE_ASSIGN", resourceKind, etaS: 4 * 3600, late119: false })!);
+  it("확인 외장+산소통 집: 동의어·허락형·수단 이름 안 '산소통'·'그 전이라도'로 바꿔 쓰기를 뒤집으면 1차 거부", () => {
+    for (const rk of ["ESS_S", "O2_CYL_DELIVERY"] as const) {
+      const f = factsOf(hhExt(60, true), 0, rk);
+      const t = templateSentences(f);
+      expect(verify(f, t).ok, rk).toBe(true);
+      const k = t.findIndex((s) => s.includes("산소통으로 바꿔"));
+      for (const x of ["기기 전지가 다 되면 산소통으로 바꾸세요.", "기계 전지가 다 되면 산소통을 사용하세요.", "외장을 꽂기 전에 산소통을 사용하세요.", "산소통으로 바꾸세요.", "외장 배터리는 그대로 두세요.",
+        "기기 배터리가 떨어지면 추가 산소통으로 바꿔 쓰세요.", "외장 배터리 대신 추가 산소통을 먼저 쓰세요.", "외장 배터리까지 다 떨어지기 전이라도 산소통을 써도 됩니다.",
+        "산소통은 외장 배터리까지 다 떨어지기 전에도 쓸 수 있습니다.", "외장 배터리까지 다 쓰지 않아도 산소통을 쓸 수 있습니다.", "외장 배터리까지 기다릴 것 없이 산소통을 쓰셔도 됩니다.",
+        "기기 배터리가 떨어지면 실린더로 바꿔 쓰세요.", "기기 배터리가 떨어지면 산소 통으로 바꿔 쓰세요.", "외장을 꽂기 전에 산소통을 대 주세요.", "기기 쪽 전기가 다 되면 산소통을 달아 주세요.",
+        "그 전이라도 기기가 서면 산소통을 사용하세요."])
+        expect(verify(f, [...t.slice(0, k + 1), x, ...t.slice(k + 1)]).ok, `${rk} 덧붙임: ${x}`).toBe(false);
+      // 맞는 글: 산소통 시각 문장은 '바꿔 쓰면'을 달아도 외장 조건을 묻지 않는다(역할 규칙이 '배터리'를 막으므로), 외장까지 먼저 다 쓰는 말은 통과
+      const c = f.cylinder!.state === "UNTIL" ? f.cylinder!.text : "";
+      const ti = t.findIndex((s) => s.includes(c));
+      expect(verify(f, t.map((s, i) => (i === ti ? `산소통으로 바꿔 쓰면 ${c}까지 산소통을 씁니다.` : s))).ok, rk).toBe(true);
+      expect(verify(f, t.map((s, i) => (i === k ? "외장 배터리까지 모두 떨어지면 산소통 하나로 바꿔 쓰세요." : s))).ok, rk).toBe(true);
+    }
+  });
+  it("외장 없는 배터리 다음 집·지금 바꿔 쓰기 집도 허락형·다른 동사로 때를 뒤집으면 1차 거부", () => {
+    const a = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    const ta = templateSentences(a);
+    expect(verify(a, ta).ok).toBe(true);
+    for (const x of ["지금 산소통을 쓰셔도 됩니다.", "도착하기 전에 산소통을 달아 주세요.", "지금 실린더를 사용하세요."]) expect(verify(a, [...ta, x]).ok, x).toBe(false);
+    const n = buildFacts(IN({ deviceCls: "O2_STAT_CYL", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 0, batteryLs: 0, cylinderEndS: 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    expect(n.actions).toContain("SWITCH_TO_CYLINDER");
+    const tn = templateSentences(n);
+    expect(verify(n, tn).ok).toBe(true);
+    for (const x of ["휴대용 전원 장치가 오면 산소통을 쓰세요.", "전원 장치가 도착하면 그때 산소통을 쓰셔도 됩니다."]) expect(verify(n, [...tn, x]).ok, x).toBe(false);
+  });
+  it("재신고 단조 묶음이 외장 몫을 먹으면 '외장까지 합쳐'·기기 배터리 바닥 문장을 쓰지 않는다(재신고 → 외장 확인 순서)", () => {
+    const first = outageInput({ hh: hhExt(100, false, 0), baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 4 * 3600, late119: false })!;
+    expect(first.kind).toBe("OUTAGE");
+    const endPrev = first.kind === "OUTAGE" ? first.batteryEndS : null;
+    expect(endPrev).not.toBeNull();
+    const endPrevH = endPrev! / 3600; // tReport·lEndPrev는 시간(h) 단위
+    const hh = hhExt(80, false, 1, { tReport: 1, lEndPrev: endPrevH, lEndPrevBattery: endPrevH });
+    for (let nowS = 3600; nowS <= 3600 + 1800; nowS += 300) {
+      const f = factsOf(hh, nowS);
+      expect(f.innerMaybeOut, `now ${nowS}`).toBeUndefined();
+      expect(f.batteryWithExt, `now ${nowS}`).toBeUndefined();
+    }
+  });
+  it("완충 집도 기기 배터리 몫의 계산 시간이 지나면 꼬리 문장이 붙고, 외장 팩을 갈아 끼우지 않는 기기(인공호흡기)에는 붙지 않는다", () => {
+    const line = "집에 있는 외장 배터리가 꽂혀 있는지 확인하세요.";
+    const late = [0, 3600, 2 * 3600, 3 * 3600, 4 * 3600].map((nowS) => factsOf(hhExt(100, true), nowS)).filter((f) => f.battery.state === "UNTIL");
+    expect(late.some((f) => f.innerMaybeOut)).toBe(true);
+    for (const f of late) if (f.innerMaybeOut) expect(compose(f, null).sentences).toContain(line);
+    const vent = buildFacts(IN({ deviceCls: "VENT_8H_EXT2", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 4 * 3600, batteryExtS: 4 * 3600 - 300, etaS: 6 * 3600 }));
+    expect(vent.batteryWithExt).toBe(true);
+    expect(vent.innerMaybeOut).toBeUndefined();
   });
 });
 

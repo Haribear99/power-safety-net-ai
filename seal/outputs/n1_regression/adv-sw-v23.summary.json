@@ -1,0 +1,444 @@
+{
+ "promptVersion": "n1-v17",
+ "checkVersion": "n1-check-v22",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-sw-v23",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_switch.json",
+  "sha256": "952ad391ba24ed456c35759a8cabd47617ad3f6d4dc5adeafdb6e1a9782805a4",
+  "n": 44,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 36,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.09641862996887933
+    ]
+   },
+   "badCaught": {
+    "k": 36,
+    "n": 36,
+    "rate": 1,
+    "wilson95": [
+     0.9035813700311206,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 36,
+    "n": 36,
+    "rate": 1,
+    "wilson95": [
+     0.9035813700311206,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 36,
+    "n": 36,
+    "rate": 1,
+    "wilson95": [
+     0.9035813700311206,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "byCategory": {
+    "switch_on_arrival": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_contact": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_before_out": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_arrival_soft": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_wait": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_after": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_guidance": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_permission": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "cylinder_time_now_condition": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    }
+   }
+  },
+  "costUsd": 0.6367320000000001,
+  "rows": [
+   {
+    "id": "sw-00-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   }
+  ]
+ }
+}

@@ -124,9 +124,22 @@ for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) 
     extItems.push({ id: `${c.id}-a${j}`, input: c.input, label: "bad", category: "ext_switch_appended", sentences: add(x) }));
   ["본체 배터리가 떨어지면 외장 배터리 대신 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 외장 배터리보다 산소통으로 먼저 바꿔 쓰세요.", "외장 배터리는 두고 배터리가 떨어지면 산소통으로 바꿔 쓰세요."].forEach((x, j) =>
     extItems.push({ id: `${c.id}-n${j}`, input: c.input, label: "bad", category: "ext_switch_negated_ext", sentences: t.map((s, i) => (i === k ? x : s)) }));
+  // 15라운드: 동의어·허락형·'그 전이라도'·외장을 두라는 말, 수단 이름 안 '산소통'(추가 산소통 배정)
+  ["기기 전지가 다 되면 산소통으로 바꾸세요.", "외장 배터리까지 다 떨어지기 전이라도 산소통을 써도 됩니다.", "외장을 꽂기 전에 산소통을 대 주세요.", "외장 배터리는 그대로 두세요."].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-s${j}`, input: c.input, label: "bad", category: "ext_switch_synonym", sentences: add(x) }));
+  const dIn = { ...c.input, resourceKind: "O2_CYL_DELIVERY" } as NoticeInputT;
+  const dt = templateSentences(buildFacts(dIn));
+  const dk = dt.findIndex((s) => s.includes("산소통으로 바꿔"));
+  extItems.push({ id: `${c.id}-d0`, input: dIn, label: "bad", category: "ext_switch_resource_name", sentences: [...dt.slice(0, dk + 1), "기기 배터리가 떨어지면 추가 산소통으로 바꿔 쓰세요.", ...dt.slice(dk + 1)] });
+  // 맞는 글 변형(과잉 거부를 따로 센다): 산소통 시각 문장에 '바꿔 쓰면', '산소통 하나로'
+  const cf = buildFacts(c.input).cylinder;
+  const ctext = cf && cf.state === "UNTIL" ? cf.text : "";
+  const ti = t.findIndex((s) => ctext && s.includes(ctext));
+  if (ti >= 0) extItems.push({ id: `${c.id}-g1`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === ti ? `산소통으로 바꿔 쓰면 ${ctext}까지 산소통을 씁니다.` : s)) });
+  extItems.push({ id: `${c.id}-g2`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "외장 배터리까지 모두 떨어지면 산소통 하나로 바꿔 쓰세요." : s)) });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14·15라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
 }, null, 1));
 console.log(`dev_ext ${extCases.length}건, adversarial_dev_ext ${extItems.length}건`);
 
