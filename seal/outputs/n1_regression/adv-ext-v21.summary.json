@@ -1,0 +1,246 @@
+{
+ "promptVersion": "n1-v15",
+ "checkVersion": "n1-check-v20",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-ext-v21",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_ext.json",
+  "sha256": "f1c6f83315329feb7065e7d81887dee2041da1d2f48a8b8e71d07a6b964aa1f4",
+  "n": 20,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 14,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.21531080540298042
+    ]
+   },
+   "badCaught": {
+    "k": 14,
+    "n": 14,
+    "rate": 1,
+    "wilson95": [
+     0.7846891945970195,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 14,
+    "n": 14,
+    "rate": 1,
+    "wilson95": [
+     0.7846891945970195,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 12,
+    "n": 14,
+    "rate": 0.8571428571428571,
+    "wilson95": [
+     0.600586202762663,
+     0.959906079092351
+    ]
+   },
+   "goodFalseReject": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 6,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.39033429165637346
+    ]
+   },
+   "byCategory": {
+    "ext_as_internal": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_added_on_top": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_negated": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_switch_internal_only": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 0,
+     "caught": 2
+    }
+   }
+  },
+  "costUsd": 0.23667200000000002,
+  "rows": [
+   {
+    "id": "ext-00-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-01-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-02-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-03-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}
