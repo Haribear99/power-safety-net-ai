@@ -32,7 +32,9 @@ export const ROLE_KO: Record<Role, string> = {
 export interface Allowed { text: string; roles: Role[] }
 /** all = 한 문장에 함께 있어야 할 낱말, none = 그 문장에 있으면 안 되는 낱말(부정 등) */
 export interface SentenceReq { all: string[]; hint: string; none?: string[] }
-export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[]; forbidSentences: SentenceReq[] }
+/** 범위 문장 검사: with 낱말을 모두, any 낱말을 하나 이상 담은 문장은 need를 모두 담고 none은 담지 않아야 한다(통합 레드팀 14라운드) */
+export interface ScopedReq { with: string[]; any: string[]; need: string[]; none: string[]; hint: string }
+export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[]; forbidSentences: SentenceReq[]; scopedSentences: ScopedReq[] }
 
 export const LIMITS = { minSentences: 3, maxSentences: 10, maxSentenceChars: 45, maxTotalChars: 380 } as const;
 
@@ -41,6 +43,7 @@ export function requirements(f: NoticeFacts): Requirements {
   const mustInclude: Requirements["mustInclude"] = [];
   const mustSentences: SentenceReq[] = [];
   const forbidSentences: SentenceReq[] = [];
+  const scopedSentences: ScopedReq[] = [];
   // 바꿔 쓰기에 다른 조건을 겹치는 말('기다렸다가'·'닿은 뒤에'·'안내를 받고'·'허락을 받은 다음', 통합 레드팀 8라운드)
   const SWITCH_EXTRA = ["도착", "오면", "연락", "기다", "뒤에", "다음", "받고", "받은", "허락", "닿", "안내"];
   const NEG = ["않", "말고", "마세", "마십", "마시", "필요 없", "필요가 없", "안 되", "안 돼", "금지", "삼가", "아닙", "아니"];
@@ -108,6 +111,12 @@ export function requirements(f: NoticeFacts): Requirements {
   if (f.actions.includes("SWITCH_AFTER_BATTERY")) {
     for (const w of ["지금", "바로", "당장", "곧바로", "미리", ...SWITCH_EXTRA, "전에"]) forbid(["산소통", "바꿔", w], `산소통 바꿔 쓰기에 '${w}'(배터리가 떨어진 뒤가 아님)`);
     if (c?.state === "UNTIL") for (const w of ["지금", "바로", "당장", "곧바로"]) forbid([c.text, w], `산소통 시각에 '${w}'(배터리 다음 바꿔 쓰기의 끝)`);
+    // 확인 외장 집: 산소통 바꿔 쓰기·배터리를 함께 말하는 모든 문장은 '외장 배터리까지'여야 한다. 맞는 문장 옆에 '내장 배터리가 떨어지면 …'을 덧붙이거나
+    // '외장 배터리 대신·보다·두고'로 뜻을 뒤집으면 거부(통합 레드팀 14라운드: 13라운드의 '내장' 거부는 필수 문장 하나에만 걸렸다)
+    if (f.batteryWithExt) {
+      scopedSentences.push({ with: ["산소통"], any: ["바꿔", "갈아", "쓰세", "배터리", "연결"], need: ["외장 배터리까지"], none: ["내장", "내부", "본체", "기기 배터리", "대신", "보다", "두고", "먼저", "남겨", "비상용", "하나", "첫", "끼운", "끼워", "아껴"], hint: "산소통 바꿔 쓰기는 외장 배터리까지 다 떨어진 뒤" });
+      for (const w of ["내장", "내부", "본체"]) forbid([w], `확인 외장 집에서 '${w}' 배터리만 따로 말함`);
+    }
   }
   if (f.actions.includes("SWITCH_TO_CYLINDER")) {
     for (const w of ["떨어지면", "다 되면", "뒤에", "다음에", ...SWITCH_EXTRA]) forbid(["산소통", "바꿔", w], `지금 바꿔 쓰기에 '${w}'`);
@@ -117,7 +126,7 @@ export function requirements(f: NoticeFacts): Requirements {
     for (const w of COND) forbid([supplyW, "떨어", w], `경고에 '${w}' 조건`);
     if (!f.warnTight) for (const w of ["일찍", "계산보다", "빨리", "닳으면"]) forbid([supplyW, "먼저", w], `계산대로여도 먼저 떨어지는데 '${w}' 조건`);
   }
-  return { allowed, mustInclude, mustSentences, forbidSentences };
+  return { allowed, mustInclude, mustSentences, forbidSentences, scopedSentences };
 }
 
 // ---------- 금지 표현 ----------
@@ -223,6 +232,11 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
   for (const m of req.mustInclude) if (!found.get(m.text)) v.push({ code: "MISSING_TEXT", detail: `「${m.text}」(${m.hint}) 없음` });
   for (const m of req.mustSentences) if (!sentences.some((s) => m.all.every((w) => s.includes(w)) && !(m.none ?? []).some((w) => s.includes(w)))) v.push({ code: "MISSING_SENTENCE", detail: `${m.all.join("+")} 한 문장 없음(${m.hint})` });
   for (const m of req.forbidSentences) for (const s of sentences) if (m.all.every((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s });
+  for (const m of req.scopedSentences) for (const s0 of sentences) {
+    const s = res ? s0.split(res).join("") : s0; // 정해진 수단 이름(「기기용 외장 배터리」)의 낱말은 빼고 본다
+    if (!m.with.every((w) => s.includes(w)) || !m.any.some((w) => s.includes(w))) continue;
+    if (!m.need.every((w) => s.includes(w)) || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
+  }
   return { ok: v.length === 0, violations: v, sentences };
 }
 
@@ -254,7 +268,10 @@ export function caveatSentence(f: NoticeFacts): string[] {
 export function tailSentences(f: NoticeFacts): string[] {
   const caveat = caveatSentence(f);
   return f.kind === "OUTAGE"
-    ? [...caveat, "위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
+    ? [
+      // 외장을 합친 시각은 남아도 기기 배터리는 이미 바닥일 수 있다: 외장으로 이어 쓰는지 확인(통합 레드팀 14라운드)
+      ...(f.innerMaybeOut ? ["기기 배터리는 이미 떨어졌을 수 있으니 외장 배터리가 꽂혀 있는지 확인하세요."] : []),
+      ...caveat, "위급하면 바로 119에 전화하세요.", "정전 문의는 한전 123으로 하세요."]
     : [
       ...caveat,
       // 갈 곳: 늘 붙인다(원안 '대체장소', 통합 레드팀 4라운드). 절전: 배터리 없는 기기면 뺀다. 한 문장 45자 이내

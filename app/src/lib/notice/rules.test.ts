@@ -62,7 +62,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
     warningOnlyIfSupplyEarly: Boolean(f.warnTight),
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
-    actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, negated: false, quote: "" })),
+    actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, batteryScope: kind === "SWITCH_AFTER_BATTERY" && f.batteryWithExt ? "including_external" as const : "unspecified" as const, negated: false, quote: "" })),
     otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
   };
 }
@@ -297,9 +297,9 @@ describe("통합 레드팀 2라운드 회귀", () => {
   it("2차: 금지 지시는 예외 없이 거부('바꿔 쓰지 마세요'·'배달 기다리지 마세요' 모두)", () => {
     const f = buildFacts(IN({ deviceCls: "O2_STAT", lane: "PROPOSE_ASSIGN", resourceKind: "O2_CYL_DELIVERY", batteryEndS: 0, batteryLs: 0, nowS: 3600, cylinderEndS: 50000, cylinderS: 7200, etaS: 9000 }));
     const base = truthClaims(f);
-    const bad = { ...base, actions: [...base.actions.filter((a) => a.kind !== "SWITCH_TO_CYLINDER"), { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "지금 산소통으로 바꿔 쓰지 마세요" }] };
+    const bad = { ...base, actions: [...base.actions.filter((a) => a.kind !== "SWITCH_TO_CYLINDER"), { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, batteryScope: "unspecified" as const, negated: true, quote: "지금 산소통으로 바꿔 쓰지 마세요" }] };
     expect(compareClaims(f, bad).length).toBeGreaterThan(0);
-    const ok = { ...base, actions: [...base.actions, { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, negated: true, quote: "추가 산소통 배달은 기다리지 마세요" }] };
+    const ok = { ...base, actions: [...base.actions, { kind: "SWITCH_TO_CYLINDER" as const, when: "now" as const, batteryScope: "unspecified" as const, negated: true, quote: "추가 산소통 배달은 기다리지 마세요" }] };
     expect(compareClaims(f, ok).length).toBeGreaterThan(0);
   });
 });
@@ -634,6 +634,60 @@ describe("통합 레드팀 13라운드 회귀", () => {
   });
 });
 
+describe("통합 레드팀 14라운드 회귀", () => {
+  const hhExt = (charge: number, cylinder: boolean): HouseholdView => ({
+    id: "H14", pseudonym: "H-014", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: charge, source: "device_screen" } },
+    ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A14" } }],
+    ...(cylinder ? { cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C14" } } } : {}),
+  });
+  const factsOf = (charge: number, cylinder: boolean, nowS = 0) => buildFacts(outageInput({ hh: hhExt(charge, cylinder), baseIso: BASE, nowS, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 4 * 3600, late119: false })!);
+  it("확인 외장+산소통 집: 맞는 바꿔 쓰기 옆에 기기 배터리만의 바꿔 쓰기를 덧붙이거나 외장을 부정하면 1차 거부", () => {
+    for (const charge of [0, 30, 60, 100]) {
+      const f = factsOf(charge, true);
+      expect(f.batteryWithExt).toBe(true);
+      expect(f.actions).toContain("SWITCH_AFTER_BATTERY");
+      const t = templateSentences(f);
+      expect(verify(f, t).ok).toBe(true);
+      const k = t.findIndex((s) => s.includes("산소통으로 바꿔"));
+      for (const extra of ["기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "내부 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "본체 배터리가 떨어지면 산소통으로 바꿔 쓰세요.",
+        "기기 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "첫 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "끼워 둔 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 산소통으로 바꿔 쓰세요."])
+        expect(verify(f, [...t.slice(0, k + 1), extra, ...t.slice(k + 1)]).ok, `덧붙임: ${extra}`).toBe(false);
+      for (const sub of ["본체 배터리가 떨어지면 외장 배터리 대신 산소통으로 바꿔 쓰세요.", "기기 배터리가 떨어지면 외장 배터리를 쓰기보다 산소통으로 바꿔 쓰세요.",
+        "외장 배터리는 비상용으로 두고 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 외장 배터리보다 산소통으로 먼저 바꿔 쓰세요.", "외장 배터리는 두고 배터리가 떨어지면 산소통으로 바꿔 쓰세요."])
+        expect(verify(f, t.map((s, i) => (i === k ? sub : s))).ok, `대체: ${sub}`).toBe(false);
+      expect(verify(f, t.map((s, i) => (i === k ? "외장 배터리까지 모두 다 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s))).ok).toBe(true);
+    }
+  });
+  it("2차: 확인 외장 집의 바꿔 쓰기 조건 배터리가 외장까지가 아니면 거부, 외장 없는 집은 종류를 묻지 않음", () => {
+    const f = factsOf(60, true);
+    const c = truthClaims(f);
+    expect(compareClaims(f, c)).toEqual([]);
+    for (const batteryScope of ["device_battery_only", "unspecified"] as const)
+      expect(compareClaims(f, { ...c, actions: c.actions.map((a) => (a.kind === "SWITCH_TO_CYLINDER" ? { ...a, batteryScope } : a)) }).length, batteryScope).toBeGreaterThan(0);
+    const g = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    expect(g.batteryWithExt).toBeUndefined();
+    expect(compareClaims(g, truthClaims(g))).toEqual([]);
+  });
+  it("확인 외장 집에서 기기 배터리 몫이 바닥이면 코드가 '외장 배터리가 꽂혀 있는지 확인' 문장을 붙이고, 시계가 흘러도 사라지지 않는다", () => {
+    const line = "기기 배터리는 이미 떨어졌을 수 있으니 외장 배터리가 꽂혀 있는지 확인하세요.";
+    for (const cylinder of [true, false]) {
+      let seen = 0;
+      for (let nowS = 0; nowS <= 3600; nowS += 60) {
+        const f = factsOf(0, cylinder, nowS);
+        if (f.battery.state !== "UNTIL") continue;
+        seen++;
+        expect(f.innerMaybeOut, `now ${nowS}`).toBe(true);
+        expect(compose(f, null).sentences).toContain(line);
+      }
+      expect(seen).toBeGreaterThan(0);
+      const full = factsOf(100, cylinder);
+      expect(full.innerMaybeOut).toBeUndefined();
+      expect(compose(full, null).sentences).not.toContain(line);
+    }
+  });
+});
+
 describe("2차 검사 대조(compareClaims)", () => {
   const ok = truthClaims(gap);
   const mut: [string, (c: ClaimsT) => ClaimsT][] = [
@@ -647,13 +701,13 @@ describe("2차 검사 대조(compareClaims)", () => {
     ["기기 이름 틀림", (c) => ({ ...c, device: "산소발생기" })],
     ["수단 덧붙임", (c) => ({ ...c, means: { ...c.means, extraDetails: ["산소통을 싣고 온다"] } })],
     ["구급대 연결 지어냄", (c) => ({ ...c, means: { ...c.means, connected: "yes" } })],
-    ["산소통 바꿔 쓰기를 도착 뒤로", (c) => ({ ...c, actions: [...c.actions, { kind: "SWITCH_TO_CYLINDER", when: "after_condition", negated: false, quote: "도착하면 바꿔 쓰세요" }] })],
+    ["산소통 바꿔 쓰기를 도착 뒤로", (c) => ({ ...c, actions: [...c.actions, { kind: "SWITCH_TO_CYLINDER", when: "after_condition", batteryScope: "unspecified" as const, negated: false, quote: "도착하면 바꿔 쓰세요" }] })],
     ["정전이 끝났다고 함", (c) => ({ ...c, situation: "power_restored" })],
     ["하지 말라는 지시", (c) => ({ ...c, actions: c.actions.map((a, i) => (i === 0 ? { ...a, negated: true } : a)) })],
     ["사실에 없는 기관 약속", (c) => ({ ...c, staffPromises: [...c.staffPromises, { kind: "other", quote: "확인이 끝나면 다시 알려 드립니다" }] })],
-    ["정하지 않은 지시", (c) => ({ ...c, actions: [...c.actions, { kind: "OTHER", when: "now", negated: false, quote: "다른 곳으로 옮기세요" }] })],
+    ["정하지 않은 지시", (c) => ({ ...c, actions: [...c.actions, { kind: "OTHER", when: "now", batteryScope: "unspecified" as const, negated: false, quote: "다른 곳으로 옮기세요" }] })],
     ["할 일 빠짐", (c) => ({ ...c, actions: c.actions.slice(1) })],
-    ["다른 할 일", (c) => ({ ...c, actions: [...c.actions, { kind: "CHARGE_DEVICE", when: "now", negated: false, quote: "" }] })],
+    ["다른 할 일", (c) => ({ ...c, actions: [...c.actions, { kind: "CHARGE_DEVICE", when: "now", batteryScope: "unspecified" as const, negated: false, quote: "" }] })],
     ["표기 밖 시간", (c) => ({ ...c, otherTimesOrDurations: ["이틀"] })],
     ["안심", (c) => ({ ...c, reassuranceOrPromise: true })],
     ["위험 행동", (c) => ({ ...c, medicalOrDeviceOrRiskyInstruction: true })],

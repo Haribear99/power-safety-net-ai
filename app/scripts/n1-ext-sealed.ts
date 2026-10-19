@@ -1,6 +1,6 @@
 // 사후 집계(통합 레드팀 9라운드): 봉인 시험셋(S9)에서 배터리 시각·시간에 확인 외장 배터리가 합쳐져 있었는데 나간 글이 '외장'을 말하지 않은 항목을 센다.
 // 봉인 시험셋의 출처(시나리오·가구·시각)로 세션을 다시 만들고, 현행 outageInput/prepInput의 외장 몫(batteryExtS)을 계산한다. API 호출 없음.
-// 레드팀 재현 스크립트(9라운드)를 옮겨 적은 것이다. 산소통이 있는 집은 지금 규칙이 외장 몫을 빼므로, 산소통을 뺀 가구로 외장 몫을 센다.
+// 레드팀 재현 스크립트(9라운드)를 옮겨 적은 것이다. 산소통을 뺀 가구로 외장 몫을 센다(9라운드 재현 방식 유지. 13라운드부터 외장은 늘 포함하며 결과는 같다).
 //   npx tsx scripts/n1-ext-sealed.ts   → seal/outputs/posthoc/n1_ext_sealed.json
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

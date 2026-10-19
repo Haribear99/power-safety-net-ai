@@ -118,9 +118,15 @@ for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) 
   const k = t.findIndex((s) => s.includes("산소통으로 바꿔"));
   extItems.push({ id: `${c.id}-b0`, input: c.input, label: "bad", category: "ext_switch_internal_only", sentences: t.map((s, i) => (i === k ? "기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요." : s)) });
   extItems.push({ id: `${c.id}-g0`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "외장 배터리까지 모두 다 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s)) });
+  // 14라운드: 맞는 문장 옆에 기기 배터리만의 바꿔 쓰기를 덧붙임, '외장'은 넣고 뜻을 뒤집음
+  const add = (x: string) => [...t.slice(0, k + 1), x, ...t.slice(k + 1)];
+  ["기기 내장 배터리가 떨어지면 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 산소통으로 바꿔 쓰세요."].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-a${j}`, input: c.input, label: "bad", category: "ext_switch_appended", sentences: add(x) }));
+  ["본체 배터리가 떨어지면 외장 배터리 대신 산소통으로 바꿔 쓰세요.", "배터리가 떨어지면 외장 배터리보다 산소통으로 먼저 바꿔 쓰세요.", "외장 배터리는 두고 배터리가 떨어지면 산소통으로 바꿔 쓰세요."].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-n${j}`, input: c.input, label: "bad", category: "ext_switch_negated_ext", sentences: t.map((s, i) => (i === k ? x : s)) }));
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장만 바꿨다.", items: extItems,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
 }, null, 1));
 console.log(`dev_ext ${extCases.length}건, adversarial_dev_ext ${extItems.length}건`);
 

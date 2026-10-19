@@ -105,7 +105,7 @@ function NoticeItem() {
   return (
     <li>
       승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조(검사 범위: 시각·수단·경고·할 일·금지 표현)를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
-      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순 ${n.judgeSplit.aiSameTime.n}·모순 고정 문안 ${n.judgeSplit.sentContradiction}·외장 합산 미표기 ${n.extUndisclosed?.k ?? "—"}·경고 여유 미달 ${n.marginMissed?.length ?? "—"}·없는 약속 ${n.unsupportedPromise?.length ?? "—"}, 고침·고친 검사는 미측정)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
+      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순 ${n.judgeSplit.aiSameTime.n}·모순 고정 문안 ${n.judgeSplit.sentContradiction}·외장 합산 미표기 ${n.extUndisclosed?.k ?? "—"}·경고 여유 미달 ${n.marginMissed?.length ?? "—"}·없는 약속 ${n.unsupportedPromise?.length ?? "—"}, '적어도'만 있는 글 ${n.atLeastOnly?.length ?? "—"}건은 기준 변경이라 제외(합치면 ${(n.sentDefects ?? 0) + (n.atLeastOnly?.length ?? 0)}건), 고침·고친 검사는 미측정)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
       <Link className="underline" href="/lab#notice">자세히</Link>
     </li>
   );

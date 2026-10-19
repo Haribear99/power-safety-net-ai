@@ -1,0 +1,178 @@
+{
+ "promptVersion": "n1-v16",
+ "checkVersion": "n1-check-v21",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "sw-v22",
+ "sealed": false,
+ "set": {
+  "file": "datasets/notice/dev_switch.json",
+  "sha256": "c91058698d328c9485f467680a77c6c9c847ae54ae8e1e2431e0663175b63a5d",
+  "n": 8
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 8,
+    "n": 8,
+    "rate": 1,
+    "wilson95": [
+     0.6755924316585924,
+     1
+    ]
+   },
+   "gate1Pass": {
+    "k": 8,
+    "n": 8,
+    "rate": 1,
+    "wilson95": [
+     0.6755924316585924,
+     1
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 8,
+    "n": 8,
+    "rate": 1,
+    "wilson95": [
+     0.6755924316585924,
+     1
+    ]
+   },
+   "gate1FactError": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "callFail": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "templateFalseReject": {
+    "k": 0,
+    "n": 8,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.3244075683414076
+    ]
+   },
+   "rejectCodes": {},
+   "judge": {
+    "ai": 0,
+    "template": 0,
+    "same": 0,
+    "fail": 0,
+    "aiFirstPickAi": 0,
+    "aiFirst": 0
+   },
+   "latencyE2E": {
+    "p50": 10773,
+    "p95": 10894,
+    "n": 8,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 0.2661584,
+  "judgeCostUsd": 0,
+  "rows": [
+   {
+    "id": "sw-00",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-01",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-02",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-03",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-04",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-05",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-06",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "sw-07",
+    "stratum": "OUTAGE:UNTIL+cyl:SWITCH_AFTER_BATTERY",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   }
+  ]
+ }
+}

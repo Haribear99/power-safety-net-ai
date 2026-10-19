@@ -119,6 +119,8 @@ export interface NoticeFacts {
   actions: Action[];
   /** 배터리 시간·시각에 확인 외장 배터리가 합쳐져 있음(HOURS·UNTIL일 때만). 글은 '외장 배터리까지 합쳐'라고 써야 한다 */
   batteryWithExt?: true;
+  /** OUTAGE·확인 외장 합산인데 기기(내장) 배터리만의 표시 끝이 지금부터 10분 안이거나 지남: 코드가 '외장 배터리가 꽂혀 있는지 확인' 문장을 붙인다(통합 레드팀 14라운드) */
+  innerMaybeOut?: true;
   /** OUTAGE 배터리 시각의 근거(꼬리말만 쓴다. 본문·검사와 무관) */
   batteryBasis?: "charge" | "chargeUnknown" | "screen" | "operator";
 }
@@ -259,7 +261,9 @@ export function buildFacts(input: NoticeInputT): NoticeFacts {
   actions.push("KEEP_PHONE", "FOLLOW_STAFF");
   const warnTight = warnRunOutFirst && etaShownS != null && supplyShownS != null && etaShownS <= supplyShownS;
   const withExt = battery.state === "UNTIL" && (input.batteryExtS ?? 0) > 0;
-  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
+  // 외장을 합친 끝은 남아도 기기 배터리 몫은 이미 바닥일 수 있다(내장 0% + 확인 외장, 통합 레드팀 14라운드)
+  const innerOut = withExt && input.batteryEndS != null && endState(input.batteryEndS - (input.batteryExtS ?? 0)) == null;
+  return { kind: "OUTAGE", audience, device, battery, cylinder, plan, warnRunOutFirst, warnTight, extDeclared: false, actions, ...(withExt ? { batteryWithExt: true as const } : {}), ...(innerOut ? { innerMaybeOut: true as const } : {}), ...(input.batteryBasis ? { batteryBasis: input.batteryBasis } : {}) };
 }
 
 // ---------- 화면·스크립트에서 입력 만들기 ----------
