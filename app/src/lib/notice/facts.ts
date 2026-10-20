@@ -332,10 +332,10 @@ export function outageInput(args: {
   // 확인 외장 배터리 몫은 늘 포함한다(엔진 배정 근거와 같게). 산소통이 있으면 바꿔 쓰기 문장이 '외장 배터리까지 다 떨어지면'이 된다.
   // 9·12라운드의 '산소통 집은 외장을 뺀다'는 남은 외장을 알리지 않고 없는 공백을 경고해(13라운드) 되돌렸다. 시계와 무관하다
   const extS0 = extShare(hh, noCyl.Ls, db);
-  // 실효 외장 몫: 재신고 단조 묶음(lEndPrev)이 배터리 끝을 당겼으면 외장 몫도 그만큼 줄어든다. 기기 배터리 끝 = max(합친 끝 − 외장 몫, 외장 없이 같은 묶음으로 센 끝)
-  // (외장 확인 전 끝으로 묶인 집에서 외장을 확인하면 외장이 한 시간도 더해지지 않았는데 '외장까지 합쳐'·'기기 배터리 바닥'을 쓰던 결함, 통합 레드팀 15라운드)
-  const innerOnly = extS0 > 0 && batteryEndS != null ? computeLowerBoundDetail({ ...hh, ext: [], cylinder: undefined, lEndPrev: prevB }, db).endS : null;
-  const extEff = extS0 > 0 && batteryEndS != null ? Math.max(0, batteryEndS - Math.max(batteryEndS - extS0, innerOnly ?? batteryEndS - extS0)) : 0;
+  // 실효 외장 몫 = 확인 외장 몫 그대로. 세션이 외장 확인 때 재신고 묶음도 외장 몫만큼 옮기므로(통합 레드팀 16라운드) 묶음은 늘 확인 외장을 포함하고,
+  // 기기 배터리 끝 = 묶인 합친 끝 − 외장 몫이 단조 규칙을 지킨다. 15라운드의 '외장 없이 같은 묶음으로 센 끝'은 외장을 포함한 묶음에서 낙관적 재신고 값을 믿어
+  // 기기 배터리 바닥 꼬리 문장을 늦게 붙였다(통합 레드팀 17라운드)
+  const extEff = extS0 > 0 && batteryEndS != null ? extS0 : 0;
   const batteryLsOut = batteryLs;
   // 산소통 끝: 엔진 합산값(단조로 묶인 값)이 아니라 배터리 끝 + 산소통 시간. '지금 바꿔 쓰기'면 buildFacts가 지금 + 산소통 시간과 비교한다
   const cylinderEndS = cylS > 0 && batteryEndS != null ? batteryEndS + cylS : cylS > 0 ? args.nowS + cylS : null;

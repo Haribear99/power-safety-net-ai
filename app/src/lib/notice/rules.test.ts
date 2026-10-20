@@ -738,17 +738,24 @@ describe("통합 레드팀 15라운드 회귀", () => {
     expect(verify(n, tn).ok).toBe(true);
     for (const x of ["휴대용 전원 장치가 오면 산소통을 쓰세요.", "전원 장치가 도착하면 그때 산소통을 쓰셔도 됩니다."]) expect(verify(n, [...tn, x]).ok, x).toBe(false);
   });
-  it("재신고 단조 묶음이 외장 몫을 먹으면 '외장까지 합쳐'·기기 배터리 바닥 문장을 쓰지 않는다(재신고 → 외장 확인 순서)", () => {
-    const first = outageInput({ hh: hhExt(100, false, 0), baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 4 * 3600, late119: false })!;
-    expect(first.kind).toBe("OUTAGE");
-    const endPrev = first.kind === "OUTAGE" ? first.batteryEndS : null;
-    expect(endPrev).not.toBeNull();
-    const endPrevH = endPrev! / 3600; // tReport·lEndPrev는 시간(h) 단위
-    const hh = hhExt(80, false, 1, { tReport: 1, lEndPrev: endPrevH, lEndPrevBattery: endPrevH });
-    for (let nowS = 3600; nowS <= 3600 + 1800; nowS += 300) {
-      const f = factsOf(hh, nowS);
-      expect(f.innerMaybeOut, `now ${nowS}`).toBeUndefined();
-      expect(f.batteryWithExt, `now ${nowS}`).toBeUndefined();
+  // 17라운드: 16라운드부터 세션이 외장 확인 때 묶음을 옮겨 묶음은 늘 확인 외장을 포함한다. 그래서 기기 배터리 끝 = 묶인 끝 − 외장 몫(낙관적 재신고 값을 믿지 않음).
+  // (15라운드의 '묶음이 외장 몫을 먹는' 상태는 세션 조작으로 더는 생기지 않는다 — session.test.ts 순서 무관 시험)
+  it("낙관적 재신고(충전량이 오른 신고) 뒤에도 기기 배터리 바닥 꼬리 문장은 첫 신고 기준 기기 몫 끝에 맞춰 붙는다", () => {
+    for (const [c0, c1] of [[30, 60], [10, 100], [50, 80]] as const) {
+      const first = outageInput({ hh: hhExt(c0, false, 1), baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: 6 * 3600, late119: false })!;
+      if (first.kind !== "OUTAGE" || first.batteryEndS == null || !first.batteryExtS) throw new Error("첫 신고 외장 합산 아님");
+      const innerEnd0 = first.batteryEndS - first.batteryExtS; // 첫 신고 기준 기기 몫 끝(초)
+      const endH = first.batteryEndS / 3600;
+      const hh = hhExt(c1, false, 1, { tReport: 0.5, lEndPrev: endH, lEndPrevBattery: endH });
+      for (let nowS = 1800; nowS <= first.batteryEndS; nowS += 300) {
+        const inp = outageInput({ hh, baseIso: BASE, nowS, lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", etaS: nowS + 6 * 3600, late119: false })!;
+        if (inp.kind !== "OUTAGE") continue;
+        expect(inp.batteryEndS, `${c0}→${c1} now ${nowS}`).toBe(first.batteryEndS); // 단조: 합친 끝은 늘지 않는다
+        expect(inp.batteryExtS, `${c0}→${c1} now ${nowS}`).toBe(first.batteryExtS);
+        const f = buildFacts(inp);
+        if (f.battery.state !== "UNTIL") continue;
+        if (nowS >= innerEnd0) expect(f.innerMaybeOut, `${c0}→${c1} now ${nowS}`).toBe(true);
+      }
     }
   });
   it("완충 집도 기기 배터리 몫의 계산 시간이 지나면 꼬리 문장이 붙고, 외장 팩을 갈아 끼우지 않는 기기(인공호흡기)에는 붙지 않는다", () => {
@@ -804,6 +811,27 @@ describe("통합 레드팀 16라운드 회귀", () => {
         "기기 배터리가 떨어지면 산소 탱크로 바꿔 쓰세요.", "기기 배터리가 떨어지면 산소병으로 바꿔 쓰세요.", "알람이 울리면 산소 용기로 바꿔 쓰세요."])
         expect(verify(f, [...t, add]).ok, `${rk} ${charge} ${add}`).toBe(false);
     }
+  });
+  it("17라운드: 동사 없는 조건·'~때'·목록 밖 동사·'없어도'·'필요는 없' 꼴은 1차 거부, 정해진 시각 문형·'배터리가 먼저 떨어지면'은 통과", () => {
+    for (const charge of [0, 60]) {
+      const f = factsOf(hhExt(charge, true));
+      const t = templateSentences(f);
+      const c = f.cylinder!.state === "UNTIL" ? f.cylinder!.text : "";
+      const ti = t.findIndex((s) => s.includes(c));
+      for (const add of [`기기가 서면 산소통은 계산상 ${c}까지 씁니다.`, `알람이 울리면 산소통이 계산상 ${c}까지 버팁니다.`, `기기 안의 팩이 다 될 때 산소통은 계산상 ${c}까지 씁니다.`,
+        `알람이 울리는 대로 산소통은 ${c}까지 씁니다.`, "알람이 울리면 산소병을 다세요.", "기기가 서면 산소 용기를 끼우세요.",
+        "외장 배터리까지 쓸 필요는 없으니 배터리가 떨어지면 산소통으로 바꿔 쓰세요."])
+        expect(verify(f, [...t, add]).ok, `${charge} ${add}`).toBe(false);
+      if (f.battery.state === "UNTIL") for (const add of [`외장 배터리가 없어도 배터리는 계산상 ${f.battery.text}까지 버팁니다.`, `외장 배터리를 안 꽂아도 계산상 ${f.battery.text}까지 버팁니다.`])
+        expect(verify(f, [...t.slice(0, 2), add, ...t.slice(2)]).ok, `${charge} ${add}`).toBe(false);
+      for (const ok of [`산소통은 계산상 ${c}까지 사용할 수 있습니다.`, `확인된 산소통은 계산상 ${c}까지 씁니다.`])
+        expect(verify(f, t.map((s, i) => (i === ti ? ok : s))).ok, `${charge} ${ok}`).toBe(true);
+    }
+    const a = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    const ta = templateSentences(a);
+    const k = ta.findIndex((s) => s.includes("산소통으로 바꿔"));
+    expect(verify(a, [...ta, "정전이 길어지면 산소통으로 바꿔 쓰세요."]).ok).toBe(false);
+    expect(verify(a, ta.map((s, i) => (i === k ? "배터리가 먼저 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s))).ok).toBe(true);
   });
   it("범위 규칙의 '정전에·정전이'는 때 뒤집기가 아니다(과잉 거부)", () => {
     const f = factsOf(hhExt(60, true));

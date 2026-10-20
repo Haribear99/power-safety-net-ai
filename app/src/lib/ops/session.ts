@@ -290,12 +290,10 @@ export function applyVerify(s: Session, v: VerifyInput): VerifyOutcome {
     }
     if (computeLowerBoundDetail(next, DB).lb.status === "MANUAL_REVIEW") return { ok: false, error: "입력 뒤에도 자동 계산이 안 됩니다(연속 기기가 아님). 보수 하한을 입력하세요" };
   }
-  if (v.action === "VERIFY_EXT" || v.action === "VERIFY_CYL") {
-    const shifted = shiftPrevForVerify(hh, next);
-    if (shifted.shiftS != null) payload = { ...payload, lEndPrevShiftS: shifted.shiftS };
-    if (shifted.batteryShiftS != null) payload = { ...payload, lEndPrevBatteryShiftS: shifted.batteryShiftS };
-    next = shifted.hh;
-  }
+  // 확인 조작은 재신고가 아니다: 지난 신고마다 지금 확인값으로 다시 센 끝의 최솟값으로 묶음을 다시 쓴다(순서 무관, 통합 레드팀 16·17라운드)
+  const rebased = rebasePrev(next);
+  if (rebased.lEndPrev !== next.lEndPrev) payload = { ...payload, lEndPrevH: [next.lEndPrev, rebased.lEndPrev] };
+  next = rebased;
   const entry: AuditEntry = {
     at: nowIso(s), actor: "demo-operator", householdId: hh.id, action: v.action,
     from: { lane: laneNow }, to: { lane: laneNow }, reasonText: v.reasonText, payload,
@@ -305,25 +303,24 @@ export function applyVerify(s: Session, v: VerifyInput): VerifyOutcome {
 }
 
 /**
- * 운영자 확인(외장·산소통)은 재신고가 아니다: 재신고 단조 묶음(lEndPrev·lEndPrevBattery)을 확인 전후 엔진 L 차이만큼 옮긴다.
- * 3.9절 비증가의 근거는 '배터리가 다시 차지 않는다'이고, 따로 있던 외장·산소통을 확인하는 것은 그 대상이 아니다.
- * 확인 → 재신고 순서와 같은 값이 된다(통합 레드팀 16라운드: 재신고 → 산소통 확인 순서면 확인한 산소통 몫이 묶음에 먹혀 L_end·배정이 순서에 따라 갈렸다)
+ * 재신고 단조 묶음(3.9절)을 지난 신고 근거로 다시 센다: lEndPrev = min_i(t_i + L(지금 확인값, 신고 i의 충전량·화면 남은 시간)).
+ * 3.9절 비증가의 근거는 '배터리가 다시 차지 않는다'이고, 운영자 확인(외장·산소통·연식·기종·보수 하한)은 그 대상이 아니다.
+ * 확인 → 재신고와 재신고 → 확인이 같은 값이 된다. 16라운드의 '확인 전후 L 차이만큼 옮기기'는 더하기 꼴(외장·산소통)에만 맞아,
+ * 충전량과 곱해지는 연식과 수동검토 완료는 순서에 따라 갈렸다(통합 레드팀 17라운드). 엔진(봉인)은 그대로다.
+ * 보수 하한(수동검토 완료)도 지난 신고 시각부터 센다(확인 → 재신고 순서와 같은 기준).
  */
-function shiftPrevForVerify(before: HouseholdView, after: HouseholdView): { hh: HouseholdView; shiftS: number | null; batteryShiftS: number | null } {
-  const ls = (h: HouseholdView) => computeLowerBoundDetail({ ...h, lEndPrev: null }, DB).Ls;
-  const lsB = (h: HouseholdView) => computeLowerBoundDetail({ ...h, cylinder: undefined, lEndPrev: null }, DB).Ls;
-  let shiftS: number | null = null, batteryShiftS: number | null = null;
-  const out: HouseholdView = { ...after };
-  if (before.lEndPrev != null) {
-    const a = ls(after), b = ls(before);
-    if (a != null && b != null && a !== b) { shiftS = a - b; out.lEndPrev = sToH(qT(before.lEndPrev) + shiftS); }
+function rebasePrev(h: HouseholdView): HouseholdView {
+  const hist = h.reportHistory;
+  if (!hist?.length) return h;
+  let e: number | null = null, eB: number | null = null;
+  for (const b of hist) {
+    const hb: HouseholdView = { ...h, tReport: b.tReport, lEndPrev: null, device: { ...h.device, charge: b.charge, screenRemainingH: b.screenRemainingH } };
+    const x = computeLowerBoundDetail(hb, DB).endS;
+    const xB = h.cylinder ? computeLowerBoundDetail({ ...hb, cylinder: undefined }, DB).endS : x;
+    if (x != null) e = e == null ? x : Math.min(e, x);
+    if (xB != null) eB = eB == null ? xB : Math.min(eB, xB);
   }
-  // 배터리만의 끝(보호자 알림용)은 산소통을 빼고 센 차이만큼 옮긴다(산소통 확인이면 0)
-  if (before.lEndPrevBattery != null) {
-    const a = lsB(after), b = lsB(before);
-    if (a != null && b != null && a !== b) { batteryShiftS = a - b; out.lEndPrevBattery = sToH(qT(before.lEndPrevBattery) + batteryShiftS); }
-  }
-  return { hh: out, shiftS, batteryShiftS };
+  return { ...h, lEndPrev: e != null ? sToH(e) : null, lEndPrevBattery: eB != null ? sToH(eB) : null };
 }
 
 /** 가구 재신고(시연, 3.9절): 정전 중에는 L_end 비증가 */
@@ -338,6 +335,8 @@ export function reReport(s: Session, householdId: string, chargePct: number): Se
     ...hh, tReport: sToH(s.nowS), lEndPrev: prevEnd != null ? sToH(prevEnd) : null,
     lEndPrevBattery: prevBatteryEnd != null ? sToH(prevBatteryEnd) : null,
     device: { ...hh.device, charge: { value: Math.max(0, Math.min(100, Math.round(chargePct))), source: "user" } },
+    // 이 신고 전의 신고 근거를 쌓는다(뒤의 확인 조작이 묶음을 다시 셀 때 쓴다, 통합 레드팀 17라운드)
+    reportHistory: [...(hh.reportHistory ?? []), { tReport: hh.tReport, charge: hh.device.charge, ...(hh.device.screenRemainingH != null ? { screenRemainingH: hh.device.screenRemainingH } : {}) }],
   };
   return recompute({ ...s, households: s.households.map((h, i) => (i === idx ? next : h)) });
 }

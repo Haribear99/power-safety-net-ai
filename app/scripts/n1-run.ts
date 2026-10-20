@@ -7,7 +7,7 @@
 //   + 같은 항목의 고정 문안(정답 글)에도 2차 검사를 돌려 오거부를 잰다 + 탐색: 눈가림 쌍 비교(PW_N1_judge, AI 글 대 고정 문안, 내용 같음)
 // 우회 문장 모음 단계: 항목마다 1차·2차 검사를 모두 돌려 '틀린 글' 검출률과 '맞는 글' 오거부율을 잰다.
 // 원시 응답(요청 ID 포함)은 out/n1/<tag>/ 또는 out/sealed/n1/에, 지출 행은 out/spend.jsonl(append-only)에 쓴다.
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { budgetBackend, keys, MICRO, type Pool } from "../src/lib/claude/budget";
@@ -194,7 +194,11 @@ async function main() {
     if (existsSync(path.join(outDir, "STARTED"))) { console.error("봉인 실행은 1회 — 이미 시작됨(out/sealed/n1/STARTED)"); process.exit(4); }
     mkdirSync(outDir, { recursive: true });
     writeFileSync(path.join(outDir, "STARTED"), new Date().toISOString() + "\n");
-  } else mkdirSync(outDir, { recursive: true });
+  } else {
+    // 같은 태그로 다시 돌려 앞 실행의 원시 응답·요약을 덮어쓰지 않는다(2차 검사는 확률적이라 실행마다 값이 다를 수 있다, 통합 레드팀 17라운드). 다시 돌릴 때는 새 태그(-r2 등)
+    if (existsSync(outDir) && readdirSync(outDir).length > 0) { console.error(`이미 쓴 태그 ${tag}(끊긴 실행 포함) — 새 태그로 다시 돌릴 것(덮어쓰기 금지)`); process.exit(5); }
+    mkdirSync(outDir, { recursive: true });
+  }
 
   const summary: Record<string, unknown> = { promptVersion: NOTICE_PROMPT_VERSION, checkVersion: CHECK_VERSION, judgeVersion: JUDGE_VERSION, tag, sealed };
   if (!corpusArg || sealed) {

@@ -141,8 +141,11 @@ describe("확인·재신고 순서 무관", () => {
     const verifies: { id: string; v: (id: string) => Parameters<typeof applyVerify>[1] }[] = [
       ...p.planner.households.filter((h) => h.cylinder).map((h) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_CYL" as const, householdId: id, count: 1, hoursLo: 10, reasonText: "현장 확인" }) })),
       ...p.planner.households.filter((h) => h.ext.some((e) => e.declaredCount > 0)).map((h) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_EXT" as const, householdId: id, extIndex: h.ext.findIndex((e) => e.declaredCount > 0), count: h.ext.find((e) => e.declaredCount > 0)!.declaredCount, chargeConfirmed: true, reasonText: "현장 확인" }) })),
+      // 17라운드: 연식 확인(충전량과 곱해짐)·수동검토 완료(보수 하한)도 순서 무관
+      ...p.planner.households.filter((h) => h.device.batteryAgeY == null).flatMap((h) => [0.5, 5].map((y) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_AGE" as const, householdId: id, batteryAgeY: y, reasonText: "구입 영수증" }) }))),
+      ...base.result!.rows.filter((r) => r.rec.lane === "MANUAL_REVIEW").map((r) => ({ id: r.rec.householdId, v: (id: string) => ({ action: "MANUAL_REVIEW_DONE" as const, householdId: id, operatorLowerH: 2, reasonText: "담당 의료진 확인" }) })),
     ];
-    for (const charge of [0, 80]) it(`${name} 충전 ${charge}%: 산소통·외장 ${verifies.length}건`, () => {
+    for (const charge of [0, 80]) it(`${name} 충전 ${charge}%: 산소통·외장·연식·수동검토 후보 ${verifies.length}건`, () => {
       let n = 0;
       for (const { id, v } of verifies) {
         const a1 = applyVerify(reReport(base, id, charge), v(id));
@@ -155,6 +158,23 @@ describe("확인·재신고 순서 무관", () => {
         expect(lanes(a1.session)).toBe(lanes(b1));
       }
       expect(n).toBeGreaterThan(0);
+    });
+    it(`${name}: 재신고 두 번 사이 어디에 확인을 넣어도 L_end가 같다(R·V·R = V·R·R = R·R·V)`, () => {
+      for (const { id, v } of verifies) {
+        const t1 = recompute(base, base.nowS + 1800);
+        const rv = applyVerify(reReport(base, id, 80), v(id));
+        if (!rv.ok) continue;
+        const a = reReport(recompute(rv.session, t1.nowS), id, 60);
+        const vr = applyVerify(base, v(id));
+        if (!vr.ok) continue;
+        const b = reReport(recompute(reReport(vr.session, id, 80), t1.nowS), id, 60);
+        const rr = reReport(recompute(reReport(base, id, 80), t1.nowS), id, 60);
+        const c = applyVerify(rr, v(id));
+        if (!c.ok) continue;
+        expect(ends(a)).toBe(ends(b));
+        expect(ends(c.session)).toBe(ends(b));
+        // 배정은 비교하지 않는다: 시간을 넘기면 HOLD 만료(HOLD_EXPIRED)가 그 사이 보인 추천에 따라 달라진다(재신고 묶음과 별개, 1.4절)
+      }
     });
   }
 });

@@ -36,15 +36,18 @@ export interface SentenceReq { all: string[]; hint: string; none?: string[] }
  * 범위 문장 검사(통합 레드팀 14·15라운드): 산소통(「산소 통」「실린더」 포함, 원문 기준)과 any 낱말 하나 이상(정해진 수단 이름 안 낱말은 빼고 본다)을 담은 문장은
  * need를 모두 담고 none은 담지 않아야 한다. skipNeedWith 표기가 든 문장(산소통 시각 문장)은 need를 묻지 않는다(그 문장의 뜻 낱말은 역할 규칙이 본다)
  */
-export interface ScopedReq { any: string[]; need: string[]; none: string[]; hint: string; skipNeedWith?: string }
+export interface ScopedReq { any: string[]; need: string[]; none: string[]; hint: string; skipNeedWith?: string; allowCond?: string[] }
 /** 표기 문장 검사(통합 레드팀 16라운드): with 표기가 든 모든 문장은 need를 모두 담고 none은 담지 않아야 한다(맞는 문장 하나만 보던 mustSentences의 빈틈). 다른 역할 문장(도착·구급·산소통 시각)은 뺀다 */
 export interface TimeReq { with: string; need: string[]; none: string[]; hint: string }
 export interface Requirements { allowed: Allowed[]; mustInclude: { text: string; hint: string }[]; mustSentences: SentenceReq[]; forbidSentences: SentenceReq[]; scopedSentences: ScopedReq[]; timeSentences: TimeReq[] }
 /** 산소통과 그 다른 이름(통합 레드팀 16라운드: 산소 탱크·산소병·산소 용기·봄베로 범위 규칙을 피함) */
 export const CYL_RE = /산소\s*통|실린더|산소\s*(?:탱크|병|용기)|봄베/;
-/** 산소통 시각 문장에서 바꿔 쓰기를 시키는 말: 이 말이나 '~면' 조건이 있으면 시각만 말하는 문장이 아니다(통합 레드팀 16라운드) */
-const SWITCH_VERB = ["바꿔", "바꾸", "갈아", "교체", "달아", "달면", "달고", "대 주", "대세", "쓰세", "쓰셔", "쓰시", "쓰십", "사용", "이용", "이어", "넘어가", "연결", "꽂"];
-const COND_CLAUSE = /[가-힣]면(?=[\s,.]|$)/;
+/** 산소통 시각 문장의 면제는 시각만 말하는 정해진 문형일 때만(통합 레드팀 17라운드: '~때'·'~대로'·동사 없는 '~면' 앞말, '사용할 수 있습니다' 과잉 거부) */
+const escRe = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const cylTimeOnly = (s: string, text: string) =>
+  new RegExp(`^(?:집에 있는 |확인된 |집에 있는 확인된 )?산소\\s*통(?:은|이)? ?(?:계산상 )?${escRe(text)}까지 ?(?:씁니다|쓸 수 있습니다|쓰실 수 있습니다|사용할 수 있습니다|사용합니다|갑니다|버팁니다|버틸 수 있습니다)[.!]?$`).test(s.trim());
+/** '~면' 조건 낱말(정전에 산소통을 바꿔 쓰는 때를 다른 조건에 달면 거부, 통합 레드팀 17라운드) */
+const COND_WORDS = /([가-힣]+면)(?=[\s,.!?]|$)/g;
 
 export const LIMITS = { minSentences: 3, maxSentences: 10, maxSentenceChars: 45, maxTotalChars: 380 } as const;
 
@@ -57,7 +60,7 @@ export function requirements(f: NoticeFacts): Requirements {
   const timeSentences: TimeReq[] = [];
   // 바꿔 쓰기에 다른 조건을 겹치는 말('기다렸다가'·'닿은 뒤에'·'안내를 받고'·'허락을 받은 다음', 통합 레드팀 8라운드)
   const SWITCH_EXTRA = ["도착", "오면", "연락", "기다", "뒤에", "다음", "받고", "받은", "허락", "닿", "안내"];
-  const NEG = ["않", "말고", "마세", "마십", "마시", "필요 없", "필요가 없", "안 되", "안 돼", "금지", "삼가", "아닙", "아니"];
+  const NEG = ["않", "말고", "마세", "마십", "마시", "필요 없", "필요가 없", "필요는 없", "안 되", "안 돼", "안 써", "금지", "삼가", "아닙", "아니"];
   const must = (text: string, role: Role) => {
     const a = allowed.find((x) => x.text === text);
     if (a) { if (!a.roles.includes(role)) a.roles.push(role); } else allowed.push({ text, roles: [role] });
@@ -75,7 +78,7 @@ export function requirements(f: NoticeFacts): Requirements {
     const EXT_NONE = ["없이", "말고", "따로", "제외", "빼고", "만으로", "내장"];
     sent([b.text, "외장"], "외장 배터리까지 합친 시간이다", EXT_NONE);
     // 맞는 합산 문장 옆에 '기기 배터리도 X까지'·'외장 없이도 X까지'를 덧붙이면 통과하던 빈틈: 그 표기가 든 모든 문장에 같은 기준(통합 레드팀 16라운드)
-    timeSentences.push({ with: b.text, need: ["외장"], none: [...EXT_NONE, "혼자", "기기 배터리", "기기에 든", "배터리만", "배터리도", "본체", "내부"], hint: "그 배터리 시간·시각은 외장 배터리까지 합친 값이다" });
+    timeSentences.push({ with: b.text, need: ["외장 배터리까지"], none: [...EXT_NONE, "혼자", "기기 배터리", "기기에 든", "배터리만", "본체", "내부", "없어도", "안 꽂", "빠져", "빼도", "두셔도", "상관없", "예비", "필요 없", "필요는 없", "안 써"], hint: "그 배터리 시간·시각은 외장 배터리까지 합친 값이다" });
     // 기기 배터리만의 시간을 따로 말하지 않는다(정전 중. 평시는 고정 문안의 '평소에 기기 배터리를 늘 충전' 때문에 표기 문장 검사만)
     for (const w of ["배터리만", "기기에 든"]) forbid([w], `확인 외장 집에서 '${w}'(기기 배터리만의 시간)`);
     if (f.kind === "OUTAGE") forbid(["기기 배터리"], "확인 외장 집에서 기기 배터리만 따로 말함(정전 중)");
@@ -127,8 +130,10 @@ export function requirements(f: NoticeFacts): Requirements {
     if (a === "PLAN_WITH_STAFF") sent(["담당자", "정해"], "정전 때 쓸 다른 방법을 담당자와 미리 정해 둔다");
   }
   // 산소통을 쓰게 하는 동사(바꿔 쓰기·달기·허락형 '써도 됩니다'·'쓸 수 있습니다', 통합 레드팀 15라운드: '바꿔'만 보던 것을 넓힘)
-  const USE = ["바꿔", "바꾸", "갈아", "교체", "달아", "달면", "달고", "대 주", "대세", "쓰세", "써", "쓰셔", "쓰시", "쓸 수", "쓰십", "쓰면", "사용", "이용", "이어", "넘어가", "연결", "꽂"];
+  const USE = ["바꿔", "바꾸", "갈아", "교체", "달아", "달면", "달고", "대 주", "대세", "쓰세", "써", "쓰셔", "쓰시", "쓸 수", "쓰십", "쓰면", "사용", "이용", "끼우", "끼워", "이어", "넘어가", "연결", "꽂"];
   // '이제·언제·아무 때'(통합 레드팀 16라운드: '이제 바꿔 써도'·'언제 바꿔 달아도'), 외장 없는 집도 '먼저'
+  // 배터리 다음 바꿔 쓰기에 허용하는 '~면' 조건(그 밖의 조건 — '기기가 서면'·'정전이 길어지면'·'알람이 울리면' — 은 거부, 통합 레드팀 17라운드)
+  const AFTER_COND = ["떨어지면", "되면", "쓰면", "쓰시면", "바꾸시면", "닳으면"];
   const WHEN_NOT_AFTER = ["지금", "바로", "당장", "곧바로", "미리", ...SWITCH_EXTRA, "전에", "전이", "기 전", "없이", "이제", "언제", "아무 때", ...NEG];
   // 깨끗한 문장이 하나 있어도 틀린 문장을 덧붙이면 막는다: 반대 조건 낱말이 든 모든 문장을 거부(통합 레드팀 13라운드)
   if (f.actions.includes("SWITCH_AFTER_BATTERY")) {
@@ -138,15 +143,15 @@ export function requirements(f: NoticeFacts): Requirements {
     // '외장 배터리 대신·보다·두고'로 뜻을 뒤집으면 거부(통합 레드팀 14라운드: 13라운드의 '내장' 거부는 필수 문장 하나에만 걸렸다)
     // 15라운드: 동의어·허락형·'그 전이라도'까지 같은 기준(외장 없는 집도)
     if (f.batteryWithExt) {
-      scopedSentences.push({ any: [...USE, "배터리", "전지"], need: ["외장 배터리까지"], none: [...WHEN_NOT_AFTER, "내장", "내부", "본체", "기기 배터리", "대신", "보다", "두고", "먼저", "남겨", "비상용", "첫", "끼운", "끼워", "아껴"], hint: "산소통 바꿔 쓰기는 외장 배터리까지 다 떨어진 뒤", ...(c?.state === "UNTIL" ? { skipNeedWith: c.text } : {}) });
+      scopedSentences.push({ any: [...USE, "배터리", "전지"], need: ["외장 배터리까지"], none: [...WHEN_NOT_AFTER, "내장", "내부", "본체", "기기 배터리", "대신", "보다", "두고", "먼저", "남겨", "비상용", "첫", "끼운", "끼워", "아껴"], hint: "산소통 바꿔 쓰기는 외장 배터리까지 다 떨어진 뒤", allowCond: AFTER_COND, ...(c?.state === "UNTIL" ? { skipNeedWith: c.text } : {}) });
       for (const w of ["내장", "내부", "본체"]) forbid([w], `확인 외장 집에서 '${w}' 배터리만 따로 말함`);
       for (const w of ["두세", "그대로", "남겨", "아껴", "나중"]) forbid(["외장", w], `확인 외장 배터리를 쓰지 말고 두라는 말('${w}')`);
-    } else scopedSentences.push({ any: USE, need: [], none: [...WHEN_NOT_AFTER, "먼저"], hint: "산소통 바꿔 쓰기는 배터리가 떨어진 뒤" });
+    } else scopedSentences.push({ any: USE, need: [], none: [...WHEN_NOT_AFTER, "먼저"], hint: "산소통 바꿔 쓰기는 배터리가 떨어진 뒤", allowCond: AFTER_COND });
   }
   if (f.actions.includes("SWITCH_TO_CYLINDER")) {
     for (const w of ["떨어지면", "다 되면", "뒤에", "다음에", ...SWITCH_EXTRA]) forbid(["산소통", "바꿔", w], `지금 바꿔 쓰기에 '${w}'`);
     if (c?.state === "UNTIL") for (const w of ["떨어지면", "다 되면", "뒤에", "다음에"]) forbid([c.text, w], `산소통 시각에 '${w}'(지금 바꿔 쓰기의 끝)`);
-    scopedSentences.push({ any: USE, need: [], none: ["떨어지면", "다 되면", "뒤에", "다음에", "나중", "기다", ...SWITCH_EXTRA, ...NEG], hint: "산소통은 지금 바꿔 쓴다(15라운드: 동의어·허락형)" });
+    scopedSentences.push({ any: USE, need: [], none: ["떨어지면", "다 되면", "뒤에", "다음에", "나중", "기다", ...SWITCH_EXTRA, ...NEG], hint: "산소통은 지금 바꿔 쓴다(15라운드: 동의어·허락형)", allowCond: ["쓰시면", "바꾸시면", "떨어지면"] }); // '떨어지면'은 경고 문장(tightWarn)용. 바꿔 쓰기 문장의 '떨어지면'은 none이 거부
   }
   if (f.warnRunOutFirst) {
     for (const w of COND) forbid([supplyW, "떨어", w], `경고에 '${w}' 조건`);
@@ -261,21 +266,25 @@ export function verify(f: NoticeFacts, parts: readonly string[]): VerifyResult {
   for (const m of req.scopedSentences) for (const s0 of sentences) {
     // 산소통은 원문에서 찾는다(수단 「추가 산소통」을 지우면 범위가 빠지던 15라운드 결함). 다른 낱말은 정해진 수단 이름(「기기용 외장 배터리」)을 빼고 본다
     if (!CYL_RE.test(s0)) continue;
-    // 「정전에」「정전이」의 '전에'·'전이'는 때 뒤집기가 아니다(역할 규칙과 같은 예외, 통합 레드팀 16라운드)
-    const s = (res ? s0.split(res).join("") : s0).replace(/정전\s?(전)?에|정전이/g, "");
-    if (!m.any.some((w) => s.includes(w))) continue;
-    // 산소통 시각 문장의 면제는 시각만 말하는 문장('산소통은 계산상 X까지 씁니다')만: 바꿔 쓰기 동사·'~면' 조건이 있으면 need를 묻는다
-    // (15라운드 면제가 '기기가 서면 산소통으로 바꿔 X까지 쓰세요'를 통과시킨 회귀, 통합 레드팀 16라운드)
-    const timeOnly = m.skipNeedWith != null && s.includes(m.skipNeedWith) && !SWITCH_VERB.some((w) => s.includes(w)) && !COND_CLAUSE.test(s.split(m.skipNeedWith).join(" "));
+    // 「정전에」·「정전이 길어져」의 '전에'·'전이'는 때 뒤집기가 아니다(역할 규칙과 같은 예외, 16라운드. '정전이 길어지면'은 조건이라 지우지 않는다, 17라운드)
+    // '배터리가 먼저 떨어지면'의 '먼저'는 때 뒤집기가 아니다(17라운드 과잉 거부)
+    const s = (res ? s0.split(res).join("") : s0).replace(/정전\s?(전)?에|정전이 길어져(?!도)/g, "").replace(/먼저 (다 )?떨어지면/g, "떨어지면");
+    // 산소통 시각 문장은 바꿔 쓰는 동사가 없어도 본다(동사 없는 '기기가 서면 산소통은 X까지 씁니다', 17라운드)
+    const withTime = m.skipNeedWith != null && s.includes(m.skipNeedWith);
+    // 산소통 문장에 허용 밖 '~면' 조건이 있으면 동사와 무관하게 거부(목록 밖 동사 '다세요'·'끼우세요', 17라운드)
+    const badCond = m.allowCond != null && [...s.matchAll(COND_WORDS)].some((x) => !m.allowCond!.includes(x[1]));
+    if (!m.any.some((w) => s.includes(w)) && !withTime && !badCond) continue;
+    // 산소통 시각 문장의 면제는 정해진 시각 문형만('산소통은 계산상 X까지 씁니다'): 그 밖의 앞말·조건이 있으면 need를 묻는다(15라운드 면제의 회귀 16·17라운드)
+    const timeOnly = withTime && cylTimeOnly(s0, m.skipNeedWith!);
     const needOk = timeOnly || m.need.every((w) => s.includes(w));
-    if (!needOk || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
+    if (!needOk || badCond || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
   }
   for (const m of req.timeSentences) for (const s0 of sentences) {
     if (!s0.includes(m.with)) continue;
     const s = res ? s0.split(res).join("") : s0;
-    // 다른 역할 문장(도착·구급대·산소통 시각)은 그 역할 규칙이 본다. 배터리 낱말이 함께 있으면 역할 규칙이 이미 거부한다
-    if (/도착|구급|산소\s*통/.test(s) && !/배터리|전지/.test(s)) continue;
-    if (!m.need.every((w) => s.includes(w)) || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
+    // 다른 역할 문장(도착·구급대·산소통 시각)은 need를 묻지 않는다(배터리 낱말이 함께 있으면 역할 규칙이 이미 거부). none은 늘 본다(표시 배터리 끝과 도착이 같은 표기일 때 '기기 혼자서도 X까지 … 도착' 통과, 17라운드)
+    const other = /도착|구급|산소\s*통/.test(s) && !/배터리|전지/.test(s);
+    if ((!other && !m.need.every((w) => s.includes(w))) || m.none.some((w) => s.includes(w))) v.push({ code: "UNSUPPORTED", detail: `사실과 반대: ${m.hint}`, sentence: s0 });
   }
   return { ok: v.length === 0, violations: v, sentences };
 }

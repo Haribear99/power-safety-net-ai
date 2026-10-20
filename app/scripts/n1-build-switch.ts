@@ -61,9 +61,12 @@ for (const c of cases.slice(0, 4)) {
   // 16라운드: 산소통 시각 문장에서 때를 뒤집음('이제·언제·먼저')
   if (kc >= 0) [`이제 바꿔 써도 산소통은 계산상 ${cx}까지 씁니다.`, `산소통을 먼저 쓰셔도 ${cx}까지 씁니다.`].forEach((x, j) =>
     items.push({ id: `${c.id}-w${j}`, input: c.input, label: "bad", category: "cylinder_time_when_flip", sentences: t.map((s, i) => (i === kc ? x : s)) }));
+  // 17라운드: 배터리가 아닌 다른 조건('정전이 길어지면'), 맞는 글 '배터리가 먼저 떨어지면'(과잉 거부)
+  items.push({ id: `${c.id}-o0`, input: c.input, label: "bad", category: "switch_other_condition", sentences: put("정전이 길어지면 산소통으로 바꿔 쓰세요.") });
+  items.push({ id: `${c.id}-g2`, input: c.input, label: "good", category: "paraphrase", sentences: put("배터리가 먼저 떨어지면 확인된 산소통으로 바꿔 쓰세요.") });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_switch.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 7·16라운드 회귀용(개발자 작성, 측정 아님). 바꿔 쓰기 문장(16라운드는 산소통 시각 문장)만 바꿨다.", items,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 7·16·17라운드 회귀용(개발자 작성, 측정 아님). 바꿔 쓰기 문장(16라운드는 산소통 시각 문장)만 바꿨다.", items,
 }, null, 1));
 console.log(`dev_switch ${cases.length}건, adversarial_dev_switch ${items.length}건`);
 
@@ -118,6 +121,9 @@ for (const c of extCases.slice(0, 4)) {
   const addT = (x: string) => [...t.slice(0, k + 1), x, ...t.slice(k + 1)];
   (until ? [`기기 배터리도 계산상 ${b}까지 버팁니다.`, `외장 배터리 없이도 배터리는 계산상 ${b}까지 버팁니다.`] : [`기기 배터리만으로도 완전히 충전하면 ${b} 버팁니다.`, `기기는 충전만 해 두면 혼자서도 ${b} 버팁니다.`])
     .forEach((x, j) => extItems.push({ id: `${c.id}-t${j}`, input: c.input, label: "bad", category: "ext_time_appended", sentences: addT(x) }));
+  // 17라운드: 양보·부정 어미로 외장을 뺌
+  (until ? [`외장 배터리가 없어도 배터리는 계산상 ${b}까지 버팁니다.`, `외장 배터리를 안 꽂아도 계산상 ${b}까지 버팁니다.`] : [`외장 배터리가 없어도 완전히 충전하면 ${b} 버팁니다.`, `외장 배터리를 안 꽂아도 완전히 충전하면 ${b} 버팁니다.`])
+    .forEach((x, j) => extItems.push({ id: `${c.id}-u${j}`, input: c.input, label: "bad", category: "ext_time_concessive", sentences: addT(x) }));
 }
 for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) {
   const f = buildFacts(c.input);
@@ -151,9 +157,15 @@ for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) 
   ["기기 배터리가 떨어지면 산소 탱크로 바꿔 쓰세요.", "알람이 울리면 산소 용기로 바꿔 쓰세요."].forEach((x, j) =>
     extItems.push({ id: `${c.id}-y${j}`, input: c.input, label: "bad", category: "ext_switch_cyl_synonym", sentences: add(x) }));
   extItems.push({ id: `${c.id}-g3`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "정전이 길어져 외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓰세요." : s)) });
+  // 17라운드: 동사 없는 조건·'~때'·'~대로'를 단 산소통 시각, 목록 밖 동사, '필요는 없' 부정. 맞는 글: '사용할 수 있습니다' 시각 문형(과잉 거부)
+  [`기기가 서면 산소통은 계산상 ${ctext}까지 씁니다.`, `알람이 울리면 산소통이 계산상 ${ctext}까지 버팁니다.`, `기기 안의 팩이 다 될 때 산소통은 계산상 ${ctext}까지 씁니다.`, `알람이 울리는 대로 산소통은 ${ctext}까지 씁니다.`].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-q${j}`, input: c.input, label: "bad", category: "ext_cyl_time_condition", sentences: add(x) }));
+  ["알람이 울리면 산소병을 다세요.", "기기가 서면 산소 용기를 끼우세요.", "외장 배터리까지 쓸 필요는 없으니 배터리가 떨어지면 산소통으로 바꿔 쓰세요."].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-v${j}`, input: c.input, label: "bad", category: "ext_switch_offlist", sentences: add(x) }));
+  if (ti >= 0) extItems.push({ id: `${c.id}-g4`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === ti ? `산소통은 계산상 ${ctext}까지 사용할 수 있습니다.` : s)) });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14·15·16라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14·15·16·17라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
 }, null, 1));
 console.log(`dev_ext ${extCases.length}건, adversarial_dev_ext ${extItems.length}건`);
 

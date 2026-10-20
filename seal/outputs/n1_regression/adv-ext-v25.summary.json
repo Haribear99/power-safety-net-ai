@@ -1,0 +1,768 @@
+{
+ "promptVersion": "n1-v17",
+ "checkVersion": "n1-check-v23",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-ext-v25",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_ext.json",
+  "sha256": "1a450c6e16d600868ef85bb64fa825cfe79e77db2660d580f380507af574c9a3",
+  "n": 86,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 72,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.05065117335504446
+    ]
+   },
+   "badCaught": {
+    "k": 72,
+    "n": 72,
+    "rate": 1,
+    "wilson95": [
+     0.9493488266449553,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 72,
+    "n": 72,
+    "rate": 1,
+    "wilson95": [
+     0.9493488266449553,
+     0.9999999999999999
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 69,
+    "n": 72,
+    "rate": 0.9583333333333334,
+    "wilson95": [
+     0.8845072317804198,
+     0.9857291926441228
+    ]
+   },
+   "goodFalseReject": {
+    "k": 2,
+    "n": 14,
+    "rate": 0.14285714285714285,
+    "wilson95": [
+     0.04009392090764893,
+     0.39941379723733705
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 2,
+    "n": 14,
+    "rate": 0.14285714285714285,
+    "wilson95": [
+     0.04009392090764893,
+     0.39941379723733705
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 0,
+    "n": 14,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.21531080540298042
+    ]
+   },
+   "byCategory": {
+    "ext_as_internal": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_added_on_top": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_negated": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_time_appended": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 8,
+     "caught": 8
+    },
+    "ext_time_concessive": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 8,
+     "caught": 8
+    },
+    "ext_switch_internal_only": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 2,
+     "caught": 2
+    },
+    "ext_switch_appended": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_switch_negated_ext": {
+     "n": 6,
+     "caught1": 6,
+     "caught2": 6,
+     "caught": 6
+    },
+    "ext_switch_synonym": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 8,
+     "caught": 8
+    },
+    "ext_switch_resource_name": {
+     "n": 2,
+     "caught1": 2,
+     "caught2": 2,
+     "caught": 2
+    },
+    "ext_switch_time_condition": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_switch_cyl_synonym": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "ext_cyl_time_condition": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 5,
+     "caught": 8
+    },
+    "ext_switch_offlist": {
+     "n": 6,
+     "caught1": 6,
+     "caught2": 6,
+     "caught": 6
+    }
+   }
+  },
+  "costUsd": 1.2943459999999998,
+  "rows": [
+   {
+    "id": "ext-00-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-00-t0",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-t1",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-u0",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-00-u1",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-01-t0",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-t1",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-u0",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-01-u1",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-02-t0",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-t1",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-u0",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-02-u1",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b0",
+    "label": "bad",
+    "category": "ext_as_internal",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b1",
+    "label": "bad",
+    "category": "ext_added_on_top",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-b2",
+    "label": "bad",
+    "category": "ext_negated",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-03-t0",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-t1",
+    "label": "bad",
+    "category": "ext_time_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-u0",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-03-u1",
+    "label": "bad",
+    "category": "ext_time_concessive",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-a0",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-a1",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n0",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n1",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-n2",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s0",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s1",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s2",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-s3",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-d0",
+    "label": "bad",
+    "category": "ext_switch_resource_name",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-c0",
+    "label": "bad",
+    "category": "ext_switch_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-c1",
+    "label": "bad",
+    "category": "ext_switch_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-y0",
+    "label": "bad",
+    "category": "ext_switch_cyl_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-y1",
+    "label": "bad",
+    "category": "ext_switch_cyl_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g3",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-q0",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-06-q1",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-q2",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-q3",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-v0",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-v1",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-v2",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-06-g4",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-b0",
+    "label": "bad",
+    "category": "ext_switch_internal_only",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-a0",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-a1",
+    "label": "bad",
+    "category": "ext_switch_appended",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n0",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n1",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-n2",
+    "label": "bad",
+    "category": "ext_switch_negated_ext",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s0",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s1",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s2",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-s3",
+    "label": "bad",
+    "category": "ext_switch_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-d0",
+    "label": "bad",
+    "category": "ext_switch_resource_name",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-c0",
+    "label": "bad",
+    "category": "ext_switch_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-c1",
+    "label": "bad",
+    "category": "ext_switch_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-y0",
+    "label": "bad",
+    "category": "ext_switch_cyl_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-y1",
+    "label": "bad",
+    "category": "ext_switch_cyl_synonym",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g3",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-q0",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-q1",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-q2",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": false
+   },
+   {
+    "id": "ext-07-q3",
+    "label": "bad",
+    "category": "ext_cyl_time_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-v0",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-v1",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-v2",
+    "label": "bad",
+    "category": "ext_switch_offlist",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "ext-07-g4",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}

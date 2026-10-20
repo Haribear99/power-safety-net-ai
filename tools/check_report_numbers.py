@@ -1,6 +1,6 @@
 """성과보고서 1부의 숫자를 evidence.json(봉인 실행 집계)에서 다시 만들어 보고서에 그대로 있는지 대조한다.
 실행: python -I tools/check_report_numbers.py [--final]   (저장소 루트에서). 하나라도 없으면 종료 코드 1.
---final: 제출 직전 검사. [사용자 기입 …]·[KEIT 확인 …] 같은 작성 표기가 1부에 남아 있으면 실패.
+--final: 제출 직전 검사. [사용자 기입 …]·[KEIT 확인 …] 같은 작성 표기가 1부·2부에 남아 있으면 실패. 쪽수는 tools/render_report.ps1로 따로 본다.
 """
 import csv
 import io
@@ -88,6 +88,8 @@ for k, v in {
     "콘티 하한 넘침": f"{ev['kpiOverPredict']['rule']['k'] / ev['kpiOverPredict']['rule']['n'] * 100:.1f}%는 실제보다 길게",
     "콘티 나간 글 결함": f"60건 중 {ev['n1']['sentDefects']}건은 봉인 뒤 결함 판정",
     "콘티 판독 보완 위반": f"채운 {c1['sonnet']['supplementViolations']}건은 모두",
+    # 73%·60%는 같은 실험(E6 무작위 대 평시 표적)의 짝이어야 한다(E4 사전 배치 73.1%와 섞지 않음, 통합 레드팀 17라운드)
+    "콘티 E6 짝": f"무작위로 두면 {round(ev['e6']['hhGap']['VENT_1H']['rand'] * 100)}%, 정전 전 등록 정보로 배터리가 짧은 집부터 두면 {round(ev['e6']['hhGap']['VENT_1H']['pre'] * 100)}%",
 }.items():
     ok = v in board
     print(("✓ " if ok else "✗ ") + f"{k}: {v}")
@@ -100,7 +102,9 @@ if not c1["gate3"]["pass"] or not lab["gate2"]["pass"]:
     print("✗ 관문 2 또는 3 미통과 — 보고서 대체안 문장을 써야 한다")
     sys.exit(1)
 if "--final" in sys.argv:
-    left = re.findall(r"\[(?:사용자 기입|KEIT 확인)[^\]]*\]", part1)
+    # 1부와 2부 별첨(심사 안내의 접근 코드 포함, 통합 레드팀 17라운드)
+    part2 = md.split("## 2부.")[1].split("## 3부.")[0]
+    left = re.findall(r"\[(?:사용자 기입|KEIT 확인)[^\]]*\]", part1 + part2)
     for x in left:
         print(f"✗ 작성 표기가 남아 있음: {x}")
     if left:

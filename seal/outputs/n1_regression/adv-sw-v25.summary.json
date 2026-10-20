@@ -1,0 +1,568 @@
+{
+ "promptVersion": "n1-v17",
+ "checkVersion": "n1-check-v23",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "adv-sw-v25",
+ "sealed": false,
+ "corpus": {
+  "file": "datasets/notice/adversarial_dev_switch.json",
+  "sha256": "d8f290cf691e5e9f9b63e2c6be78b985f182c20c8e29791248b85789e6a3982b",
+  "n": 60,
+  "metrics": {
+   "badMissed": {
+    "k": 0,
+    "n": 48,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.07410013074848033
+    ]
+   },
+   "badCaught": {
+    "k": 48,
+    "n": 48,
+    "rate": 1,
+    "wilson95": [
+     0.9258998692515198,
+     1
+    ]
+   },
+   "badCaughtGate1": {
+    "k": 48,
+    "n": 48,
+    "rate": 1,
+    "wilson95": [
+     0.9258998692515198,
+     1
+    ]
+   },
+   "badCaughtGate2": {
+    "k": 48,
+    "n": 48,
+    "rate": 1,
+    "wilson95": [
+     0.9258998692515198,
+     1
+    ]
+   },
+   "goodFalseReject": {
+    "k": 1,
+    "n": 12,
+    "rate": 0.08333333333333333,
+    "wilson95": [
+     0.014865094239669363,
+     0.35387991372124555
+    ]
+   },
+   "goodRejectGate1": {
+    "k": 0,
+    "n": 12,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.2424940095530979
+    ]
+   },
+   "goodRejectGate2": {
+    "k": 1,
+    "n": 12,
+    "rate": 0.08333333333333333,
+    "wilson95": [
+     0.014865094239669363,
+     0.35387991372124555
+    ]
+   },
+   "byCategory": {
+    "switch_on_arrival": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_contact": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_before_out": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_on_arrival_soft": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_wait": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_after": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_guidance": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "switch_stacked_permission": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "cylinder_time_now_condition": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    },
+    "cylinder_time_when_flip": {
+     "n": 8,
+     "caught1": 8,
+     "caught2": 8,
+     "caught": 8
+    },
+    "switch_other_condition": {
+     "n": 4,
+     "caught1": 4,
+     "caught2": 4,
+     "caught": 4
+    }
+   }
+  },
+  "costUsd": 0.8923000000000002,
+  "rows": [
+   {
+    "id": "sw-00-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-00-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-w0",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-w1",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-o0",
+    "label": "bad",
+    "category": "switch_other_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-00-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-01-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-w0",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-w1",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-o0",
+    "label": "bad",
+    "category": "switch_other_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-01-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-02-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-w0",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-w1",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-o0",
+    "label": "bad",
+    "category": "switch_other_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-02-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-b0",
+    "label": "bad",
+    "category": "switch_on_arrival",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b1",
+    "label": "bad",
+    "category": "switch_on_contact",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b2",
+    "label": "bad",
+    "category": "switch_before_out",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b3",
+    "label": "bad",
+    "category": "switch_on_arrival_soft",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b4",
+    "label": "bad",
+    "category": "switch_stacked_wait",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b5",
+    "label": "bad",
+    "category": "switch_stacked_after",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b6",
+    "label": "bad",
+    "category": "switch_stacked_guidance",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-b7",
+    "label": "bad",
+    "category": "switch_stacked_permission",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-g0",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-g1",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   },
+   {
+    "id": "sw-03-b9",
+    "label": "bad",
+    "category": "cylinder_time_now_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-w0",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-w1",
+    "label": "bad",
+    "category": "cylinder_time_when_flip",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-o0",
+    "label": "bad",
+    "category": "switch_other_condition",
+    "gate1": true,
+    "gate2": true
+   },
+   {
+    "id": "sw-03-g2",
+    "label": "good",
+    "category": "paraphrase",
+    "gate1": false,
+    "gate2": false
+   }
+  ]
+ }
+}
