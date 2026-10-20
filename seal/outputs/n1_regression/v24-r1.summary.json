@@ -1,0 +1,503 @@
+{
+ "promptVersion": "n1-v17",
+ "checkVersion": "n1-check-v23",
+ "judgeVersion": "n1-judge-v3",
+ "tag": "v24-r1",
+ "sealed": false,
+ "set": {
+  "file": "datasets/notice/dev.json",
+  "sha256": "8f4be712c99619face3e9326019e8c393c374d3990e053cb1d8fcbc5fbebb525",
+  "n": 40
+ },
+ "notices": {
+  "metrics": {
+   "aiSent": {
+    "k": 39,
+    "n": 40,
+    "rate": 0.975,
+    "wilson95": [
+     0.8711863091181636,
+     0.9955731685462955
+    ]
+   },
+   "gate1Pass": {
+    "k": 40,
+    "n": 40,
+    "rate": 1,
+    "wilson95": [
+     0.9123783975415363,
+     1
+    ]
+   },
+   "gate2PassGivenGate1": {
+    "k": 39,
+    "n": 40,
+    "rate": 0.975,
+    "wilson95": [
+     0.8711863091181636,
+     0.9955731685462955
+    ]
+   },
+   "gate1FactError": {
+    "k": 0,
+    "n": 40,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.08762160245846368
+    ]
+   },
+   "callFail": {
+    "k": 0,
+    "n": 40,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.08762160245846368
+    ]
+   },
+   "sentBodyGate1Violations": {
+    "k": 0,
+    "n": 40,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.08762160245846368
+    ]
+   },
+   "templateFalseReject": {
+    "k": 0,
+    "n": 40,
+    "rate": 0,
+    "wilson95": [
+     0,
+     0.08762160245846368
+    ]
+   },
+   "rejectCodes": {
+    "gate2:CLAIM_MISMATCH": 2
+   },
+   "judge": {
+    "ai": 0,
+    "template": 0,
+    "same": 0,
+    "fail": 0,
+    "aiFirstPickAi": 0,
+    "aiFirst": 0
+   },
+   "latencyE2E": {
+    "p50": 9141,
+    "p95": 13063,
+    "n": 40,
+    "note": "생성 호출 시작부터 2차 검사 끝까지(스크립트 기준, 네트워크·서버 처리 제외)"
+   }
+  },
+  "costUsd": 1.1957513999999994,
+  "judgeCostUsd": 0,
+  "rows": [
+   {
+    "id": "dev-000",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-001",
+    "stratum": "OUTAGE:MAYBE_OUT:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-002",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-003",
+    "stratum": "OUTAGE:MAYBE_OUT:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-004",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-005",
+    "stratum": "OUTAGE:MAYBE_OUT:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-006",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-007",
+    "stratum": "OUTAGE:NONE+cyl:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-008",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-009",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-010",
+    "stratum": "OUTAGE:NONE+cyl:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-011",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-012",
+    "stratum": "OUTAGE:NONE+cyl:CALL119:본인",
+    "ok": true,
+    "source": "template",
+    "rejectedAt": "gate2",
+    "violations": [
+     "CLAIM_MISMATCH",
+     "CLAIM_MISMATCH"
+    ],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-013",
+    "stratum": "OUTAGE:NONE:GAP:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-014",
+    "stratum": "OUTAGE:NONE:GAP:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-015",
+    "stratum": "OUTAGE:NONE:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-016",
+    "stratum": "OUTAGE:NONE:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-017",
+    "stratum": "OUTAGE:UNKNOWN:CALL119+late:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-018",
+    "stratum": "OUTAGE:UNKNOWN:CALL119+late:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-019",
+    "stratum": "OUTAGE:UNKNOWN:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-020",
+    "stratum": "OUTAGE:UNKNOWN:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-021",
+    "stratum": "OUTAGE:UNTIL:ASSIGN+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-022",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-023",
+    "stratum": "OUTAGE:UNTIL:ASSIGN:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-024",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-025",
+    "stratum": "OUTAGE:UNTIL:CALL119+late+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-026",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-027",
+    "stratum": "OUTAGE:UNTIL:CALL119+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-028",
+    "stratum": "OUTAGE:UNTIL:CALL119:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-029",
+    "stratum": "OUTAGE:UNTIL:CALL119:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-030",
+    "stratum": "OUTAGE:UNTIL:GAP+warn:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-031",
+    "stratum": "OUTAGE:UNTIL:GAP+warn:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-032",
+    "stratum": "OUTAGE:UNTIL:SHELTER:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-033",
+    "stratum": "OUTAGE:UNTIL:SHELTER:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-034",
+    "stratum": "PREP:HOURS:-:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-035",
+    "stratum": "PREP:HOURS:-:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-036",
+    "stratum": "PREP:NONE+cyl:-:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-037",
+    "stratum": "PREP:NONE+cyl:-:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-038",
+    "stratum": "PREP:NONE:-:보호자",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   },
+   {
+    "id": "dev-039",
+    "stratum": "PREP:NONE:-:본인",
+    "ok": true,
+    "source": "ai",
+    "rejectedAt": null,
+    "violations": [],
+    "templateRejected": false,
+    "judged": null
+   }
+  ]
+ }
+}

@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Action, NoticeFacts } from "./facts";
 import type { Violation } from "./rules";
 
-export const CHECK_VERSION = "n1-check-v22"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음. v14(6라운드): 30분 미만도 완충 전제, 정전 중 시각에 완충 전제 금지. v15(7라운드): 산소통 바꿔 쓰기의 조건이 '배터리가 떨어지면'인지 따로 본다. v16(8라운드): 겹친 조건은 after_condition, 배터리 시간에 외장 합산 여부. v17(9라운드): 경고가 '도움이 늦어지면'에 달렸는지. v18(10라운드): 같은 시각 예외 없앰, 시각 보장 표현은 reassuranceOrPromise. v19(11라운드): 경고가 '계산보다 일찍 떨어지면'에 달렸는지. v20(12라운드): 산소통 시각의 조건(지금/배터리 다음). v21(14라운드): 바꿔 쓰기 조건의 배터리가 외장까지인지(batteryScope). v22(15라운드): '써도 됩니다·쓸 수 있습니다' 같은 허락·가능 서술도 지시로
+export const CHECK_VERSION = "n1-check-v23"; // v7(S9 봉인 뒤): 기기 이름·구급대 연결·경고 대상·수단 덧붙임. v8(통합 레드팀 1라운드): 상황·부정 지시·기관 약속·쉼터·구급대 이름·이송 시각 지남. v9: 배터리 조건(완충 등), 수단 이름은 덧붙임에서 제외. v10(통합 레드팀 2라운드): 산소통 바꿔 쓰기 시점(지금/배터리 다음). v11(3라운드): 금지 지시 예외 없앰(모든 '~하지 마세요'는 거부). v12(4라운드): 조건부 경고('늦어지면 먼저')도 경고로. v13: 같은 시각 경고의 '늦어지면'을 늦음 주장으로 보지 않음. v14(6라운드): 30분 미만도 완충 전제, 정전 중 시각에 완충 전제 금지. v15(7라운드): 산소통 바꿔 쓰기의 조건이 '배터리가 떨어지면'인지 따로 본다. v16(8라운드): 겹친 조건은 after_condition, 배터리 시간에 외장 합산 여부. v17(9라운드): 경고가 '도움이 늦어지면'에 달렸는지. v18(10라운드): 같은 시각 예외 없앰, 시각 보장 표현은 reassuranceOrPromise. v19(11라운드): 경고가 '계산보다 일찍 떨어지면'에 달렸는지. v20(12라운드): 산소통 시각의 조건(지금/배터리 다음). v21(14라운드): 바꿔 쓰기 조건의 배터리가 외장까지인지(batteryScope). v22(15라운드): '써도 됩니다·쓸 수 있습니다' 같은 허락·가능 서술도 지시로. v23(16라운드): battery 칸은 하나라 덧붙인 '기기 배터리만 X까지' 말을 가를 수 없었다 → deviceBatteryOnlyTime
 
 const ACTIONS = ["KEEP_PHONE", "FOLLOW_STAFF", "SWITCH_TO_CYLINDER", "CHARGE_DEVICE", "CHARGE_EXT", "CHECK_CYLINDER", "PLAN_WITH_STAFF", "GENERAL_PREPARE", "OTHER"] as const;
 const T = z.string().max(40).nullable();
@@ -19,6 +19,7 @@ export const Claims = z.object({
     condition: z.enum(["full_charge", "without_charge", "current_state", "unspecified"]),
     includesExternal: z.enum(["yes", "no", "not_mentioned"]),
   }),
+  deviceBatteryOnlyTime: z.boolean(),
   cylinder: z.object({ kind: z.enum(["lasts_until", "lasts_for", "maybe_already_out", "not_mentioned", "other"]), time: T, condition: z.enum(["now", "after_battery_out", "unspecified", "other"]) }),
   means: z.object({
     kind: z.enum(["power_equipment", "ambulance", "shelter", "none", "several", "other"]),
@@ -54,6 +55,8 @@ export const CHECK_SYSTEM = `너는 안내문을 읽고 '이 글이 실제로 �
   unknown_being_checked = 얼마나 갈지 담당자가 확인 중, not_mentioned, other = 위에 없는 말(예: '~ 이후에도 버틴다', '~까지는 못 버틴다').
   condition = 그 말의 전제 — full_charge(완전히 충전하면·완전히 충전해도) | without_charge(충전하지 않아도·충전 없이도) | current_state(지금 상태로) | unspecified(전제 없음).
   includesExternal = 그 배터리 시간·시각이 외장 배터리까지 합친 것이라고 했는가 — yes(외장 배터리까지 합쳐) | no(기기 배터리만, 또는 외장은 따로 더 쓸 수 있다고 함) | not_mentioned(외장 말이 없음).
+  배터리 시간·시각을 말한 문장이 둘 이상이면 battery 칸에는 첫 문장을 넣고, 아래 deviceBatteryOnlyTime도 함께 본다.
+- deviceBatteryOnlyTime: 글 어디에서든 외장 배터리를 빼고 기기(내장·본체) 배터리만으로 얼마나·언제까지 간다고 말했는가('기기 배터리도 X까지', '외장 배터리 없이도 X까지', '배터리만으로 X', '기기는 혼자서도 X 버팁니다'). battery 칸에 넣은 문장과 다른 문장이어도 true. 외장 말 없이 그냥 '배터리는 X까지'라고만 했으면 false.
 - cylinder: 산소통에 대해 말한 것. lasts_until = 그 시각까지 쓴다/버틴다, lasts_for = (적어도) 그 시간 동안 쓴다/버틴다, maybe_already_out = 이미 거의 다 썼을 수 있다, not_mentioned, other. time은 표기 그대로. condition = 그 산소통 시각이 언제 바꿔 쓴다는 전제인지 — now('지금 바꿔 쓰면') | after_battery_out('배터리가 떨어진 뒤 바꿔 쓰면') | unspecified(전제를 말하지 않음) | other.
 - means: 담당자가 정한 도움 수단.
   kind = power_equipment(전원 장치·발전기·외장 배터리·산소통 배달 등 물건이 집으로 옴) | ambulance(구급대) | shelter(쉼터로 옮김) | none(수단 말 없음) | several(둘 이상) | other.
@@ -139,6 +142,8 @@ export function compareClaims(f: NoticeFacts, c: ClaimsT): Violation[] {
   if (f.warnRunOutFirst && c.warningOnlyIfHelpLate) bad("CLAIM_MISMATCH", "경고 조건: 글은 '도움이 늦어지면'에만, 사실은 조건 없이 먼저 떨어질 수 있음");
   // 확인 외장이 합쳐진 시간·시각이면 '외장까지 합쳐'라고 해야 하고, 아니면 그렇게 말하면 안 된다(통합 레드팀 8라운드)
   if (f.batteryWithExt ? c.battery.includesExternal !== "yes" : c.battery.includesExternal === "yes") bad("CLAIM_MISMATCH", `배터리 외장 합산: 글 ${c.battery.includesExternal}, 사실 ${f.batteryWithExt ? "합침" : "합치지 않음"}`);
+  // 맞는 합산 문장 옆에 기기 배터리만의 시간을 덧붙이면 외장 팩을 갈아 끼우지 않게 된다(통합 레드팀 16라운드)
+  if (f.batteryWithExt && c.deviceBatteryOnlyTime) bad("CLAIM_MISMATCH", "배터리: 외장을 뺀 기기 배터리만의 시간·시각을 말함(사실은 외장까지 합친 값만)");
   // 정전 중 시각은 지금 충전 상태 기준이다(「완전히 충전하면 …까지」 차단)
   if (f.battery.state === "UNTIL" && c.battery.condition === "full_charge") bad("CLAIM_MISMATCH", "배터리 전제: 글 full_charge, 사실 지금 상태");
   // 구급대 연결(봉인 S9 놓침 t080): 119 결정이면 '연결했다'여야 하고, 아니면 연결을 말하지 않아야 한다

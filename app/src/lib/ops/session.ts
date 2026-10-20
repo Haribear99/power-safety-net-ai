@@ -290,12 +290,40 @@ export function applyVerify(s: Session, v: VerifyInput): VerifyOutcome {
     }
     if (computeLowerBoundDetail(next, DB).lb.status === "MANUAL_REVIEW") return { ok: false, error: "입력 뒤에도 자동 계산이 안 됩니다(연속 기기가 아님). 보수 하한을 입력하세요" };
   }
+  if (v.action === "VERIFY_EXT" || v.action === "VERIFY_CYL") {
+    const shifted = shiftPrevForVerify(hh, next);
+    if (shifted.shiftS != null) payload = { ...payload, lEndPrevShiftS: shifted.shiftS };
+    if (shifted.batteryShiftS != null) payload = { ...payload, lEndPrevBatteryShiftS: shifted.batteryShiftS };
+    next = shifted.hh;
+  }
   const entry: AuditEntry = {
     at: nowIso(s), actor: "demo-operator", householdId: hh.id, action: v.action,
     from: { lane: laneNow }, to: { lane: laneNow }, reasonText: v.reasonText, payload,
   };
   const households = s.households.map((h, i) => (i === idx ? next : h));
   return { ok: true, session: recompute(pushAudit({ ...s, households }, [entry])) };
+}
+
+/**
+ * 운영자 확인(외장·산소통)은 재신고가 아니다: 재신고 단조 묶음(lEndPrev·lEndPrevBattery)을 확인 전후 엔진 L 차이만큼 옮긴다.
+ * 3.9절 비증가의 근거는 '배터리가 다시 차지 않는다'이고, 따로 있던 외장·산소통을 확인하는 것은 그 대상이 아니다.
+ * 확인 → 재신고 순서와 같은 값이 된다(통합 레드팀 16라운드: 재신고 → 산소통 확인 순서면 확인한 산소통 몫이 묶음에 먹혀 L_end·배정이 순서에 따라 갈렸다)
+ */
+function shiftPrevForVerify(before: HouseholdView, after: HouseholdView): { hh: HouseholdView; shiftS: number | null; batteryShiftS: number | null } {
+  const ls = (h: HouseholdView) => computeLowerBoundDetail({ ...h, lEndPrev: null }, DB).Ls;
+  const lsB = (h: HouseholdView) => computeLowerBoundDetail({ ...h, cylinder: undefined, lEndPrev: null }, DB).Ls;
+  let shiftS: number | null = null, batteryShiftS: number | null = null;
+  const out: HouseholdView = { ...after };
+  if (before.lEndPrev != null) {
+    const a = ls(after), b = ls(before);
+    if (a != null && b != null && a !== b) { shiftS = a - b; out.lEndPrev = sToH(qT(before.lEndPrev) + shiftS); }
+  }
+  // 배터리만의 끝(보호자 알림용)은 산소통을 빼고 센 차이만큼 옮긴다(산소통 확인이면 0)
+  if (before.lEndPrevBattery != null) {
+    const a = lsB(after), b = lsB(before);
+    if (a != null && b != null && a !== b) { batteryShiftS = a - b; out.lEndPrevBattery = sToH(qT(before.lEndPrevBattery) + batteryShiftS); }
+  }
+  return { hh: out, shiftS, batteryShiftS };
 }
 
 /** 가구 재신고(시연, 3.9절): 정전 중에는 L_end 비증가 */

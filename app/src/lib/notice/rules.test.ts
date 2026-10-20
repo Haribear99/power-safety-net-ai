@@ -63,7 +63,7 @@ function truthClaims(f: NoticeFacts): ClaimsT {
     supplyMayRunOutBeforeHelp: f.warnRunOutFirst,
     runOutWhich: !f.warnRunOutFirst ? "none" : f.cylinder ? "cylinder" : "battery",
     actions: f.actions.map((kind) => ({ kind: kind === "SWITCH_AFTER_BATTERY" ? "SWITCH_TO_CYLINDER" as const : kind, when: kind === "FOLLOW_STAFF" ? "after_condition" as const : kind === "SWITCH_AFTER_BATTERY" ? "after_battery_out" as const : "now" as const, batteryScope: kind === "SWITCH_AFTER_BATTERY" && f.batteryWithExt ? "including_external" as const : "unspecified" as const, negated: false, quote: "" })),
-    otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false,
+    otherTimesOrDurations: [], reassuranceOrPromise: false, medicalOrDeviceOrRiskyInstruction: false, deviceBatteryOnlyTime: false,
   };
 }
 
@@ -710,10 +710,12 @@ describe("통합 레드팀 15라운드 회귀", () => {
         "기기 배터리가 떨어지면 실린더로 바꿔 쓰세요.", "기기 배터리가 떨어지면 산소 통으로 바꿔 쓰세요.", "외장을 꽂기 전에 산소통을 대 주세요.", "기기 쪽 전기가 다 되면 산소통을 달아 주세요.",
         "그 전이라도 기기가 서면 산소통을 사용하세요."])
         expect(verify(f, [...t.slice(0, k + 1), x, ...t.slice(k + 1)]).ok, `${rk} 덧붙임: ${x}`).toBe(false);
-      // 맞는 글: 산소통 시각 문장은 '바꿔 쓰면'을 달아도 외장 조건을 묻지 않는다(역할 규칙이 '배터리'를 막으므로), 외장까지 먼저 다 쓰는 말은 통과
+      // 산소통 시각 문장은 시각만 말할 때만 외장 조건을 묻지 않는다. '바꿔 쓰면'을 단 시각 문장은 16라운드부터 외장 조건을 묻는다(프롬프트 규칙 4와 같게, 거부되면 고정 문안)
       const c = f.cylinder!.state === "UNTIL" ? f.cylinder!.text : "";
       const ti = t.findIndex((s) => s.includes(c));
-      expect(verify(f, t.map((s, i) => (i === ti ? `산소통으로 바꿔 쓰면 ${c}까지 산소통을 씁니다.` : s))).ok, rk).toBe(true);
+      expect(verify(f, t.map((s, i) => (i === ti ? `산소통으로 바꿔 쓰면 ${c}까지 산소통을 씁니다.` : s))).ok, rk).toBe(false);
+      for (const ok of [`산소통은 계산상 ${c}까지 씁니다.`, `산소통은 계산상 ${c}까지 쓸 수 있습니다.`, `산소통은 계산상 ${c}까지 버팁니다.`])
+        expect(verify(f, t.map((s, i) => (i === ti ? ok : s))).ok, `${rk} ${ok}`).toBe(true);
       expect(verify(f, t.map((s, i) => (i === k ? "외장 배터리까지 모두 떨어지면 산소통 하나로 바꿔 쓰세요." : s))).ok, rk).toBe(true);
     }
   });
@@ -721,7 +723,15 @@ describe("통합 레드팀 15라운드 회귀", () => {
     const a = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 7200, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
     const ta = templateSentences(a);
     expect(verify(a, ta).ok).toBe(true);
+    const ac = a.cylinder?.state === "UNTIL" ? a.cylinder.text : "";
+    const tc = ta.findIndex((s) => s.includes(ac));
     for (const x of ["지금 산소통을 쓰셔도 됩니다.", "도착하기 전에 산소통을 달아 주세요.", "지금 실린더를 사용하세요."]) expect(verify(a, [...ta, x]).ok, x).toBe(false);
+    // 16라운드: 산소통 시각 문장의 때 뒤집기(시각 문장을 바꿔 넣음 — 숫자·역할은 맞고 범위 규칙만 걸리게)
+    for (const x of [`이제 바꿔 써도 산소통은 계산상 ${ac}까지 씁니다.`, `산소통은 언제 바꿔 달아도 ${ac}까지 씁니다.`, `산소통을 먼저 쓰셔도 ${ac}까지 씁니다.`]) {
+      const r = verify(a, ta.map((s, i) => (i === tc ? x : s)));
+      expect(r.ok, x).toBe(false);
+      expect(r.violations.every((v) => v.code === "UNSUPPORTED"), JSON.stringify(r.violations)).toBe(true);
+    }
     const n = buildFacts(IN({ deviceCls: "O2_STAT_CYL", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 0, batteryLs: 0, cylinderEndS: 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
     expect(n.actions).toContain("SWITCH_TO_CYLINDER");
     const tn = templateSentences(n);
@@ -749,6 +759,57 @@ describe("통합 레드팀 15라운드 회귀", () => {
     const vent = buildFacts(IN({ deviceCls: "VENT_8H_EXT2", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 4 * 3600, batteryExtS: 4 * 3600 - 300, etaS: 6 * 3600 }));
     expect(vent.batteryWithExt).toBe(true);
     expect(vent.innerMaybeOut).toBeUndefined();
+  });
+});
+
+describe("통합 레드팀 16라운드 회귀", () => {
+  const hhExt = (charge: number, cylinder: boolean): HouseholdView => ({
+    id: "H16", pseudonym: "H-016", cell: { x: 0, y: 0 }, floor: 3, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
+    device: { specId: "INOGEN_G5", specBy: "db_exact", batteryAgeY: 1, charge: { value: charge, source: "device_screen" } },
+    ext: [{ extSpecId: "INOGEN_G5_DOUBLE", declaredCount: 1, opVerified: { count: 1, chargeConfirmed: null, extAgeY: null, auditId: "A16" } }],
+    ...(cylinder ? { cylinder: { declared: true, opVerified: { count: 1, hoursLo: 3, auditId: "C16" } } } : {}),
+  });
+  const factsOf = (hh: HouseholdView, resourceKind: "ESS_S" | "O2_CYL_DELIVERY" = "ESS_S") =>
+    buildFacts(outageInput({ hh, baseIso: BASE, nowS: 0, lane: "PROPOSE_ASSIGN", resourceKind, etaS: 4 * 3600, late119: false })!);
+  it("확인 외장 집: 맞는 합산 문장 옆에 기기 배터리만의 시각을 덧붙이면 1차 거부(정전 중·평시), 2차는 deviceBatteryOnlyTime로 거부", () => {
+    for (const cyl of [false, true]) for (const charge of [0, 60, 100]) {
+      const f = factsOf(hhExt(charge, cyl));
+      if (f.battery.state !== "UNTIL" || !f.batteryWithExt) continue;
+      const t = templateSentences(f);
+      expect(verify(f, t).ok).toBe(true);
+      const x = f.battery.text;
+      for (const add of [`기기 배터리도 계산상 ${x}까지 버팁니다.`, `외장 배터리 없이도 배터리는 계산상 ${x}까지 버팁니다.`, `기기에 든 배터리만으로 ${x}까지 버팁니다.`,
+        `배터리는 외장 없이 ${x}까지 버팁니다.`, `외장 배터리는 따로 두고 배터리만으로 ${x}까지 버팁니다.`, `배터리는 계산상 ${x}까지 버팁니다.`, `기기는 혼자서도 ${x}까지 버팁니다.`])
+        expect(verify(f, [...t.slice(0, 2), add, ...t.slice(2)]).ok, `${cyl} ${charge} ${add}`).toBe(false);
+      expect(compareClaims(f, { ...truthClaims(f), deviceBatteryOnlyTime: true }).length).toBeGreaterThan(0);
+    }
+    const p = buildFacts(prepInput(hhExt(100, false)));
+    expect(p.batteryWithExt).toBe(true);
+    const tp = templateSentences(p);
+    expect(verify(p, tp).ok).toBe(true);
+    const h = p.battery.state === "HOURS" ? p.battery.text : "";
+    for (const add of [`기기 배터리만으로도 완전히 충전하면 ${h} 버팁니다.`, `기기는 충전만 해 두면 혼자서도 ${h} 버팁니다.`])
+      expect(verify(p, [...tp, add]).ok, add).toBe(false);
+    // 외장 없는 집은 '기기 배터리'를 써도 된다
+    const n = buildFacts(IN({ deviceCls: "VENT_8H", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 4 * 3600, etaS: 6 * 3600 }));
+    expect(compareClaims(n, { ...truthClaims(n), deviceBatteryOnlyTime: true })).toEqual([]);
+  });
+  it("산소통 시각 문장에 바꿔 쓰기 동사·'~면' 조건을 달면 외장 조건을 묻는다(15라운드 면제의 회귀), 다른 이름의 산소통도 범위 규칙", () => {
+    for (const rk of ["ESS_S", "O2_CYL_DELIVERY"] as const) for (const charge of [0, 30]) {
+      const f = factsOf(hhExt(charge, true), rk);
+      const t = templateSentences(f);
+      expect(verify(f, t).ok).toBe(true);
+      const c = f.cylinder!.state === "UNTIL" ? f.cylinder!.text : "";
+      for (const add of [`기기가 서면 산소통으로 바꿔 ${c}까지 쓰세요.`, `알람이 울리면 산소통으로 바꿔 ${c}까지 쓰세요.`,
+        "기기 배터리가 떨어지면 산소 탱크로 바꿔 쓰세요.", "기기 배터리가 떨어지면 산소병으로 바꿔 쓰세요.", "알람이 울리면 산소 용기로 바꿔 쓰세요."])
+        expect(verify(f, [...t, add]).ok, `${rk} ${charge} ${add}`).toBe(false);
+    }
+  });
+  it("범위 규칙의 '정전에·정전이'는 때 뒤집기가 아니다(과잉 거부)", () => {
+    const f = factsOf(hhExt(60, true));
+    const t = templateSentences(f);
+    const k = t.findIndex((s) => s.includes("산소통으로 바꿔"));
+    expect(verify(f, t.map((s, i) => (i === k ? "정전이 길어져 외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓰세요." : s))).ok).toBe(true);
   });
 });
 

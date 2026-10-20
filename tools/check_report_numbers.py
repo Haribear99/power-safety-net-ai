@@ -82,6 +82,17 @@ expected[f"인공호흡기 요양비 {vent[0]}"] = f"{vent[0]}년 {int(vent[2]) 
 miss = {k: v for k, v in expected.items() if v not in part1}
 for k, v in expected.items():
     print(("✓ " if k not in miss else "✗ ") + f"{k}: {v}")
+# 시연 영상 콘티: 보고서와 같은 공개 단서(통합 레드팀 16라운드 — 콘티만 단서 없이 남아 있었다)
+board = (REPO / "submission" / "video_storyboard.md").read_text(encoding="utf-8")
+for k, v in {
+    "콘티 하한 넘침": f"{ev['kpiOverPredict']['rule']['k'] / ev['kpiOverPredict']['rule']['n'] * 100:.1f}%는 실제보다 길게",
+    "콘티 나간 글 결함": f"60건 중 {ev['n1']['sentDefects']}건은 봉인 뒤 결함 판정",
+    "콘티 판독 보완 위반": f"채운 {c1['sonnet']['supplementViolations']}건은 모두",
+}.items():
+    ok = v in board
+    print(("✓ " if ok else "✗ ") + f"{k}: {v}")
+    if not ok:
+        miss[k] = v
 if ev["e4"]["hhGap"]["VENT_1H"]["KR_BASELINE"] != ev["e4"]["hhGap"]["VENT_1H"]["RULE"]:
     print("✗ E4 1시간급 '그대로' 문장이 evidence와 다르다(현행 ≠ 도구)")
     miss["E4 그대로"] = "현행 = 도구"

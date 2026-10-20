@@ -58,9 +58,12 @@ for (const c of cases.slice(0, 4)) {
   const cx = f.cylinder?.state === "UNTIL" ? f.cylinder.text : "";
   const kc = t.findIndex((s) => cx && s.includes(cx));
   if (kc >= 0) items.push({ id: `${c.id}-b9`, input: c.input, label: "bad", category: "cylinder_time_now_condition", sentences: t.map((s, i) => (i === kc ? `지금 산소통으로 바꿔 쓰면 산소통은 계산상 ${cx}까지 씁니다.` : s)) });
+  // 16라운드: 산소통 시각 문장에서 때를 뒤집음('이제·언제·먼저')
+  if (kc >= 0) [`이제 바꿔 써도 산소통은 계산상 ${cx}까지 씁니다.`, `산소통을 먼저 쓰셔도 ${cx}까지 씁니다.`].forEach((x, j) =>
+    items.push({ id: `${c.id}-w${j}`, input: c.input, label: "bad", category: "cylinder_time_when_flip", sentences: t.map((s, i) => (i === kc ? x : s)) }));
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_switch.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 7라운드 회귀용(개발자 작성, 측정 아님). 바꿔 쓰기 문장만 바꿨다.", items,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 7·16라운드 회귀용(개발자 작성, 측정 아님). 바꿔 쓰기 문장(16라운드는 산소통 시각 문장)만 바꿨다.", items,
 }, null, 1));
 console.log(`dev_switch ${cases.length}건, adversarial_dev_switch ${items.length}건`);
 
@@ -111,6 +114,10 @@ for (const c of extCases.slice(0, 4)) {
   ] as const;
   BADX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-b${j}`, input: c.input, label: "bad", category: cat, sentences: put(s) }));
   GOODX.forEach(([cat, s], j) => extItems.push({ id: `${c.id}-g${j}`, input: c.input, label: "good", category: cat, sentences: put(s) }));
+  // 16라운드: 맞는 합산 문장은 두고 기기 배터리만의 시간을 덧붙임
+  const addT = (x: string) => [...t.slice(0, k + 1), x, ...t.slice(k + 1)];
+  (until ? [`기기 배터리도 계산상 ${b}까지 버팁니다.`, `외장 배터리 없이도 배터리는 계산상 ${b}까지 버팁니다.`] : [`기기 배터리만으로도 완전히 충전하면 ${b} 버팁니다.`, `기기는 충전만 해 두면 혼자서도 ${b} 버팁니다.`])
+    .forEach((x, j) => extItems.push({ id: `${c.id}-t${j}`, input: c.input, label: "bad", category: "ext_time_appended", sentences: addT(x) }));
 }
 for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) {
   const f = buildFacts(c.input);
@@ -137,9 +144,16 @@ for (const c of extCases.filter((x) => x.id === "ext-06" || x.id === "ext-07")) 
   const ti = t.findIndex((s) => ctext && s.includes(ctext));
   if (ti >= 0) extItems.push({ id: `${c.id}-g1`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === ti ? `산소통으로 바꿔 쓰면 ${ctext}까지 산소통을 씁니다.` : s)) });
   extItems.push({ id: `${c.id}-g2`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "외장 배터리까지 모두 떨어지면 산소통 하나로 바꿔 쓰세요." : s)) });
+  // 16라운드: 산소통 시각을 단 바꿔 쓰기의 다른 조건('서면'·'울리면'), 산소통의 다른 이름. 맞는 글: '정전이 길어져'(과잉 거부)
+  // (g1 '산소통으로 바꿔 쓰면 X까지'는 16라운드부터 1차가 외장 조건을 묻어 거부한다 — 맞는 글 오거부로 센다)
+  [`기기가 서면 산소통으로 바꿔 ${ctext}까지 쓰세요.`, `알람이 울리면 산소통으로 바꿔 ${ctext}까지 쓰세요.`].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-c${j}`, input: c.input, label: "bad", category: "ext_switch_time_condition", sentences: add(x) }));
+  ["기기 배터리가 떨어지면 산소 탱크로 바꿔 쓰세요.", "알람이 울리면 산소 용기로 바꿔 쓰세요."].forEach((x, j) =>
+    extItems.push({ id: `${c.id}-y${j}`, input: c.input, label: "bad", category: "ext_switch_cyl_synonym", sentences: add(x) }));
+  extItems.push({ id: `${c.id}-g3`, input: c.input, label: "good", category: "paraphrase", sentences: t.map((s, i) => (i === k ? "정전이 길어져 외장 배터리까지 다 떨어지면 산소통으로 바꿔 쓰세요." : s)) });
 }
 writeFileSync(path.join(repo, "datasets", "notice", "adversarial_dev_ext.json"), JSON.stringify({
-  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14·15라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
+  format: "pl26-n1-corpus/1", split: "dev", note: "통합 레드팀 8·13·14·15·16라운드 회귀용(개발자 작성, 측정 아님). 외장 합산 문장과 산소통 바꿔 쓰기 문장만 바꾸거나 덧붙였다.", items: extItems,
 }, null, 1));
 console.log(`dev_ext ${extCases.length}건, adversarial_dev_ext ${extItems.length}건`);
 

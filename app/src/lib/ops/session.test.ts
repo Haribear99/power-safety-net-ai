@@ -1,6 +1,8 @@
 // /ops 세션 시험 (spec.md 1.4·1.5절, 9절 E2E 항목 중 순수 로직으로 확인 가능한 것)
 import { describe, expect, it } from "vitest";
 import suwon from "@/data/presets/suwon.json";
+import rotating from "@/data/presets/rotating.json";
+import seosan from "@/data/presets/seosan.json";
 import { project119 } from "../alloc/project119";
 import { qT } from "../engine/quantize";
 import type { AuditEntry } from "../domain/types";
@@ -127,4 +129,32 @@ describe("ops 세션", () => {
     expect(s2.audit.some((a) => a.action === "HOLD_EXPIRED" && a.householdId === hold!.rec.householdId && a.actor === "system")).toBe(true);
     expect(s2.result!.rows.find((r) => r.rec.householdId === hold!.rec.householdId)!.rec.lane).not.toBe("HOLD");
   });
+});
+
+// 통합 레드팀 16라운드: 재신고 → 확인과 확인 → 재신고가 같은 L_end·배정을 낸다(확인은 재신고 단조 묶음의 대상이 아님)
+describe("확인·재신고 순서 무관", () => {
+  const presets = { suwon, rotating, seosan } as unknown as Record<string, UiPreset>;
+  const lanes = (s: Session) => s.result!.rows.map((r) => `${r.rec.householdId}:${r.rec.lane}:${r.rec.resourceId ?? ""}`).join(" ");
+  const ends = (s: Session) => s.households.map((h) => `${h.id}:${lEndH(h)}:${h.lEndPrevBattery ?? ""}`).join(" ");
+  for (const [name, p] of Object.entries(presets)) {
+    const base = recompute(start(newSession(p)), start(newSession(p)).nowS + 1800);
+    const verifies: { id: string; v: (id: string) => Parameters<typeof applyVerify>[1] }[] = [
+      ...p.planner.households.filter((h) => h.cylinder).map((h) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_CYL" as const, householdId: id, count: 1, hoursLo: 10, reasonText: "현장 확인" }) })),
+      ...p.planner.households.filter((h) => h.ext.some((e) => e.declaredCount > 0)).map((h) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_EXT" as const, householdId: id, extIndex: h.ext.findIndex((e) => e.declaredCount > 0), count: h.ext.find((e) => e.declaredCount > 0)!.declaredCount, chargeConfirmed: true, reasonText: "현장 확인" }) })),
+    ];
+    for (const charge of [0, 80]) it(`${name} 충전 ${charge}%: 산소통·외장 ${verifies.length}건`, () => {
+      let n = 0;
+      for (const { id, v } of verifies) {
+        const a1 = applyVerify(reReport(base, id, charge), v(id));
+        const b0 = applyVerify(base, v(id));
+        expect(a1.ok).toBe(b0.ok); // 저장 불가(예: 기종에 맞지 않는 외장)도 순서와 무관
+        if (!a1.ok || !b0.ok) continue;
+        n++;
+        const b1 = reReport(b0.session, id, charge);
+        expect(ends(a1.session)).toBe(ends(b1));
+        expect(lanes(a1.session)).toBe(lanes(b1));
+      }
+      expect(n).toBeGreaterThan(0);
+    });
+  }
 });

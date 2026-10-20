@@ -116,7 +116,8 @@ export interface AuditEntry {
   from: { lane: Lane; resourceId?: string }; to: { lane: Lane; resourceId?: string };
   reasonCode?: string; reasonText?: string;  // MODIFY·VERIFY_*·MANUAL_REVIEW_DONE은 필수
   payload?: { extSpecId?: string; count?: number; hoursLo?: number; specId?: string; operatorLowerH?: number; basis?: string;
-              chargeConfirmed?: "device_screen"; extAgeY?: number; batteryAgeY?: number };
+              chargeConfirmed?: "device_screen"; extAgeY?: number; batteryAgeY?: number;
+              lEndPrevShiftS?: number; lEndPrevBatteryShiftS?: number };  // 확인으로 옮긴 재신고 묶음(초, 통합 레드팀 16라운드)
 }
 // I7: 3키 strict. 세 번째 값은 소진 하한의 절대 모의 시각(ISO 문자열)이다
 export const View119 = z.object({ location: z.string(), device: z.string(), expectedSafeUntil: z.string() }).strict();
