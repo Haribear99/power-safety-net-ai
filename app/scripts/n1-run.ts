@@ -16,7 +16,8 @@ import { Claims, CHECK_SYSTEM, CHECK_VERSION, checkUser, compareClaims } from ".
 import { compose, type Check2 } from "../src/lib/notice/compose";
 import { buildFacts, type NoticeFacts, type NoticeInputT } from "../src/lib/notice/facts";
 import { NOTICE_PROMPT_VERSION, NOTICE_SYSTEM, NoticeOut, noticeUser } from "../src/lib/notice/prompt";
-import { FACT_ERROR, splitSentences, tailSentences, templateSentences, verify, type Violation } from "../src/lib/notice/rules";
+import { FACT_ERROR, RULES_VERSION, splitSentences, tailSentences, templateSentences, verify, type Violation } from "../src/lib/notice/rules";
+import { execSync } from "node:child_process";
 import { sha256Hex } from "../src/lib/sim/materialize";
 
 const app = path.resolve(__dirname, "..");
@@ -200,7 +201,9 @@ async function main() {
     mkdirSync(outDir, { recursive: true });
   }
 
-  const summary: Record<string, unknown> = { promptVersion: NOTICE_PROMPT_VERSION, checkVersion: CHECK_VERSION, judgeVersion: JUDGE_VERSION, tag, sealed };
+  // 1차 규칙 버전과 커밋도 남긴다(1차만 바뀐 회귀를 구별, 통합 레드팀 18라운드)
+  const commit = (() => { try { return execSync("git rev-parse --short HEAD", { cwd: repo }).toString().trim(); } catch { return null; } })();
+  const summary: Record<string, unknown> = { promptVersion: NOTICE_PROMPT_VERSION, checkVersion: CHECK_VERSION, rulesVersion: RULES_VERSION, commit, judgeVersion: JUDGE_VERSION, tag, sealed };
   if (!corpusArg || sealed) {
     const setFile = path.join(repo, "datasets", "notice", `${split}.json`);
     const setRaw = readFileSync(setFile, "utf-8");

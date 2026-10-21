@@ -1,4 +1,4 @@
-# 성과보고서 docx를 Word로 PDF로 렌더하고 쪽수를 확인한다(통합 레드팀 17라운드: 16라운드 문구 수정으로 2장을 넘겼는데 쪽수 검사가 없었다).
+﻿# 성과보고서 docx를 Word로 PDF로 렌더하고 쪽수를 확인한다(통합 레드팀 17라운드: 16라운드 문구 수정으로 2장을 넘겼는데 쪽수 검사가 없었다).
 # 사용: powershell -NoProfile -File tools/render_report.ps1 <docx 절대경로> <pdf 절대경로>
 # 기준: 총 3쪽(보고서 2쪽 + 양식에 딸린 참가신청서 1쪽), 보고서 표가 2쪽에서 끝남. 아니면 종료 코드 1.
 param([Parameter(Mandatory = $true)][string]$in, [Parameter(Mandatory = $true)][string]$out)

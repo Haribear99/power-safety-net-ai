@@ -1,0 +1,34 @@
+{
+ "rulesVersion": "n1-rules-r18",
+ "checkVersion": "n1-check-v23",
+ "sets": {
+  "v24-r1": {
+   "n": 40,
+   "aiSentBefore": 39,
+   "aiSentNow": 39,
+   "templateGate1Fail": 0,
+   "changed": []
+  },
+  "ext-v24": {
+   "n": 8,
+   "aiSentBefore": 7,
+   "aiSentNow": 7,
+   "templateGate1Fail": 0,
+   "changed": []
+  },
+  "sw-v24": {
+   "n": 8,
+   "aiSentBefore": 7,
+   "aiSentNow": 7,
+   "templateGate1Fail": 0,
+   "changed": []
+  },
+  "warn-v24": {
+   "n": 6,
+   "aiSentBefore": 6,
+   "aiSentNow": 6,
+   "templateGate1Fail": 0,
+   "changed": []
+  }
+ }
+}

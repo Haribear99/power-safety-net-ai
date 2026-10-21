@@ -833,6 +833,30 @@ describe("통합 레드팀 16라운드 회귀", () => {
     expect(verify(a, [...ta, "정전이 길어지면 산소통으로 바꿔 쓰세요."]).ok).toBe(false);
     expect(verify(a, ta.map((s, i) => (i === k ? "배터리가 먼저 떨어지면 확인된 산소통으로 바꿔 쓰세요." : s))).ok).toBe(true);
   });
+  it("18라운드: 조건 조각으로 문장 쪼개기·'산소통이 먼저 떨어지면'·지금 집의 '배터리를 다 쓰시면'은 거부, '외장 배터리와 합쳐'·지금 집의 '바꿔 쓰면 X까지'는 통과", () => {
+    const f = factsOf(hhExt(60, true));
+    const t = templateSentences(f);
+    const c = f.cylinder!.state === "UNTIL" ? f.cylinder!.text : "";
+    for (const add of [["기기 안의 팩이 다 될 때.", `산소통은 계산상 ${c}까지 씁니다.`], [`기기가 서면. 산소통은 계산상 ${c}까지 씁니다.`], ["산소통이 먼저 떨어지면 배터리로 바꿔 쓰세요."]])
+      expect(verify(f, [...t, ...add]).ok, add.join(" ")).toBe(false);
+    if (f.battery.state === "UNTIL") {
+      const k = t.findIndex((s) => s.includes("외장 배터리까지 합쳐"));
+      expect(verify(f, t.map((s, i) => (i === k ? `외장 배터리와 합쳐 계산상 ${f.battery.state === "UNTIL" ? f.battery.text : ""}까지 버팁니다.` : s))).ok).toBe(true);
+    }
+    const n = buildFacts(IN({ deviceCls: "O2_STAT_CYL", lane: "PROPOSE_ASSIGN", resourceKind: "ESS_S", batteryEndS: 0, batteryLs: 0, cylinderEndS: 3 * 3600, cylinderS: 3 * 3600, etaS: 6 * 3600 }));
+    const tn = templateSentences(n);
+    const nc = n.cylinder!.state === "UNTIL" ? n.cylinder!.text : "";
+    const ni = tn.findIndex((s) => s.includes(nc));
+    expect(verify(n, [...tn, "배터리를 다 쓰시면 산소통으로 바꿔 쓰세요."]).ok).toBe(false);
+    expect(verify(n, tn.map((s, i) => (i === ni ? `산소통으로 바꿔 쓰면 ${nc}까지 쓸 수 있습니다.` : s))).ok).toBe(true);
+  });
+  it("18라운드: 추가 산소통 도착 표시가 산소통 끝과 같은 표기여도 고정 문안은 1차 통과", () => {
+    for (let d = -1200; d <= 1200; d += 600) {
+      const g = buildFacts(IN({ deviceCls: "O2_PORT", lane: "PROPOSE_ASSIGN", resourceKind: "O2_CYL_DELIVERY", batteryEndS: 7200, batteryExtS: 3600, cylinderEndS: 7200 + 3 * 3600, cylinderS: 3 * 3600, etaS: 7200 + 3 * 3600 + d }));
+      const r = verify(g, templateSentences(g));
+      expect(r.ok, JSON.stringify(r.violations)).toBe(true);
+    }
+  });
   it("범위 규칙의 '정전에·정전이'는 때 뒤집기가 아니다(과잉 거부)", () => {
     const f = factsOf(hhExt(60, true));
     const t = templateSentences(f);

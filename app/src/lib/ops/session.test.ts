@@ -144,20 +144,25 @@ describe("확인·재신고 순서 무관", () => {
       // 17라운드: 연식 확인(충전량과 곱해짐)·수동검토 완료(보수 하한)도 순서 무관
       ...p.planner.households.filter((h) => h.device.batteryAgeY == null).flatMap((h) => [0.5, 5].map((y) => ({ id: h.id, v: (id: string) => ({ action: "VERIFY_AGE" as const, householdId: id, batteryAgeY: y, reasonText: "구입 영수증" }) }))),
       ...base.result!.rows.filter((r) => r.rec.lane === "MANUAL_REVIEW").map((r) => ({ id: r.rec.householdId, v: (id: string) => ({ action: "MANUAL_REVIEW_DONE" as const, householdId: id, operatorLowerH: 2, reasonText: "담당 의료진 확인" }) })),
+      // 18라운드: 수동검토 완료의 DB 기종 선택 경로(재신고 → 완료 순서에서 낙관 쪽 약 6시간이던 결함, 17라운드에 고쳐짐)
+      ...base.result!.rows.filter((r) => r.rec.lane === "MANUAL_REVIEW").flatMap((r) => ["ASTRAL150", "TRILOGY100", "INOGEN_G5"].map((specId) => ({ id: r.rec.householdId, v: (id: string) => ({ action: "MANUAL_REVIEW_DONE" as const, householdId: id, specId, reasonText: "라벨 사진 대조" }) }))),
     ];
     for (const charge of [0, 80]) it(`${name} 충전 ${charge}%: 산소통·외장·연식·수동검토 후보 ${verifies.length}건`, () => {
-      let n = 0;
+      let n = 0, effect = 0;
       for (const { id, v } of verifies) {
-        const a1 = applyVerify(reReport(base, id, charge), v(id));
+        const r0 = reReport(base, id, charge);
+        const a1 = applyVerify(r0, v(id));
         const b0 = applyVerify(base, v(id));
         expect(a1.ok).toBe(b0.ok); // 저장 불가(예: 기종에 맞지 않는 외장)도 순서와 무관
         if (!a1.ok || !b0.ok) continue;
         n++;
+        if (lEndH(a1.session.households.find((h) => h.id === id)!) !== lEndH(r0.households.find((h) => h.id === id)!)) effect++; // 확인이 실제로 L_end를 바꾼 비교
         const b1 = reReport(b0.session, id, charge);
         expect(ends(a1.session)).toBe(ends(b1));
         expect(lanes(a1.session)).toBe(lanes(b1));
       }
       expect(n).toBeGreaterThan(0);
+      expect(effect).toBeGreaterThan(3);
     });
     it(`${name}: 재신고 두 번 사이 어디에 확인을 넣어도 L_end가 같다(R·V·R = V·R·R = R·R·V)`, () => {
       for (const { id, v } of verifies) {
