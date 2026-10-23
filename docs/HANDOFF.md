@@ -13,14 +13,16 @@
 
 ## 0. 넘기기 전에 의뢰인이 할 일 (받는 분은 끝났는지만 확인)
 
+> **알아 둘 것:** 이 Vercel 프로젝트는 GitHub와 연동되어 있어 **`master`에 들어간 커밋은 곧바로 운영 사이트에 배포됩니다.** 브랜치를 push하면 Preview 배포가 만들어질 수 있습니다. 0-2·0-3이 중요한 이유입니다.
+
 | # | 조치 | 이유 |
 |---|---|---|
-| 0-1 | `next`를 16.4.2 이상으로 올리고 `npm test`·`build` 재통과 → **운영 재배포** → 넘김 | 16.4.0에는 `npm audit` critical 권고 2건(GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)이 있습니다. 첫 `build`가 보안 경고(`SecurityFatalError`)로 멈추는 현상도 이 때문입니다. 받는 분이 의존성을 직접 바꾸지 않게 하려는 조치입니다 |
+| 0-1 | ✅ **완료(10/24)** `next`·`eslint-config-next` 16.4.0 → 16.4.2, 시험 382/382·typecheck·lint·build 통과, 운영 배포 | 16.4.0에는 `npm audit` critical 권고 2건(GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)이 있었습니다. 남은 audit 경고는 high 4건이고 모두 같은 원인입니다: `@vercel/functions`가 간접으로 쓰는 옛 zod 4.1.11(메모리 고갈 권고). 이 앱은 그 경로로 사용자 입력을 검증하지 않습니다. 받는 분은 의존성을 바꾸지 않습니다 |
 | 0-2 | 저장소 쓰기 보호. **권장안:** 7장 점검 뒤 저장소를 먼저 공개로 바꾸고 → `master` 브랜치 보호(PR 필수, 강제 push 금지)와 태그 `S*` 보호를 건 다음 → 받는 분은 collaborator가 아니라 **fork + PR**로만 작업 | 비공개 저장소는 GitHub 무료 요금제에서 보호 규칙을 걸 수 없습니다(API 403 확인). 봉인 태그 S3~S9가 지워지거나 `master`가 덮어써지면 봉인 검증이 깨집니다. **대가:** 일찍 공개하면 보고서 원고·콘티·KEIT 문의 초안·이 문서가 마감 1주 전부터 공개됩니다(공모전 규정상 문제 여부 미확인). 받아들일 수 없으면 GitHub Pro로 비공개 상태에서 보호를 겁니다 |
 | 0-3 | Vercel **Preview** 환경에서 `JUDGE_ACCESS_CODE`·`ANTHROPIC_API_KEY`·`KV_REST_API_URL`·`KV_REST_API_TOKEN`을 모두 지움 | 지금은 네 값 모두 Preview에도 있습니다. 브랜치 배포의 서버 코드를 바꾸면 값을 읽거나 운영 예산 카운터를 건드릴 수 있습니다. 지우면 Preview는 재생 모드로만 돕니다 |
 | 0-4 | 「끊겼」 예외(4.2절 24번) 확정 | 알림 사실 문장이 이미 이 구문을 씁니다. 받는 분은 기본안대로 진행합니다 |
-| 0-5 | `.gitignore`에 `app/AGENTS.md` 추가 | `npm run dev`를 실행하면 자동으로 생기는 파일입니다. 파일 본문은 커밋을 권하지만 이 저장소에서는 커밋하지 않습니다 |
-| 0-6 | `.gitattributes`에 `spec/** -text` 추가 후 커밋 | Windows 기본 설정(`core.autocrlf=true`)으로 복제하면 `spec/*.json`이 CRLF로 바뀌어, 아무것도 고치지 않아도 바이트 비교 시험 2건(`materialize.test.ts`)이 실패합니다 |
+| 0-5 | ✅ **완료(10/24)** `.gitignore`에 `app/AGENTS.md` 추가 | `npm run dev`를 실행하면 자동으로 생기는 파일입니다. 파일 본문은 커밋을 권하지만 이 저장소에서는 커밋하지 않습니다 |
+| 0-6 | ✅ **완료(10/24)** `.gitattributes`에 `spec/** -text` 추가 | Windows 기본 설정(`core.autocrlf=true`)으로 복제하면 `spec/*.json`이 CRLF로 바뀌어, 아무것도 고치지 않아도 바이트 비교 시험 2건(`materialize.test.ts`)이 실패합니다 |
 
 ---
 
@@ -93,7 +95,7 @@
 - **의존성(`package.json`·lock)은 바꾸지 마세요.** 필요하면 먼저 상의해 주세요.
 
 ```bash
-# 저장소를 fork한 뒤. Windows는 줄바꿈 변환을 끄고 받으세요(0-6 이전 필수, 이후에도 권장)
+# 저장소를 fork한 뒤. Windows는 줄바꿈 변환을 끄고 받으세요(0-6으로 spec/는 해결됐지만 권장)
 git clone -c core.autocrlf=false https://github.com/<본인 계정>/power-safety-net-ai.git
 cd power-safety-net-ai/app
 npm ci
@@ -115,7 +117,7 @@ API 키·저장소 토큰·심사용 접근 코드는 **드리지 않습니다.*
 
 - fork에서 `design/…` 브랜치로 작업하고 PR로 올립니다.
 - **금지:** `master`에 직접 push, 강제 push, 태그 삭제·이동(`git push --force`, `git push --delete`, `git tag -d`). 봉인 태그 S3~S9가 깨집니다(7장).
-- 운영 배포는 의뢰인이 PR 병합 뒤에 합니다. 확인은 로컬 `npm run build && npm start`(프로덕션 빌드)로 하세요.
+- 의뢰인이 PR을 `master`에 병합하면 운영 사이트에 자동 배포됩니다. 확인은 로컬 `npm run build && npm start`(프로덕션 빌드)로 하세요.
 - 커밋 메시지와 PR 설명은 한국어로, 무엇을 왜 바꿨는지 알 수 있게 써 주세요. 커밋 작성자 이메일은 공개되므로 원하면 GitHub noreply 주소를 쓰세요.
 
 ---
@@ -223,7 +225,7 @@ API 키·저장소 토큰·심사용 접근 코드는 **드리지 않습니다.*
 **G. 품질 기준**
 31. 랜딩은 390×844에서 **스크롤 없이** 배너·H1·두 시계·CTA가 보입니다(현재 충족). 두 시계는 CSS 애니메이션이고, `prefers-reduced-motion`이면 정지 그림입니다.
 32. 명도 대비 4.5:1 이상, 키보드로 모든 조작 가능. 랜딩 본문은 16px 이상입니다. 다른 화면의 기존 크기(표 12~14px 등)보다 작아지지 않게 하고, 키울수록 좋습니다.
-33. 무거운 애니메이션·차트·UI 라이브러리를 새로 넣지 마세요(의존성 금지). 랜딩 초기 JS는 **지금보다 늘지 않을 것**이 기준입니다. 명세의 120KB 목표는 이미 대체되었습니다. 기준선은 gzip 179,659B(16.4.0 기준, 대부분 Next 기본 런타임)이고, 0-1 이후 의뢰인이 다시 재서 알려 드립니다.
+33. 무거운 애니메이션·차트·UI 라이브러리를 새로 넣지 마세요(의존성 금지). 랜딩 초기 JS는 **지금보다 늘지 않을 것**이 기준입니다. 명세의 120KB 목표는 이미 대체되었습니다. 기준선은 gzip **179,753B**(10/24, Next 16.4.2, JS 8개, 대부분 Next 기본 런타임)입니다. 16.4.0 때는 179,659B였습니다.
     - 측정 방법: `npm run build && npm start` 뒤, `/` HTML에 실린 `<script src>`만 더합니다. 아래 스크립트는 bash용이라 Windows에서는 Git Bash로 실행하세요(PowerShell의 `curl`은 다른 명령입니다). 링크 미리 받기로 따라오는 다른 페이지 청크는 제외합니다(전역 내비게이션을 넣으면 그 청크가 늘어나는 것은 정상).
     ```bash
     for f in $(curl -s localhost:3000/ | grep -oE '/_next/static/[^"]+\.js' | sort -u); do
@@ -328,7 +330,7 @@ npm run build
 | `npm test` | 의뢰인 PC: 382건 통과(5회 중 4회, 첫 1회는 1건 실패·시험 미기록, 간헐 실패로 추정). **새 복제본: 381 통과 + 1 skip**(git 밖 연구 노트가 필요한 시험, 정상) | 실패 0, 통과+skip 382 이상. `materialize.test.ts` 2건이 실패하면 줄바꿈 문제(3.1절 복제 명령, 0-6)입니다. 그 밖의 실패는 한 번 더 돌리고, 같은 시험이 다시 실패하면 내 변경 탓으로 보고 원인 확인 |
 | `npm run typecheck` | 오류 0 | 오류 0 |
 | `npm run lint` | 오류·경고 0 | 오류·경고 0 |
-| `npm run build` | 성공(0-1 이전에는 첫 실행이 보안 경고로 멈추는 사례 있음) | 성공 |
+| `npm run build` | 성공(10/24, 16.4.2) | 성공 |
 | `python -I ../tools/check_report_numbers.py` | 통과 | 통과 |
 
 `check_report_numbers.py`가 확인하는 범위: **보고서 1부의 숫자 전체 + 콘티의 단서 4문구**(14.9%, 21/60, 보완 위반 7건, 73%·60% 짝). 콘티의 나머지 숫자와 실제 영상 자막은 **사람이 evidence.json과 대조**해야 합니다.

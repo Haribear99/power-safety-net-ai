@@ -16,3 +16,4 @@ __pycache__/
 .env*
 submission/private/
 !out/calib/
+app/AGENTS.md
