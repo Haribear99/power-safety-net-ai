@@ -1,0 +1,36 @@
+{
+  "_comment": "spec.md 1.3절 품질 예산 판정: 운영 URL 랜딩, Lighthouse 모바일 기본(simulated throttling) 3회 중앙값 LCP ≤ 2.0초. 병합·배포 뒤 npm run lhci:prod (10/24 운영 1.86초 통과)",
+  "ci": {
+    "collect": {
+      "url": [
+        "https://power-safety-net-ai.vercel.app/"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--headless=new"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": [
+          "error",
+          {
+            "maxNumericValue": 2000,
+            "aggregationMethod": "median"
+          }
+        ],
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 0.9,
+            "aggregationMethod": "median"
+          }
+        ]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci-prod"
+    }
+  }
+}

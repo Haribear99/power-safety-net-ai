@@ -8,7 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "lint:claims": "node scripts/lint-claims.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "check:budget": "node scripts/check-js-budget.mjs",
+    "check:report": "python -I ../tools/check_report_numbers.py",
+    "lhci": "lhci autorun --config=lighthouserc.json",
+    "lhci:prod": "lhci autorun --config=lighthouserc.prod.json",
+    "check:all": "npm run typecheck && npm run lint && npm run coverage && npm run build && npm run lint:claims -- --require-build && npm run check:bundle && npm run check:budget && npm run check:report && npm run test:e2e"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
@@ -19,10 +28,14 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "5.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",

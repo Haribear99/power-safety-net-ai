@@ -1,0 +1,52 @@
+{
+  "_comment": "로컬 빌드(next start) 측정: 회귀 감시용. LCP는 압축·CDN이 없는 로컬에서 운영보다 느리게 나오므로(10/24: 로컬 2.18초, 운영 1.86초) 경고만 하고, spec.md 1.3절 예산(LCP ≤ 2.0초)은 운영 URL 대상 lighthouserc.prod.json으로 판정한다. 접근성 점수는 실패 조건. npm run build 뒤 npm run lhci",
+  "ci": {
+    "collect": {
+      "startServerCommand": "npx next start -p 3230",
+      "startServerReadyPattern": "Ready",
+      "url": [
+        "http://localhost:3230/"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--headless=new --no-sandbox"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": [
+          "warn",
+          {
+            "maxNumericValue": 2000,
+            "aggregationMethod": "median"
+          }
+        ],
+        "categories:accessibility": [
+          "error",
+          {
+            "minScore": 0.9,
+            "aggregationMethod": "median"
+          }
+        ],
+        "cumulative-layout-shift": [
+          "warn",
+          {
+            "maxNumericValue": 0.1,
+            "aggregationMethod": "median"
+          }
+        ],
+        "total-blocking-time": [
+          "warn",
+          {
+            "maxNumericValue": 300,
+            "aggregationMethod": "median"
+          }
+        ]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

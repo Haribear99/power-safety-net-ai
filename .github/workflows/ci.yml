@@ -1,0 +1,74 @@
+# 자동 검사(인수인계서 6장). PR과 master push마다 돈다. 비밀값 없이 동작한다(예산 저장소가 없으면 앱은 재생 모드, E2E는 /api를 모두 가로챔).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  unit:
+    name: 단위 시험·타입·린트·커버리지
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: app/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run coverage
+
+  e2e:
+    name: 빌드·문구·번들·예산·숫자 대조·E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: app/package-lock.json }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint:claims -- --require-build
+      - run: npm run check:bundle
+      - run: npm run check:budget
+      - run: npm run check:report
+      # 한글 글꼴이 없으면 글자가 네모로 그려져 레이아웃 검사가 실제와 달라진다
+      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env: { CI: "true" }
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: playwright-report, path: "app/playwright-report\napp/test-results", retention-days: 7 }
+
+  lighthouse:
+    name: Lighthouse(랜딩 LCP ≤ 2.0초)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: app/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - run: npm run lhci
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: lighthouse, path: app/.lighthouseci, retention-days: 7 }

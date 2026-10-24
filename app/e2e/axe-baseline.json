@@ -1,0 +1,160 @@
+{
+  "_comment": "기존 axe serious·critical 위반. 고치면 줄이고, 새로 넣지 않는다(UPDATE_AXE_BASELINE=1로 다시 만듦)",
+  "violations": [
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H020\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H027\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H009\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H008\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H019\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H024\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H018\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H013\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H016\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H004\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H006\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H010\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H023\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H030\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H029\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H021\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H011\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H025\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H012\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H015\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H002\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H022\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H007\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "color-contrast",
+      "target": "tr[data-testid=\"row-H026\"] > .py-2:nth-child(2) > .bg-batt-soft.text-batt.px-1"
+    },
+    {
+      "page": "/ops",
+      "rule": "select-name",
+      "target": "select[data-testid=\"mr-spec\"]"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(3) > .text-center.px-1.tabular-nums:nth-child(3) > .rounded.px-1"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(4) > .text-center.px-1.tabular-nums:nth-child(4) > .rounded.px-1"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(5) > .text-center.px-1.tabular-nums:nth-child(4) > .rounded.px-1"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(6) > .text-center.px-1.tabular-nums:nth-child(6) > .rounded.px-1"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(7) > .text-center.px-1.tabular-nums:nth-child(5) > .rounded.px-1"
+    },
+    {
+      "page": "/lab",
+      "rule": "color-contrast",
+      "target": "tr:nth-child(7) > .text-center.px-1.tabular-nums:nth-child(6) > .rounded.px-1"
+    }
+  ]
+}

@@ -17,3 +17,10 @@ __pycache__/
 submission/private/
 !out/calib/
 app/AGENTS.md
+
+# 시험 산출물
+app/playwright-report/
+app/test-results/
+app/coverage/
+app/.lighthouseci/
+app/.lighthouseci-prod/
