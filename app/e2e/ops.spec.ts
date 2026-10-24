@@ -172,8 +172,7 @@ test("모의시계 ×600에서 대기 시한이 지나면 대기가 남지 않�
 });
 
 test("다른 가구를 열면 서랍의 입력(사유·수정 사유)이 비워진다", async ({ page }) => {
-  // 알려진 결함(10/24 발견): 서랍이 가구마다 새로 만들어지지 않아 앞 가구에 쓰던 사유가 다음 가구로 이어진다. 수정은 브랜치 fix/screen-defects
-  test.fail(!process.env.SCREEN_FIXES, "알려진 결함 — fix/screen-defects 병합 전까지 실패가 정상");
+  // 10/24 발견·수정: 서랍이 가구마다 새로 만들어지지 않아 앞 가구에 쓰던 사유가 다음 가구로 이어졌다(OpsScreen ApproveDrawer key)
   await startOutage(page);
   const [a, b] = await rowIds(page, "MANUAL_REVIEW");
   await openRow(page, a);

@@ -47,7 +47,7 @@ function TopBar() {
   const [eta, setEta] = useState("");
   const [sigma, setSigma] = useState("0.3");
   return (
-    <header className="sticky top-[29px] z-40 -mx-4 border-b border-line bg-white/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-[var(--banner-h,29px)] z-40 -mx-4 border-b border-line bg-white/95 px-4 py-3 backdrop-blur">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h1 className="text-[20px] font-extrabold">운영자 화면</h1>
         <label className="flex items-center gap-2 text-[15px]">
@@ -227,7 +227,7 @@ function Board() {
                   </td>
                   <td className="px-2 py-2">
                     <div>{r.cls}</div>
-                    <span className={`mt-0.5 inline-block rounded px-1 text-[12px] ${r.badge === "사양 확인" ? "bg-batt-soft text-batt" : r.badge === "수동검토" ? "bg-gap-soft text-gap" : "bg-warn-soft text-warn"}`}>{r.badge}</span>
+                    <span className={`mt-0.5 inline-block rounded px-1 text-[12px] ${r.badge === "사양 확인" ? "bg-batt-soft text-batt-strong" : r.badge === "수동검토" ? "bg-gap-soft text-gap" : "bg-warn-soft text-warn"}`}>{r.badge}</span>
                   </td>
                   <td className="px-2 py-2 tabular-nums">{r.lRemH == null ? "자동 계산 안 함" : r.lRemH < 0 ? <span className="font-semibold text-gap">소진({h2(-r.lRemH)}h 전)</span> : `${h2(r.lRemH)}h`}
                     {r.flags.length > 0 && <div className="mt-0.5 text-[12px] text-muted">{r.flags.join(" · ")}</div>}
@@ -270,7 +270,8 @@ function Board() {
         <AuditLog />
       </section>
       <aside className="space-y-4">
-        {sel ? <ApproveDrawer householdId={sel} onClose={() => setSel(null)} /> : (
+        {/* key: 가구를 바꾸면 서랍을 새로 만들어 앞 가구에 쓰던 사유·수정 선택이 이어지지 않게 한다 */}
+        {sel ? <ApproveDrawer key={sel} householdId={sel} onClose={() => setSel(null)} /> : (
           <p className="rounded-lg border border-dashed border-line p-3 text-[14px] text-muted">표에서 가구를 고르면 승인 서랍이 열립니다.</p>
         )}
         <ResourcePanel />

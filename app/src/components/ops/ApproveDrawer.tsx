@@ -212,7 +212,7 @@ function VerifyForms({ householdId }: { householdId: string }) {
             <p className="font-semibold">수동검토 완료</p>
             {hint && <p className="text-[12px] text-muted">시연 데이터 · 현장 확인 결과: {hint.specId ? `기종 ${hint.specId}` : `보수 하한 ${hint.operatorLowerH}h`}</p>}
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <select className="rounded border border-line p-1" value={spec} onChange={(e) => setSpec(e.target.value)} data-testid="mr-spec">
+              <select className="rounded border border-line p-1" value={spec} onChange={(e) => setSpec(e.target.value)} data-testid="mr-spec" aria-label="DB 기종 선택">
                 <option value="">DB 기종 선택</option>
                 {[...DB.devices.values()].map((d) => <option key={d.specId} value={d.specId}>{d.manufacturer} {d.model}</option>)}
               </select>

@@ -12,6 +12,8 @@
   --color-restore-soft: #dbe9f8;
   --color-batt: #1f7a4d;
   --color-batt-soft: #dcf1e5;
+  /* batt-soft 배경 위 작은 글씨용(대비 5.5:1, batt는 4.50:1로 경계) */
+  --color-batt-strong: #1a6b43;
   --color-warn: #8a5a00;
   --color-warn-soft: #fff1cc;
 }
