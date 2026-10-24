@@ -24,3 +24,4 @@ app/test-results/
 app/coverage/
 app/.lighthouseci/
 app/.lighthouseci-prod/
+app/vitest-out.txt

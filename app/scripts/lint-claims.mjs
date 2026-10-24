@@ -73,6 +73,15 @@ function constString(e, depth = 0) {
     const a = constString(e.left, depth + 1), b = constString(e.right, depth + 1);
     return a != null && b != null ? a + b : null;
   }
+  // ["생명을 ", "지킵니다"].join("") 같은 배열 이어 붙이기
+  if (ts.isCallExpression(e) && ts.isPropertyAccessExpression(e.expression) && e.expression.name.text === "join") {
+    let arr = e.expression.expression;
+    if (ts.isIdentifier(arr) && CONSTS.has(arr.text)) arr = CONSTS.get(arr.text);
+    if (!ts.isArrayLiteralExpression(arr)) return null;
+    const sep = e.arguments.length ? constString(e.arguments[0], depth + 1) : ",";
+    const parts = arr.elements.map((x) => constString(x, depth + 1));
+    return sep != null && parts.every((x) => x != null) ? parts.join(sep) : null;
+  }
   return null;
 }
 
@@ -106,12 +115,21 @@ for (const f of SRC_DIRS.flatMap((d) => walk(d, (p) => /\.(ts|tsx)$/.test(p) && 
       // 값을 모두 풀 수 있으면 그 값으로, 아니면 풀 수 없는 자리를 공백으로 둔 채 한 덩어리로 본다(`생명을 ${x}지킵니다` 대비)
       const v = constString(n) ?? partsJoin(n);
       push(rel(f), line(n), v, isClosing ? ["closing"] : []);
+    } else if (ts.isCallExpression(n) && ts.isPropertyAccessExpression(n.expression) && n.expression.name.text === "join") {
+      const v = constString(n);
+      if (v != null) push(rel(f), line(n), v, isClosing ? ["closing"] : []);
     } else if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) || ts.isTemplateHead(n) || ts.isTemplateMiddle(n) || ts.isTemplateTail(n)) {
       push(rel(f), line(n), n.text, isClosing ? ["closing"] : []);
     }
     ts.forEachChild(n, visit);
   };
   visit(sf);
+}
+
+// 1-2) CSS의 content 글자(::before·::after로 화면에 그려지는 글자)
+for (const f of walk(path.join(APP, "src"), (p) => p.endsWith(".css"))) {
+  const css = readFileSync(f, "utf-8");
+  for (const m of css.matchAll(/content\s*:\s*("[^"]*"|'[^']*')/g)) push(rel(f), "css content", m[1].slice(1, -1));
 }
 
 // 2) 빌드 HTML의 보이는 글자(서버에서 그린 것). 랜딩·랩·장부의 성과 문장은 한정어 규칙 대상.

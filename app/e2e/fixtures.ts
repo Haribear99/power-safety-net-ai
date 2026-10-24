@@ -80,6 +80,18 @@ export const test = base.extend<Fixtures>({
     if (!page.isClosed() && page.url().startsWith("http")) {
       const text = await page.evaluate(() => document.body?.innerText ?? "").catch(() => "");
       expect(bannedIn(text), "화면 글자에 금지 구문(scripts/claims-rules.json)").toEqual([]);
+      // CSS ::before·::after로 그린 글자는 innerText에 없으므로 따로 모은다
+      const pseudo = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const el of [...document.querySelectorAll("body *")].slice(0, 8000)) {
+          for (const ps of ["::before", "::after"]) {
+            const c = getComputedStyle(el, ps).content;
+            if (c && c !== "none" && c !== "normal" && c !== '""') out.push(c.replace(/^["']|["']$/g, ""));
+          }
+        }
+        return out.join(" ");
+      }).catch(() => "");
+      expect(bannedIn(pseudo), "CSS ::before·::after 글자에 금지 구문").toEqual([]);
     }
   }, { auto: true }],
 });
@@ -101,19 +113,47 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const rect = he.getBoundingClientRect();
     const cs = getComputedStyle(he);
     const visible = typeof he.checkVisibility === "function" ? he.checkVisibility({ opacityProperty: true, visibilityProperty: true }) : true;
-    // 다른 요소에 덮였는지: 글자가 실제로 그려진 줄 사각형마다 8px 간격으로 찍어, 맨 위 요소가 이 요소(또는 그 자식)인지
+    // 다른 요소에 덮였는지: 글자가 실제로 그려진 줄 사각형마다 8px 간격으로 찍는다.
+    // 마우스 투과(pointer-events: none) 요소도 덮개가 될 수 있으므로 검사 동안만 투과를 끈다(앱은 pointer-events를 쓰지 않음).
+    const force = document.createElement("style");
+    force.textContent = "*, *::before, *::after { pointer-events: auto !important; }";
+    document.head.appendChild(force);
+    const paints = (e: Element) => {
+      // 그 자리에 실제로 무언가를 그리는 요소만 덮개로 센다(투명한 빈 상자는 덮지 않음)
+      const s = getComputedStyle(e);
+      if (Number(s.opacity) === 0 || s.visibility === "hidden") return false;
+      if (/^(IMG|SVG|CANVAS|VIDEO|svg|IFRAME)$/.test(e.tagName)) return true;
+      const bgA = Number((s.backgroundColor.match(/[\d.]+/g) ?? ["0", "0", "0", "0"])[3] ?? 1);
+      return bgA > 0 || s.backgroundImage !== "none" || s.backdropFilter !== "none";
+    };
+    // 글자 조각(텍스트 노드)마다: 그 글자를 가진 요소(또는 그 조상)에 닿기 전에 무언가를 그리는 요소가 있으면 덮임.
+    // 같은 요소 안의 자식(예: 배너 안에 끼운 띠)도 글자를 가진 요소가 아니면 덮개다.
     const range = document.createRange();
-    range.selectNodeContents(he);
-    const lines = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1 && r.bottom > 0 && r.top < innerHeight);
+    const lines: DOMRect[] = [];
     let covered = 0, sampled = 0;
-    for (const ln of lines) {
-      for (let x = ln.left + 2; x < ln.right - 1; x += 8) {
-        const p = document.elementFromPoint(x, ln.top + ln.height / 2);
-        sampled++;
-        if (!(p && (p === he || he.contains(p)))) covered++;
+    const tw = document.createTreeWalker(he, NodeFilter.SHOW_TEXT);
+    while (tw.nextNode()) {
+      const tn = tw.currentNode as Text;
+      if (!tn.textContent?.trim() || !tn.parentElement) continue;
+      const owner = tn.parentElement;
+      if (owner.closest(".sr-only") || getComputedStyle(owner).display === "none") continue;
+      range.selectNodeContents(tn);
+      for (const ln of [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1 && r.bottom > 0 && r.top < innerHeight)) {
+        lines.push(ln);
+        for (let x = ln.left + 2; x < ln.right - 1; x += 8) {
+          sampled++;
+          for (const p of document.elementsFromPoint(x, ln.top + ln.height / 2)) {
+            if (p === owner || p.contains(owner)) break; // 글자를 가진 요소(또는 그 조상)에 닿음: 덮개 없음
+            if (paints(p)) { covered++; break; }
+          }
+        }
       }
     }
+    force.remove();
     if (sampled === 0) covered = 1;
+    // 실제로 그려진 크기: 계산된 글자 크기가 아니라 줄 높이와 변형(scale·transform·zoom) 비율로 본다
+    const lineH = lines.length ? Math.min(...lines.map((l) => l.height)) : 0;
+    const scale = he.offsetWidth > 0 ? rect.width / he.offsetWidth : 1;
     // 대비: 글자색 대 실제 배경(투명이면 위로 올라가며 찾음)
     const parse = (c: string) => { const m = c.match(/[\d.]+/g)!.map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 }; };
     let bgEl: HTMLElement | null = he, bg = { r: 255, g: 255, b: 255, a: 0 };
@@ -126,11 +166,13 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const fg = { r: fg0.r * fg0.a * op + bg.r * (1 - fg0.a * op), g: fg0.g * fg0.a * op + bg.g * (1 - fg0.a * op), b: fg0.b * fg0.a * op + bg.b * (1 - fg0.a * op) };
     const lum = (c: { r: number; g: number; b: number }) => { const f = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
     const [l1, l2] = [lum(fg), lum(bg)].sort((a, b) => b - a);
-    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), covered, contrast: (l1 + 0.05) / (l2 + 0.05) };
+    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), lineH, scale, covered, contrast: (l1 + 0.05) / (l2 + 0.05) };
   });
   expect(r.visible, `${what}: 보이지 않음`).toBe(true);
   expect(r.w > 4 && r.h > 4, `${what}: 크기 ${r.w}×${r.h}`).toBe(true);
   expect(r.font, `${what}: 글자 크기`).toBeGreaterThanOrEqual(12);
+  expect(r.scale, `${what}: 축소 변형(그려진 폭/원래 폭)`).toBeGreaterThan(0.95);
+  expect(r.lineH, `${what}: 실제로 그려진 줄 높이(글자 ${r.font}px 대비)`).toBeGreaterThanOrEqual(r.font * 0.9);
   expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음)`).toBe(0);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
 }
