@@ -1,7 +1,7 @@
 // 법정 배너와 고정 머리줄이 겹치지 않는지 — 인수인계서 4.2절 C-8.
 // 배너는 글꼴에 따라 약 640~690px 폭에서 두 줄이 된다. 예전에는 /ops 상단 바(top 29px)·/lab 탭 바(top 32px)가 한 줄 높이에 고정돼 있어
 // 두 줄이 되면 가렸다(10/24 발견·수정: BannerHeightSync가 --banner-h를 내보내고 두 머리줄이 그 값을 쓴다).
-import { expect, test } from "./fixtures";
+import { BANNER_SHORT, BANNER_TEXT, expect, expectReadable, test } from "./fixtures";
 
 const WIDTHS = [390, 640, 660, 680, 700, 768, 1024, 1440];
 
@@ -25,5 +25,19 @@ for (const w of WIDTHS) {
     const banner = (await page.getByTestId("legal-banner").boundingBox())!;
     const nav = (await page.getByRole("navigation", { name: "랩 탭" }).boundingBox())!;
     expect(nav.y, `배너 아래 ${banner.y + banner.height}px, 탭 바 위 ${nav.y}px`).toBeGreaterThanOrEqual(banner.y + banner.height - 0.5);
+  });
+}
+
+// 배너가 두 줄이 되는 폭까지 모든 폭에서 배너 글자가 잘리거나·흐려지거나·덮이지 않고 읽혀야 한다
+// (두 줄 문제를 '고정 높이 + 말줄임'으로 덮는 실수 대비, 레드팀 10/24 R4-1)
+for (const w of WIDTHS) {
+  test(`${w}px: 배너 글자가 잘리지 않고 읽힘(/, /ops, /lab)`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: 900 });
+    for (const p of ["/", "/ops", "/lab"]) {
+      await page.goto(p);
+      const banner = page.getByTestId("legal-banner");
+      await expectReadable(banner, `${w}px ${p} 배너`);
+      expect((await banner.innerText()).replace(/\s+/g, " ").trim(), `${w}px ${p} 배너 문구`).toBe(w < 640 ? BANNER_SHORT : BANNER_TEXT);
+    }
   });
 }

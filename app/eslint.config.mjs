@@ -37,6 +37,14 @@ const NO_WORLD_TRUTH = {
   patterns: [{ group: ["**/domain/types", "@/lib/domain/types"], importNames: ["WorldTruth"], message: "WorldTruth는 화면·배정 규칙·재진입에서 import하지 않는다(spec.md 2장 판단·진실 분리)." }],
 };
 
+// 화면 코드는 결정(decisions)을 읽기만 한다. 결정을 쓰는 길은 ApproveDrawer → commitDecision 하나뿐(감사 행이 함께 남는 길)
+// (레드팀 10/24 R4-2: 감사 행 없이 decisions를 직접 써넣는 일괄 승인 우회)
+const NO_DECISION_WRITES = [
+  { selector: "Property[key.name='decisions']", message: "화면 코드에서 decisions를 만들거나 덮어쓰지 않는다. 결정은 ApproveDrawer의 commitDecision으로만(감사 행이 남는 길)." },
+  { selector: "AssignmentExpression[left.object.property.name='decisions'], AssignmentExpression[left.property.name='decisions']", message: "화면 코드에서 decisions에 직접 대입하지 않는다(commitDecision으로만)." },
+];
+const NO_COMMIT_IMPORT = { group: ["**/ops/session", "@/lib/ops/session"], importNames: ["commitDecision"], message: "결정 저장(commitDecision)은 components/ops/ApproveDrawer.tsx에서만 쓴다(I6, 감사 행이 남는 유일한 길)." };
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -44,6 +52,11 @@ const eslintConfig = defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.ts"],
     rules: { "no-restricted-syntax": ["error", ...NO_APPROVED] },
+  },
+  {
+    files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    ignores: ["src/**/*.test.ts"],
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_DECISION_WRITES] },
   },
   {
     // restoration.ts: CONFIRMED 범위 exp(±zσ)는 Math.exp 직후 qT로 바꾸는 명세 예외(3절)라 초월함수 규칙에서 뺀다
@@ -59,6 +72,11 @@ const eslintConfig = defineConfig([
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/lib/alloc/**/*.ts", "src/lib/sim/reentry.ts"],
     ignores: ["src/**/*.test.ts"],
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_COMMIT_IMPORT] }] },
+  },
+  {
+    // ApproveDrawer만 commitDecision을 가져올 수 있다(그 안의 사용 횟수·위치는 lib/ops/approve-drawer-ast.test.ts가 고정)
+    files: ["src/components/ops/ApproveDrawer.tsx"],
     rules: { "@typescript-eslint/no-restricted-imports": ["error", NO_WORLD_TRUTH] },
   },
   // Override default ignores of eslint-config-next.

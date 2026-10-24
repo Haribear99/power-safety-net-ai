@@ -130,6 +130,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     // 같은 요소 안의 자식(예: 배너 안에 끼운 띠)도 글자를 가진 요소가 아니면 덮개다.
     const range = document.createRange();
     const lines: DOMRect[] = [];
+    const owners = new Set<HTMLElement>([he]);
     let covered = 0, sampled = 0;
     const tw = document.createTreeWalker(he, NodeFilter.SHOW_TEXT);
     while (tw.nextNode()) {
@@ -137,6 +138,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
       if (!tn.textContent?.trim() || !tn.parentElement) continue;
       const owner = tn.parentElement;
       if (owner.closest(".sr-only") || getComputedStyle(owner).display === "none") continue;
+      owners.add(owner);
       range.selectNodeContents(tn);
       for (const ln of [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1 && r.bottom > 0 && r.top < innerHeight)) {
         lines.push(ln);
@@ -151,6 +153,25 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     }
     force.remove();
     if (sampled === 0) covered = 1;
+    // 잘라냄·흐림(레드팀 10/24 R4-1): 글자를 가진 요소마다(검사 대상 안쪽 요소 포함) 문서 끝까지 clip-path·filter·mask가 있거나,
+    // 넘침을 숨기는 조상(overflow ≠ visible) 안에서 글자 줄이 잘리거나, 말줄임으로 잘리면 읽을 수 없다
+    const clipped: string[] = [];
+    const seen = new Set<HTMLElement>();
+    for (const start of owners) for (let a: HTMLElement | null = start; a && !seen.has(a); a = a.parentElement) {
+      seen.add(a);
+      const s = getComputedStyle(a);
+      if (s.clipPath && s.clipPath !== "none") clipped.push(`${a.tagName} clip-path`);
+      if (s.filter && s.filter !== "none") clipped.push(`${a.tagName} filter ${s.filter}`);
+      const mask = (s as unknown as { maskImage?: string; webkitMaskImage?: string });
+      if ((mask.maskImage && mask.maskImage !== "none") || (mask.webkitMaskImage && mask.webkitMaskImage !== "none")) clipped.push(`${a.tagName} mask`);
+      if (s.overflowX !== "visible" || s.overflowY !== "visible") {
+        const box = a.getBoundingClientRect();
+        const scrolls = /auto|scroll/.test(s.overflowX + s.overflowY); // 스크롤로 볼 수 있는 상자는 잘림이 아니다
+        if (!scrolls && lines.some((l) => l.left < box.left - 1 || l.right > box.right + 1 || l.top < box.top - 1 || l.bottom > box.bottom + 1)) clipped.push(`${a.tagName} overflow 잘림`);
+        if (s.textOverflow === "ellipsis" && a.scrollWidth > a.clientWidth + 1) clipped.push(`${a.tagName} 말줄임`);
+      }
+      if (a === document.body) break;
+    }
     // 실제로 그려진 크기: 계산된 글자 크기가 아니라 줄 높이와 변형(scale·transform·zoom) 비율로 본다
     const lineH = lines.length ? Math.min(...lines.map((l) => l.height)) : 0;
     const scale = he.offsetWidth > 0 ? rect.width / he.offsetWidth : 1;
@@ -166,7 +187,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const fg = { r: fg0.r * fg0.a * op + bg.r * (1 - fg0.a * op), g: fg0.g * fg0.a * op + bg.g * (1 - fg0.a * op), b: fg0.b * fg0.a * op + bg.b * (1 - fg0.a * op) };
     const lum = (c: { r: number; g: number; b: number }) => { const f = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
     const [l1, l2] = [lum(fg), lum(bg)].sort((a, b) => b - a);
-    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), lineH, scale, covered, contrast: (l1 + 0.05) / (l2 + 0.05) };
+    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), lineH, scale, covered, clipped, contrast: (l1 + 0.05) / (l2 + 0.05) };
   });
   expect(r.visible, `${what}: 보이지 않음`).toBe(true);
   expect(r.w > 4 && r.h > 4, `${what}: 크기 ${r.w}×${r.h}`).toBe(true);
@@ -174,6 +195,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
   expect(r.scale, `${what}: 축소 변형(그려진 폭/원래 폭)`).toBeGreaterThan(0.95);
   expect(r.lineH, `${what}: 실제로 그려진 줄 높이(글자 ${r.font}px 대비)`).toBeGreaterThanOrEqual(r.font * 0.9);
   expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음)`).toBe(0);
+  expect(r.clipped, `${what}: 잘라냄·흐림·말줄임`).toEqual([]);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
 }
 
