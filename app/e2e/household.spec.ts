@@ -1,6 +1,6 @@
 // /household — spec.md 1.6절, 9절 E2E '/household', 인수인계서 4.2절 C-10·D-16·D-20.
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { expect, expectReadable, test } from "./fixtures";
 
 const SAMPLE_BTN = /샘플 라벨:/;
 
@@ -125,4 +125,46 @@ test("업로드 이미지는 EXIF 없이 다시 인코딩·긴 변 1568px 이하
     return { big: [...ls, ...ss].filter((v) => v.length > 2000 || v.includes("data:image")).length, dbs: dbs.length };
   });
   expect(stored).toEqual({ big: 0, dbs: 0 });
+});
+
+test("AI 추출 표지가 실제로 읽힌다(숨김·덮임·저대비 아님) @mobile", async ({ page }) => {
+  await page.goto("/household");
+  await page.getByRole("button", { name: SAMPLE_BTN }).first().click();
+  const tags = page.getByTestId("extract-table").getByText("AI 추출");
+  expect(await tags.count()).toBeGreaterThanOrEqual(5);
+  for (let i = 0; i < (await tags.count()); i++) await expectReadable(tags.nth(i), `AI 추출 표지 ${i + 1}`);
+});
+
+test("줄인 이미지가 2MB를 넘으면 보내지 않는다", async ({ page }) => {
+  let called = 0;
+  await page.route("**/api/vision", async (route) => { called++; await route.fulfill({ json: { mode: "replay", reason: "no_store", message: "x" } }); });
+  await page.goto("/household");
+  const file = await jpegWithExif(page, 400, 300);
+  // 시험 이미지를 만든 뒤, 캔버스 출력을 2MB 넘게 흉내 낸다(실제 사진으로는 재현이 들쭉날쭉해서)
+  await page.evaluate(() => {
+    HTMLCanvasElement.prototype.toDataURL = function () { return "data:image/jpeg;base64," + "A".repeat(2 * 1024 * 1024 + 8); };
+  });
+  await page.getByRole("tab", { name: "사진 올리기" }).click();
+  await page.getByLabel("합성 라벨이거나 환자가 쓰지 않는 기기의 라벨입니다").check();
+  await page.getByLabel("국외 전송에 동의합니다").check();
+  await page.getByTestId("upload-input").setInputFiles({ name: "big.jpg", mimeType: "image/jpeg", buffer: file });
+  await expect(page.getByRole("status")).toContainText("이미지가 너무 큽니다");
+  expect(called, "2MB 넘는 이미지를 보냄").toBe(0);
+});
+
+test("가구 화면 알림: 검사에 탈락한 AI 원문은 보여 주지 않는다", async ({ page }) => {
+  const SECRET = "검사에서떨어진원문문장";
+  await page.route("**/api/notice", async (route) => {
+    await route.fulfill({ json: {
+      mode: "live", ok: true, promptVersion: "e2e", checkVersion: "e2e",
+      composed: { sentences: ["고정 문안 시험 문장입니다."], source: "template", violations: [{ code: "E2E", detail: "시험", sentence: SECRET }], rejectedAt: "gate1", footer: "" },
+      rejected: [SECRET], meta: { latencyMs: 10, costUsd: 0, model: "e2e-mock" },
+    } });
+  });
+  await page.goto("/household");
+  await page.getByRole("button", { name: SAMPLE_BTN }).first().click();
+  await page.getByRole("button", { name: "이 기종이 맞습니다" }).click();
+  await page.getByTestId("notice-generate").click();
+  await expect(page.getByTestId("notice-rejected")).toContainText("AI 문장이 검사를 통과하지 못해");
+  await expect(page.locator("body")).not.toContainText(SECRET);
 });

@@ -1,5 +1,5 @@
 // 랜딩(/) — spec.md 1.1·1.3절, 9절 E2E '/', 인수인계서 4.2절 A·B·G.
-import { evidence, expect, test } from "./fixtures";
+import { evidence, expect, expectReadable, test } from "./fixtures";
 
 test.describe("랜딩 첫 화면", () => {
   test.use({ viewport: { width: 390, height: 844 } });
@@ -36,13 +36,17 @@ test.describe("랜딩 첫 화면", () => {
     for (const w of ["AI", "시뮬레이션", "예측", "생명", "안전"]) expect(words, `첫 화면에 '${w}'`).not.toContain(w);
   });
 
-  test("두 시계 막대에 시간 숫자 없음, 막대 라벨 그대로 @mobile", async ({ page }) => {
+  test("두 시계: 막대·주변에 출처 없는 시간 차 숫자 없음, 막대 라벨 그대로 @mobile", async ({ page }) => {
     await page.goto("/");
     const clocks = page.getByTestId("two-clocks");
     await expect(page.getByTestId("gap-bar")).toHaveText("");
     await expect(clocks).toContainText("목표 상한까지 남는 차이 · 내장배터리만, 외장·이송 없을 때의 단순 비교");
-    const label = await clocks.locator("text=목표 상한까지").innerText();
-    expect(label).not.toMatch(/\d/);
+    await page.waitForTimeout(3800); // 라벨은 시계 애니메이션(3초) 뒤 나타난다
+    await expectReadable(clocks.getByText("목표 상한까지 남는 차이"), "두 시계 막대 라벨");
+    // 시계 값(배터리 3시간, 24:00:00) 밖의 'n시간' 숫자는 두 출처를 빼서 만든 파생 수치라 금지(spec.md 9절 '출처 없는 시간 차')
+    const text = (await clocks.innerText()).replace(/24:00:00/g, "");
+    const hours = [...text.matchAll(/\d+(\.\d+)?\s*시간/g)].map((m) => m[0].replace(/\s/g, ""));
+    expect(hours.filter((h) => h !== "3시간"), "두 시계 영역의 시간 숫자").toEqual([]);
   });
 
   test("동작 줄이기면 시계가 정지 그림 @mobile", async ({ page }) => {
@@ -57,7 +61,8 @@ test("위젯 조작은 네트워크 요청 0 @mobile", async ({ page }) => {
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   const reqs: string[] = [];
-  page.on("request", (r) => { if (!r.url().includes("/_next/static/")) reqs.push(r.url()); });
+  // 정적 파일과 Next의 링크 미리 받기(_rsc)는 화면 이동 준비라 제외하고, 데이터 요청(fetch·xhr)만 본다
+  page.on("request", (r) => { if (["fetch", "xhr"].includes(r.resourceType()) && !r.url().includes("_rsc=")) reqs.push(r.url()); });
   const w = page.getByTestId("gap-widget");
   const buttons = w.getByRole("button");
   const n = await buttons.count();
@@ -72,10 +77,16 @@ test("위젯 조작은 네트워크 요청 0 @mobile", async ({ page }) => {
 test("공개 단서 문장과 숫자 = evidence.json", async ({ page }) => {
   await page.goto("/");
   const k = evidence.kpiOverPredict.rule;
-  const overPct = `${((k.k / k.n) * 100).toFixed(1)}%`;
-  const main = page.locator("main");
-  await expect(main).toContainText(overPct);
-  await expect(main).toContainText("실제 발송 기능 없음");
+  const overPct = ((k.k / k.n) * 100).toFixed(1);
+  // 숫자만이 아니라 뜻(모의·실제보다 긴 경우·사후 집계)이 같은 항목 안에 있어야 한다(인수인계서 4.2절 B-4)
+  const kpiItem = page.locator("main li").filter({ hasText: `${overPct}%` });
+  await expect(kpiItem).toHaveCount(1);
+  await expect(kpiItem).toContainText(`모의에서는 이 하한이 실제보다 긴 경우가 ${overPct}%`);
+  await expect(kpiItem).toContainText("사후 집계");
+  await expectReadable(kpiItem, "하한 14.9% 단서 문장");
+  const noticeItem = page.locator("main li").filter({ hasText: "쉬운 글·음성 안내" });
+  await expect(noticeItem).toContainText("시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음");
+  await expectReadable(noticeItem, "알림 소개(실제 발송 기능 없음)");
   const apt = evidence.calib.apt;
   await expect(page.getByTestId("avg-line")).toContainText(`${apt.n}건 중 ${apt.gt12h}건`);
   // 끝 카드 첫 줄: 현행 대비 감소율(evidence.lab.e2.pooledRel, ClosingCard의 pct())

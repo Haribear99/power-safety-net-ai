@@ -20,5 +20,13 @@ for (const f of files) {
     if (m) { bad++; console.log(`✗ ${path.relative(APP, f)}: ${re.source} (${m[0].slice(0, 12)}…)`); }
   }
 }
-console.log(`번들 비밀값 검사: 파일 ${files.length}개, 발견 ${bad}건`);
+// 비밀값이 없는 CI 빌드에서는 NEXT_PUBLIC_으로 번들에 박힌 값을 볼 수 없다 → 소스에서 비밀처럼 보이는 공개 변수 이름을 금지한다
+const SRC = path.join(APP, "src");
+const srcFiles = walk(SRC).filter((p) => /\.(ts|tsx)$/.test(p));
+for (const f of srcFiles) {
+  for (const m of readFileSync(f, "utf-8").matchAll(/NEXT_PUBLIC_[A-Z0-9_]*(KEY|TOKEN|SECRET|CODE|PASSWORD|URL)[A-Z0-9_]*/g)) {
+    bad++; console.log(`✗ ${path.relative(APP, f)}: 브라우저로 나가는 공개 변수에 비밀처럼 보이는 이름 ${m[0]}`);
+  }
+}
+console.log(`번들 비밀값 검사: 파일 ${files.length}개, 소스 ${srcFiles.length}개, 발견 ${bad}건`);
 process.exit(bad ? 1 : 0);
