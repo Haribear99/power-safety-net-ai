@@ -94,8 +94,7 @@ test("공개 단서 문장과 숫자 = evidence.json", async ({ page }) => {
 
 test("랜딩 본문 글자 16px 이상(표지·각주 제외) @mobile", async ({ page }) => {
   // spec.md 1.3절 품질 예산 '본문 16px 이상', 인수인계서 4.2절 32번. 표지·각주는 명세가 정한 작은 글씨라 뺀다.
-  // 알려진 결함(10/24 발견): 끝 카드 본문 문단이 15px. 수정은 브랜치 fix/screen-defects
-  test.fail(!process.env.SCREEN_FIXES, "알려진 결함 — fix/screen-defects 병합 전까지 실패가 정상");
+  // 10/24 발견·수정: 끝 카드 본문 문단이 15px였다(ClosingCard 16px로)
   await page.goto("/");
   const CAPTION = ["가정 시나리오 범위", "배터리 하한:", "복구 범위:", "AI 기반 운용 · 시연용"];
   const small = await page.evaluate((caption) => [...document.querySelectorAll("main p, main li")]
