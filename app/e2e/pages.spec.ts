@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
-import { BANNER_SHORT, BANNER_TEXT, expect, geoCalls, PAGES, test } from "./fixtures";
+import { BANNER_SHORT, BANNER_TEXT, expect, expectReadable, PAGES, test } from "./fixtures";
 
 const WIDTHS = [390, 640, 680, 768, 1024, 1440];
 
@@ -15,12 +15,14 @@ for (const p of PAGES) {
     const vw = page.viewportSize()!.width;
     // 넓은 화면·좁은 화면 문구가 둘 다 DOM에 있고 CSS로 하나만 보이므로 보이는 글자(innerText)로 본다
     expect((await banner.innerText()).trim()).toBe(vw < 640 ? BANNER_SHORT : BANNER_TEXT);
-    // 스크롤해도 상단에 붙어 있어야 한다
+    await expectReadable(banner, `${p} 배너`);
+    // 스크롤해도 상단에 붙어 있고, 다른 고정 머리줄에 덮이지 않아야 한다(DOM에 있는 것만으로는 부족)
     await page.mouse.wheel(0, 3000);
     await page.waitForTimeout(200);
     const box = await banner.boundingBox();
     expect(box!.y).toBeLessThanOrEqual(1);
-    expect(await geoCalls(page)).toBe(0);
+    const top = await page.evaluate(() => { const b = document.querySelector('[data-testid="legal-banner"]')!.getBoundingClientRect(); const e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && !!e.closest('[data-testid="legal-banner"]'); });
+    expect(top, `${p} 스크롤 뒤 배너가 다른 요소에 덮임`).toBe(true);
   });
 
   test(`가로 스크롤 없음 ${p}`, async ({ page }) => {

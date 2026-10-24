@@ -12,6 +12,10 @@ const NO_APPROVED = [
   // `"APPROVED" as const`, `satisfies`, 삼항식 갈래로 감싼 경우
   { selector: "Property[key.name='status'] > :matches(TSAsExpression, TSSatisfiesExpression, TSNonNullExpression) > Literal[value='APPROVED']", message: "status \"APPROVED\"는 components/ops/ApproveDrawer.tsx에서만 만든다(I6)." },
   { selector: "Property[key.name='status'] > ConditionalExpression > Literal.consequent[value='APPROVED'], Property[key.name='status'] > ConditionalExpression > Literal.alternate[value='APPROVED']", message: "status \"APPROVED\"는 components/ops/ApproveDrawer.tsx에서만 만든다(I6)." },
+  // 값으로서의 "APPROVED"·"APPROVE"(감사 행 승인)는 어디에도 만들지 않는다: 상수·함수 반환·배열 등 우회까지 막는다(레드팀 10/24 C1).
+  // 허용: 타입 선언(TSLiteralType)과 비교(=== "APPROVED")
+  { selector: "Literal[value=/^APPROVED?$/]:not(TSLiteralType > Literal):not(BinaryExpression[operator=/^[!=]==?$/] > Literal)", message: "승인 상태·승인 감사 값(\"APPROVED\"·\"APPROVE\")은 components/ops/ApproveDrawer.tsx에서만 만든다(I6). 비교와 타입 선언만 허용." },
+  { selector: "TemplateElement[value.raw=/APPROV/]", message: "템플릿 문자열로 승인 상태를 만들지 않는다(I6)." },
 ];
 // 결정 경로 파일은 초월함수 금지(Math.sqrt 허용). 진실값(materialize 단계) 함수 truth*는 Math.exp 뒤 qT로 바꾸는 예외(3절).
 const TRANSCENDENTAL = "exp|expm1|log|log1p|log2|log10|pow|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|cbrt|hypot";
@@ -21,6 +25,9 @@ const NO_TRANSCENDENTAL = [
     message: "결정 경로(alloc·engine)에서는 초월함수를 쓰지 않는다(spec.md 3절, Math.sqrt만 허용). 진실값 계산은 truth* 함수에서만.",
   },
   { selector: "BinaryExpression[operator='**']", message: "결정 경로(alloc·engine)에서는 거듭제곱(**)을 쓰지 않는다(spec.md 3절 초월함수 규칙)." },
+  // 우회: Math["exp"], const { log } = Math, const M = Math
+  { selector: "MemberExpression[object.name='Math'][computed=true]", message: "결정 경로에서 Math를 계산된 이름으로 읽지 않는다(초월함수 규칙 우회 방지)." },
+  { selector: "VariableDeclarator[init.name='Math']", message: "결정 경로에서 Math를 변수·구조 분해로 꺼내지 않는다(초월함수 규칙 우회 방지)." },
 ];
 // 판단·진실 분리: 화면과 배정 규칙은 WorldTruth를 import하지 않는다(2장).
 const NO_WORLD_TRUTH = {

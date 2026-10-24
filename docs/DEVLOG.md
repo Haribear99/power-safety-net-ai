@@ -559,3 +559,26 @@
 - `.gitignore`에 `app/AGENTS.md`(`next dev`가 자동 생성).
 - **확인된 사실**: Vercel 프로젝트가 GitHub 연동이라 `master` push = 운영 배포(`git-master` 별칭). Preview 환경에 접근 코드·API 키·KV 토큰이 있음 → 인수인계서 0-3(사용자 조치).
 - **명세 대비 미구현 검사(인수인계서 6.1에 공개)**: `lint-claims` 문구 검사, Playwright E2E, Lighthouse CI·axe, ESLint 보호 규칙, 커버리지. 관문 1('E2E 녹색')은 Phase 2에서 Playwright MCP 수동 구동으로 대신했고, 그 대체를 결정으로 기록하지 않았다.
+
+## Phase 11 — 자동 검사 체계 (10/24)
+
+명세 9절에 계획만 있던 검사를 외부 인수인계 전에 만들었다(사용자 결정: 검사 체계는 master, 앱 동작 변경은 브랜치 PR, 문구는 고치지 않음, 범위 전부).
+
+- **ESLint 보호 규칙**(`app/eslint.config.mjs`): 승인 상태 대입은 `ApproveDrawer.tsx`만(문자열·템플릿·`as const`·`satisfies`·삼항식·대입), alloc·engine 초월함수·`**` 금지(진실값 `truth*` 함수와 `restoration.ts`는 명세 3절 예외), 화면·배정·재진입의 `WorldTruth` import 금지. 위반 프로브 파일로 규칙마다 발동 확인.
+- **문구 검사** `scripts/lint-claims.mjs`: TypeScript 구문 트리로 화면 코드 문자열·JSX 글자만(주석 제외) + 빌드 HTML + 보고서 1부 + 콘티. 기존 위반 13건(「끊겼」 사실 문장 7, 검사기 성능의 「막았습니다」 2, 끝 카드·콘티 % 문장 한정어 4)은 `lint-claims.allow.json`에 위치·문장 단위로 등록. 소분모 % 규칙은 분모가 글자에 없어 자동화 불가(수동).
+- **번들·예산**: `check-bundle.mjs`(키 형태·비밀 변수 이름 0), `check-js-budget.mjs`(디스크 gzip, 서버 측정 179,753B와 같음, 예산 185,000B).
+- **E2E** Playwright 1.64 + axe 4.14, 74건(데스크톱·Pixel 7). 모든 `/api/**`를 가로채고, 가로채지 않은 호출은 실패로 센다. AI 알림 상태는 응답을 흉내 내 화면 표지만 확인, 업로드는 EXIF(APP1)를 넣은 2400×1600 JPEG로 `shrink()`의 EXIF 제거·1568px 축소를 요청 본문에서 확인. axe는 그림·애니메이션이 끝난 뒤 재고(처음엔 /lab 결과가 흔들렸음), 기존 위반은 기준선 파일.
+- **발견한 기존 결함**: ① /household 확인 상태가 다음 샘플로 이어짐(확인 안 한 기종 하한 표시) ② /ops 서랍 입력이 다른 가구로 이어짐 ③ 두 줄 배너가 /ops·/lab 머리줄을 가림 ④ axe serious 31건 ⑤ 단위 시험 간헐 실패(전수 조합 시험 4.7초 > 기본 5초, 세션 시작 때 기록 못 한 실패의 원인) ⑥ 로컬 LCP 2.18초. ①~④는 브랜치 `fix/screen-defects`(PR #1)에서 고치고 master 시험은 `test.fail`로 표시, ⑤는 testTimeout 30초, ⑥은 운영 측정 1.86초(예산 안)라 로컬은 경고만.
+- **Lighthouse**: `lighthouserc.json`(로컬, 접근성 ≥0.9 실패 조건·LCP 경고), `lighthouserc.prod.json`(운영 URL, LCP ≤2.0초 판정).
+- **커버리지**: 전체 줄 79.17%(하한 79), engine 98.5%·alloc 99.6%(명세 9절 90% 하한).
+- **CI** `.github/workflows/ci.yml`: unit / e2e / lighthouse, Linux에 `fonts-noto-cjk`. 배너 겹침 결함 판정은 폭이 아니라 배너 실제 높이로(글꼴 차이 대비). master 첫 실행 3작업 모두 통과.
+- **검사 체계 레드팀 1라운드**(변이 50개, 잡힘 18·우연 3·못 잡음 29): 치명 5·중대 9. 검사가 '통째로 지우기'만 잡고 숨김·뜻 바꾸기·/lab·/ledger 숫자·다른 형태의 승인 우회를 놓쳤다. 대응:
+  - 승인: 값 "APPROVED"·"APPROVE"를 ApproveDrawer 밖에서 금지(타입·비교만 허용), 막힌 레인은 `disabled` 속성 + 강제 클릭 뒤 승인 기록 0, 일괄 승인 버튼 0, 승인 1회 = APPROVE 1건.
+  - 보이는지: `expectReadable`(숨김·1px·덮임·12px 미만·대비 4.5 미만 거부)을 배너·AI 표지·단서 문장에.
+  - 숫자·단서: `e2e/clues.spec.ts`가 /lab·/ledger 단서를 evidence.json에서 다시 만들어 대조, 절 번호↔앵커 짝. 랜딩 14.9%는 뜻(모의·실제보다 긴 경우·사후 집계)까지.
+  - 문구: 금지 목록을 `scripts/claims-rules.json`으로 공용화, JSX 인라인 요소로 쪼갠 문구·`+` 문자열도 합쳐 검사, 랜딩·랩·장부의 % 성과 문장까지 한정어 규칙, 예외는 문장 전체 일치(25개), E2E 고정장치가 시험 끝 화면 글자에서 금지 구문 확인.
+  - 고정장치: 외부 호스트 요청 0, 위치 권한은 조작 뒤까지 누적 0.
+  - 화면 로직 경계: 수정 사유(코드 없음·4자 거부, 5자 저장), 알림 차단 시 알림 판 0, 한전 통보 0·음수·빈칸·글자 거부, 다른 가구로 AI 글 안 넘어감, 가구 화면 탈락 원문 숨김, 2MB 상한, 119 행은 3칸 글자만, 두 시계 영역 'n시간' 숫자 금지.
+  - 기존 앱 결함 1건 추가 발견: 재신고 칸 공백 = 0% 재신고(브랜치에서 수정, master 시험은 test.fail).
+  - 경미: eslint `--max-warnings 0`, `Math["exp"]`·구조 분해 금지, JS 예산 185,000 → 180,500B, 위젯 요청 검사에서 `_rsc` 미리 받기 제외, 산출물 업로드 `include-hidden-files`, 소스의 비밀 같은 `NEXT_PUBLIC_` 금지, CI '검사 체계 변경 확인'(시험·기준선·예외·검사 설정을 바꾼 PR은 저장소 주인 PR이거나 `test-change-approved` 라벨이 있어야 통과).
+  - E2E 74 → 84건, 두 번 연속 통과.
