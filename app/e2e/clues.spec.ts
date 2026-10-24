@@ -95,13 +95,19 @@ for (const p of ["/", "/lab", "/ledger"]) {
 }
 
 // ---- 자리별 숫자표: 같은 데이터의 다른 값으로 바꿔치기(예: 14.9% → 4.9%)를 잡는다(레드팀 10/24 R3-4) ----
-// 각 %·분수 바로 앞 글자 12자(공백 제외)를 그 숫자의 자리 표지로 삼아 (자리, 값) 짝의 모음을 고정한다. 순서는 보지 않으므로 절 순서 개편은 통과.
-// 숫자 앞 문구를 바꾸면 이 표도 바뀌므로, 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만들고 guard 승인을 받는다.
+// 각 숫자(%·분수·소수·두 자리 이상, 단위 무관 — '9,000회'·'1.4시간'도) 바로 앞 글자 12자(공백 제외)를 그 숫자의 자리 표지로 삼아
+// (자리, 값) 짝의 모음을 고정한다. 순서는 보지 않으므로 절 순서 개편은 통과(레드팀 10/24 R3-4·R4-3).
+// 숫자 앞 문구를 바꾸면 이 표도 바뀌므로, 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만들고(바뀐 짝을 나눠 출력) guard 승인을 받는다.
 const NUMBER_MAP = path.join(__dirname, "number-map.json");
 function numberPairs(text: string): string[] {
   const t = text.replace(/\s+/g, "");
   const out: string[] = [];
-  for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?%|\d[\d,]*\/\d[\d,]*/g)) out.push(`${t.slice(Math.max(0, m.index! - 12), m.index)}|${m[0]}`);
+  for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?(?:%|\/\d[\d,]*)?/g)) {
+    const v = m[0];
+    // 한 자리 정수(① 같은 번호·문장 속 작은 수)는 뺀다. %·분수·소수·두 자리 이상은 모두 고정
+    if (!/[%/.]/.test(v) && v.replace(/,/g, "").length < 2) continue;
+    out.push(`${t.slice(Math.max(0, m.index! - 12), m.index)}|${v}`);
+  }
   return out.sort();
 }
 const numberMap: Record<string, string[]> = existsSync(NUMBER_MAP) ? JSON.parse(readFileSync(NUMBER_MAP, "utf-8")).pages : {};
@@ -111,7 +117,17 @@ test.describe("자리별 숫자표", () => {
     test("자리별 숫자표 다시 만들기", async ({ page }) => {
       const pages: Record<string, string[]> = {};
       for (const p of ["/", "/lab", "/ledger"]) { await page.goto(p); pages[p] = numberPairs(await page.locator("main").innerText()); }
-      writeFileSync(NUMBER_MAP, JSON.stringify({ _comment: "자리(숫자 앞 글자 12자)|값 짝. 숫자나 그 앞 문구가 바뀌면 시험이 실패한다. 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만든다", pages }, null, 2) + "\n");
+      // 검토용 차이: 값이 바뀐 짝(같은 자리, 다른 값)과 자리 문구만 바뀐 짝(같은 값, 다른 자리)을 나눠 출력한다
+      for (const [p, now] of Object.entries(pages)) {
+        const old = numberMap[p] ?? [];
+        const gone = old.filter((x) => !now.includes(x)), added = now.filter((x) => !old.includes(x));
+        const key = (x: string) => x.split("|");
+        const valueChanged = added.filter((a) => gone.some((g) => key(g)[0] === key(a)[0]));
+        const placeChanged = added.filter((a) => !valueChanged.includes(a) && gone.some((g) => key(g)[1] === key(a)[1]));
+        console.log(`[${p}] 값이 바뀐 짝 ${valueChanged.length}: ${valueChanged.join(" , ")}`);
+        console.log(`[${p}] 자리 문구만 바뀐 짝 ${placeChanged.length}, 새 짝 ${added.length - valueChanged.length - placeChanged.length}, 없어진 짝 ${gone.length}`);
+      }
+      writeFileSync(NUMBER_MAP, JSON.stringify({ _comment: "자리(숫자 앞 글자 12자)|값 짝. 숫자나 그 앞 문구가 바뀌면 시험이 실패한다. 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만든다(바뀐 짝을 나눠 출력)", pages }, null, 2) + "\n");
     });
     return;
   }

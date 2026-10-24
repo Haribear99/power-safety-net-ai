@@ -11,7 +11,15 @@ const sf = ts.createSourceFile(FILE, readFileSync(FILE, "utf-8"), ts.ScriptTarge
 function collect() {
   const literals: Record<string, number> = {};
   const commits: string[] = [];
+  const decisionWrites: string[] = [];
+  const commitRefs: string[] = [];
   const visit = (n: ts.Node) => {
+    // 결정을 감사 행 없이 직접 써넣는 길(레드팀 10/24 R4-2): decisions 속성 만들기·대입
+    if (ts.isPropertyAssignment(n) && n.name.getText(sf) === "decisions") decisionWrites.push(n.getText(sf).slice(0, 60));
+    if (ts.isShorthandPropertyAssignment(n) && n.name.text === "decisions") decisionWrites.push(n.getText(sf));
+    if (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.EqualsToken && /decisions/.test(n.left.getText(sf))) decisionWrites.push(n.getText(sf).slice(0, 60));
+    // commitDecision을 호출 말고 다른 식으로 쓰기(별칭·인자로 넘기기)
+    if (ts.isIdentifier(n) && n.text === "commitDecision" && !ts.isImportSpecifier(n.parent) && !(ts.isCallExpression(n.parent) && n.parent.expression === n)) commitRefs.push(n.parent.getText(sf).slice(0, 60));
     if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) {
       const p = n.parent;
       const isType = ts.isLiteralTypeNode(p);
@@ -28,16 +36,20 @@ function collect() {
     ts.forEachChild(n, visit);
   };
   visit(sf);
-  return { literals, commits };
+  return { literals, commits, decisionWrites, commitRefs };
 }
 
 describe("ApproveDrawer 안 승인 경로 고정", () => {
-  const { literals, commits } = collect();
+  const { literals, commits, decisionWrites, commitRefs } = collect();
   it('값 "APPROVED"는 한 번(onApprove), 감사 값 "APPROVE"도 한 번, 그 밖의 승인 비슷한 값 없음', () => {
     expect(literals).toEqual({ APPROVED: 1, APPROVE: 1 });
   });
   it("commitDecision 호출은 승인·대안 승인·수정 세 곳뿐", () => {
     // onApprove(승인), onApproveAlternative(재검토 대안 승인 → MODIFIED), submit(ModifyForm 수정 저장 → MODIFIED)
     expect(commits.sort()).toEqual(["onApprove", "onApproveAlternative", "submit"]);
+  });
+  it("결정을 직접 써넣지 않고(decisions 쓰기 0), commitDecision을 호출 말고 다른 식으로 쓰지 않는다", () => {
+    expect(decisionWrites).toEqual([]);
+    expect(commitRefs).toEqual([]);
   });
 });
