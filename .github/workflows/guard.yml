@@ -1,0 +1,44 @@
+# 검사 체계·수정 금지 파일 변경 감시(인수인계서 4.1절).
+# pull_request_target: 이 정의는 늘 기본 브랜치(master)에 있는 것으로 실행되므로, PR이 이 파일을 지우거나 고쳐도 감시는 그대로 돈다.
+# 보안: PR 코드는 실행하지 않는다. PR head를 가져와 파일 목록(git diff)만 본다.
+name: guard
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  guard:
+    name: 검사 체계·수정 금지 파일 변경 확인
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      # 승인 라벨은 그 시점의 변경에만 유효하다. 새 커밋이 올라오면 떼고 다시 확인받는다.
+      - name: 새 커밋이면 승인 라벨 떼기
+        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'test-change-approved')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: gh api -X DELETE "repos/$REPO/issues/$PR/labels/test-change-approved" || true
+      - name: 변경 파일 확인(이름 바꾸기는 원래 경로까지)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+          OWNER_PR: ${{ github.event.pull_request.author_association == 'OWNER' }}
+          LABELED: ${{ github.event.action != 'synchronize' && contains(github.event.pull_request.labels.*.name, 'test-change-approved') }}
+        run: |
+          git fetch --no-tags origin "pull/$PR/head:pr-head"
+          # --no-renames: 이름 바꾸기를 '원래 경로 삭제 + 새 경로 추가'로 보여 줘 원래 경로가 목록에 남는다
+          changed=$(git diff --name-only --no-renames "$BASE"...pr-head | grep -E '^(app/e2e/|app/scripts/|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package(-lock)?[.]json|app/tsconfig[.]json|app/next[.]config[.]ts|app/src/lib/|app/src/data/|app/src/app/api/|app/public/samples/|app/src/lib/ops/approval-scan[.]test[.]ts|[.]github/|tools/|spec/|prereg/|seal/|datasets/|out/)' || true)
+          if [ -z "$changed" ]; then echo "검사 체계·수정 금지 파일 변경 없음"; exit 0; fi
+          echo "검사 체계·수정 금지 파일 변경:"; echo "$changed"
+          if [ "$OWNER_PR" = "true" ] || [ "$LABELED" = "true" ]; then echo "의뢰인 확인됨(저장소 주인 PR 또는 승인 라벨)"; exit 0; fi
+          echo "::error::시험·기준선·예외·검사 설정 또는 수정 금지 파일(인수인계서 4.1절)이 바뀌었습니다. 의뢰인이 내용을 확인하고 'test-change-approved' 라벨을 붙여야 통과합니다."
+          exit 1

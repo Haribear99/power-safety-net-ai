@@ -1,9 +1,9 @@
 # 자동 검사(인수인계서 6장). PR과 master push마다 돈다. 비밀값 없이 동작한다(예산 저장소가 없으면 앱은 재생 모드, E2E는 /api를 모두 가로챔).
+# 검사 체계·수정 금지 파일 변경 감시는 guard.yml(pull_request_target, PR이 고칠 수 없음)에 있다.
 name: ci
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [master]
   workflow_dispatch:
@@ -20,32 +20,6 @@ defaults:
     working-directory: app
 
 jobs:
-  guard:
-    name: 검사 체계 변경 확인
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      # 시험·기준선·예외·검사 설정을 바꾸면 검사가 약해질 수 있다(인수인계서 4.1절).
-      # 저장소 주인의 PR이거나, 의뢰인이 내용을 보고 'test-change-approved' 라벨을 붙인 PR만 통과한다.
-      - name: 시험·기준선·예외·검사 설정 변경은 의뢰인 확인 필요
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          OWNER_PR: ${{ github.event.pull_request.author_association == 'OWNER' }}
-          LABELED: ${{ contains(github.event.pull_request.labels.*.name, 'test-change-approved') }}
-        run: |
-          changed=$(git diff --name-only "$BASE"...HEAD | grep -E '^(app/e2e/|app/scripts/(lint-claims|claims-rules|check-)|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package[.]json|app/src/lib/ops/approval-scan[.]test[.]ts|[.]github/)' || true)
-          if [ -z "$changed" ]; then echo "검사 체계 변경 없음"; exit 0; fi
-          echo "검사 체계 파일 변경:"; echo "$changed"
-          if [ "$OWNER_PR" = "true" ] || [ "$LABELED" = "true" ]; then echo "의뢰인 확인됨(저장소 주인 PR 또는 라벨)"; exit 0; fi
-          echo "::error::시험·기준선·예외·검사 설정이 바뀌었습니다. 의뢰인이 내용을 확인하고 'test-change-approved' 라벨을 붙여야 통과합니다."
-          exit 1
-
   unit:
     name: 단위 시험·타입·린트·커버리지
     runs-on: ubuntu-latest
@@ -78,6 +52,12 @@ jobs:
       # 한글 글꼴이 없으면 글자가 네모로 그려져 레이아웃 검사가 실제와 달라진다
       - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - run: npx playwright install --with-deps chromium
+      # 시험을 지우거나 testDir 밖으로 옮겨 조용히 빼는 것을 막는다(10/24 기준 91건)
+      - name: E2E 시험 수 하한
+        run: |
+          n=$(npx playwright test --list | tail -1 | grep -oE '[0-9]+' | head -1)
+          echo "E2E 시험 수: $n"
+          test "$n" -ge 91
       - run: npm run test:e2e
         env: { CI: "true" }
       - if: failure()

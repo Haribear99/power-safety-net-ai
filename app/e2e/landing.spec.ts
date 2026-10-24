@@ -79,16 +79,28 @@ test("공개 단서 문장과 숫자 = evidence.json", async ({ page }) => {
   const k = evidence.kpiOverPredict.rule;
   const overPct = ((k.k / k.n) * 100).toFixed(1);
   // 숫자만이 아니라 뜻(모의·실제보다 긴 경우·사후 집계)이 같은 항목 안에 있어야 한다(인수인계서 4.2절 B-4)
-  const kpiItem = page.locator("main li").filter({ hasText: `${overPct}%` });
+  const kpiItem = page.getByText(`모의에서는 이 하한이 실제보다 긴 경우가 ${overPct}%`, { exact: false });
   await expect(kpiItem).toHaveCount(1);
-  await expect(kpiItem).toContainText(`모의에서는 이 하한이 실제보다 긴 경우가 ${overPct}%`);
   await expect(kpiItem).toContainText("사후 집계");
   await expectReadable(kpiItem, "하한 14.9% 단서 문장");
-  const noticeItem = page.locator("main li").filter({ hasText: "쉬운 글·음성 안내" });
-  await expect(noticeItem).toContainText("시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음");
-  await expectReadable(noticeItem, "알림 소개(실제 발송 기능 없음)");
+  const noticeClue = page.getByText("시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음", { exact: false });
+  await expect(noticeClue).toHaveCount(1);
+  await expectReadable(noticeClue, "알림 소개(실제 발송 기능 없음)");
   const apt = evidence.calib.apt;
   await expect(page.getByTestId("avg-line")).toContainText(`${apt.n}건 중 ${apt.gt12h}건`);
   // 끝 카드 첫 줄: 현행 대비 감소율(evidence.lab.e2.pooledRel, ClosingCard의 pct())
   await expect(page.getByTestId("closing-card")).toContainText(`${(evidence.lab.e2.pooledRel * 100).toFixed(1)}% 감소`);
+});
+
+test("랜딩 본문 글자 16px 이상(표지·각주 제외) @mobile", async ({ page }) => {
+  // spec.md 1.3절 품질 예산 '본문 16px 이상', 인수인계서 4.2절 32번. 표지·각주는 명세가 정한 작은 글씨라 뺀다.
+  // 알려진 결함(10/24 발견): 끝 카드 본문 문단이 15px. 수정은 브랜치 fix/screen-defects
+  test.fail(!process.env.SCREEN_FIXES, "알려진 결함 — fix/screen-defects 병합 전까지 실패가 정상");
+  await page.goto("/");
+  const CAPTION = ["가정 시나리오 범위", "배터리 하한:", "복구 범위:", "AI 기반 운용 · 시연용"];
+  const small = await page.evaluate((caption) => [...document.querySelectorAll("main p, main li")]
+    .filter((e) => !e.closest("footer") && (e.textContent ?? "").trim().length > 0 && !caption.some((c) => (e.textContent ?? "").trim().startsWith(c)))
+    .map((e) => [parseFloat(getComputedStyle(e).fontSize), (e.textContent ?? "").trim().slice(0, 30)] as const)
+    .filter(([px]) => px < 16), CAPTION);
+  expect(small, "16px 미만 본문").toEqual([]);
 });

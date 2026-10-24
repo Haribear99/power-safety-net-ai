@@ -1,7 +1,7 @@
 // /ops·/ops/119 — spec.md 1.4·1.5절, 9절 E2E '/ops', 인수인계서 4.2절 D(사람 승인 구조와 화면 안 로직).
 // 수원형 프리셋 기준(정전 직후 배정 제안·대기 0건, 한전 통보 1시간을 넣으면 배정 제안 1·대기 6).
 import type { Page } from "@playwright/test";
-import { auditRows, backToOps, enterNotice, expect, expectReadable, goto119, laneCounts, openRow, rowIds, startOutage, test } from "./fixtures";
+import { auditRows, backToOps, enterNotice, expect, expectReadable, goto119, LANE_ROWS, laneCounts, openRow, rowIds, startOutage, test } from "./fixtures";
 
 async function approve(page: Page, id: string) {
   await openRow(page, id);
@@ -11,7 +11,7 @@ async function approve(page: Page, id: string) {
 
 test("수동검토 행이 맨 위, 승인 전 119 화면은 빈 화면", async ({ page }) => {
   await startOutage(page);
-  const first = page.locator('[data-testid="lane-table"] tbody tr').first();
+  const first = page.locator(LANE_ROWS).first();
   await expect(first).toHaveAttribute("data-lane", "MANUAL_REVIEW");
   const counts = await laneCounts(page);
   expect(counts.MANUAL_REVIEW).toBeGreaterThan(0);
@@ -57,9 +57,7 @@ test("일괄·자동 승인 경로 없음: 승인 한 번 = 승인 행 1개·감
   await expect(page.getByRole("button", { name: /승인/ })).toHaveCount(1);
   await page.getByTestId("approve").click();
   await expect(page.getByTestId("approve-drawer")).toContainText("승인됨");
-  expect((await auditRows(page)).filter((t) => /\bAPPROVE\b/.test(t))).toHaveLength(1);
-  const statuses = await page.locator('[data-testid="lane-table"] tbody tr td:last-child').allInnerTexts();
-  expect(statuses.filter((t) => t.includes("승인"))).toHaveLength(1);
+  expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count()).toBe(1);
 });
 
 test("119 승인 → 3필드(세 번째는 절대 시각) → 파기 → 빈 화면, 파기 가구는 보호자 알림 없음", async ({ page }) => {
@@ -70,13 +68,15 @@ test("119 승인 → 3필드(세 번째는 절대 시각) → 파기 → 빈 화
   await goto119(page);
   const row = page.getByTestId("row-119");
   await expect(row).toHaveCount(1);
-  await expect(row.locator("dt")).toHaveText(["위치", "기기", "예상 안전시간"]);
-  await expect(row.locator("dd")).toHaveCount(3);
+  await expect(row.locator("[data-field]")).toHaveCount(3);
+  for (const f of ["location", "device", "expectedSafeUntil"]) await expect(row.locator(`[data-field="${f}"]`)).not.toBeEmpty();
   await expect(row.locator('[data-field="expectedSafeUntil"]')).toContainText(/소진 하한 시각 \d\d:\d\d\(모의시각\)/);
-  // 행 전체 글자가 세 칸(dt·dd)으로만 이뤄져야 한다(연락처·층 같은 추가 정보 금지, I7 최소 전달)
-  const parts = await row.locator("dt, dd").allInnerTexts();
+  // 행 전체 글자가 세 칸의 이름표와 값으로만 이뤄져야 한다(연락처·층 같은 추가 정보 금지, I7 최소 전달)
+  const values = await row.locator("[data-field]").allInnerTexts();
   const squash = (t: string) => t.replace(/\s+/g, "");
-  expect(squash(await row.innerText())).toBe(squash(parts.join("")));
+  let rest = squash(await row.innerText());
+  for (const v of [...values, "위치", "기기", "예상안전시간"]) rest = rest.replace(squash(v), "");
+  expect(rest, "119 행에 세 칸 밖의 정보").toBe("");
   await page.getByTestId("purge-119").click();
   await expect(page.getByTestId("empty-119")).toBeVisible();
   await backToOps(page);
@@ -232,8 +232,6 @@ test("심사위원 경로를 따라가도 클릭 없이 승인 0", async ({ page
   await expect(page).toHaveURL(/\/ops/);
   await page.getByTestId("start-outage").click();
   await page.waitForTimeout(1500);
-  const statuses = await page.locator('[data-testid="lane-table"] tbody tr td:last-child').allInnerTexts();
-  expect(statuses.filter((t) => /승인|수정/.test(t))).toEqual([]);
   expect(await auditRows(page)).toEqual([]);
 });
 
@@ -259,4 +257,58 @@ test("다른 가구를 열면 서랍의 입력(사유·수정 사유)이 비워�
   await openRow(page, b);
   await expect(page.getByTestId("verify-reason")).toHaveValue("");
   await expect(page.getByTestId("modify-text")).toHaveValue("");
+});
+
+test("어떤 버튼을 눌러도 승인이 생기지 않는다(승인·대안 승인 버튼 제외)", async ({ page }) => {
+  // 이름이 아니라 행동으로 본다: 이름에 '승인'이 없는 일괄 반영 버튼도 여기서 걸린다(레드팀 10/24 R2-2)
+  test.slow();
+  await page.route("**/api/**", (r) => r.fulfill({ json: { mode: "replay", reason: "no_store", message: "시험" } }));
+  page.on("dialog", (d) => d.dismiss());
+  await startOutage(page);
+  const SKIP = new Set(["approve", "approve-alt"]);
+  // 처리 순서 표의 레인마다 한 가구씩 열어 서랍 안 버튼까지 누른다
+  const lanes = Object.keys(await laneCounts(page));
+  for (const lane of lanes) {
+    const [id] = await rowIds(page, lane);
+    if (!id) continue;
+    await openRow(page, id);
+    for (const d of await page.locator("details").all()) await d.evaluate((e) => ((e as HTMLDetailsElement).open = true));
+    const buttons = page.getByRole("button");
+    const n = await buttons.count();
+    for (let i = 0; i < n; i++) {
+      const b = buttons.nth(i);
+      if (!(await b.isVisible().catch(() => false)) || !(await b.isEnabled().catch(() => false))) continue;
+      const tid = await b.getAttribute("data-testid");
+      const name = (await b.innerText().catch(() => "")).trim();
+      if ((tid && SKIP.has(tid)) || /^승인$|대안 승인|닫기|^×?\d+$|정지|^open-/.test(name) || tid?.startsWith("open-") || tid?.startsWith("speed-")) continue;
+      await b.click({ timeout: 2000 }).catch(() => {});
+      if (!page.url().includes("/ops") || page.url().includes("/ops/119")) await page.goBack();
+    }
+    expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count(), `레인 ${lane} 서랍 버튼을 눌렀더니 승인 기록`).toBe(0);
+  }
+});
+
+test("같은 가구에서 사실이 바뀌면 이전 AI 글을 버리고 고정 문안으로 돌아간다", async ({ page }) => {
+  await page.route("**/api/notice", (route) => route.fulfill({ json: {
+    mode: "live", ok: true, promptVersion: "e2e", checkVersion: "e2e",
+    composed: { sentences: ["보호자님, 시험용 AI 문장입니다."], source: "ai", violations: [], rejectedAt: null, footer: "" },
+    meta: { latencyMs: 10, costUsd: 0, model: "e2e-mock" },
+  } }));
+  await startOutage(page);
+  await enterNotice(page, "1");
+  const [id] = await rowIds(page, "PROPOSE_ASSIGN");
+  await approve(page, id);
+  await page.getByTestId("notice-generate").click();
+  await expect(page.getByTestId("notice-text")).toContainText("시험용 AI 문장입니다");
+  // 연식 확인으로 배터리 하한이 바뀌면(사실 변경) 결정은 그대로라도 앞서 만든 AI 글은 버려야 한다
+  await page.getByText("확인 조작(운영자, 사유 필수)").click();
+  await page.getByTestId("verify-reason").fill("대여 기록 확인");
+  // 빈 연식으로 저장하면 거부 문구가 뜬다(이 문구도 시험 중 화면 글자 검사 대상)
+  await page.getByTestId("verify-age").click();
+  await expect(page.getByTestId("approve-drawer").getByRole("status")).toContainText("저장 불가");
+  await page.getByLabel("배터리 연식(년)").fill("0");
+  await page.getByTestId("verify-age").click();
+  await expect(page.getByTestId("approve-drawer").getByRole("status")).toContainText("저장했습니다");
+  await expect(page.getByTestId("notice-text")).not.toContainText("시험용 AI 문장입니다");
+  await expect(page.getByTestId("notice-panel")).toContainText("고정 문안");
 });

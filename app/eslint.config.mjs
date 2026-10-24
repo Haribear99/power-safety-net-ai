@@ -14,8 +14,11 @@ const NO_APPROVED = [
   { selector: "Property[key.name='status'] > ConditionalExpression > Literal.consequent[value='APPROVED'], Property[key.name='status'] > ConditionalExpression > Literal.alternate[value='APPROVED']", message: "status \"APPROVED\"는 components/ops/ApproveDrawer.tsx에서만 만든다(I6)." },
   // 값으로서의 "APPROVED"·"APPROVE"(감사 행 승인)는 어디에도 만들지 않는다: 상수·함수 반환·배열 등 우회까지 막는다(레드팀 10/24 C1).
   // 허용: 타입 선언(TSLiteralType)과 비교(=== "APPROVED")
-  { selector: "Literal[value=/^APPROVED?$/]:not(TSLiteralType > Literal):not(BinaryExpression[operator=/^[!=]==?$/] > Literal)", message: "승인 상태·승인 감사 값(\"APPROVED\"·\"APPROVE\")은 components/ops/ApproveDrawer.tsx에서만 만든다(I6). 비교와 타입 선언만 허용." },
-  { selector: "TemplateElement[value.raw=/APPROV/]", message: "템플릿 문자열로 승인 상태를 만들지 않는다(I6)." },
+  { selector: "Literal[value=/^approved?$/i]:not(TSLiteralType > Literal):not(BinaryExpression[operator=/^[!=]==?$/] > Literal)", message: "승인 상태·승인 감사 값(\"APPROVED\"·\"APPROVE\", 대소문자 무관)은 components/ops/ApproveDrawer.tsx에서만 만든다(I6). 비교와 타입 선언만 허용." },
+  // 조각으로 나눠 만드는 우회: `APP${"ROVED"}`, "APP" + "ROVED"
+  { selector: "TemplateElement[value.raw=/app|pprov|roved?$/i]", message: "템플릿 문자열 조각으로 승인 상태를 만들지 않는다(I6)." },
+  { selector: "Literal[value=/^(app|appr|appro|approv|pproved?|proved?|roved?|oved?)$/i]", message: "문자열 조각으로 승인 상태를 만들지 않는다(I6)." },
+  { selector: "CallExpression[callee.property.name=/^to(Upper|Lower|LocaleUpper|LocaleLower)Case$/] > MemberExpression > Literal[value=/approv/i]", message: "대소문자 변환으로 승인 상태를 만들지 않는다(I6)." },
 ];
 // 결정 경로 파일은 초월함수 금지(Math.sqrt 허용). 진실값(materialize 단계) 함수 truth*는 Math.exp 뒤 qT로 바꾸는 예외(3절).
 const TRANSCENDENTAL = "exp|expm1|log|log1p|log2|log10|pow|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|cbrt|hypot";

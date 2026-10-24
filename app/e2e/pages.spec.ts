@@ -21,8 +21,8 @@ for (const p of PAGES) {
     await page.waitForTimeout(200);
     const box = await banner.boundingBox();
     expect(box!.y).toBeLessThanOrEqual(1);
-    const top = await page.evaluate(() => { const b = document.querySelector('[data-testid="legal-banner"]')!.getBoundingClientRect(); const e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!e && !!e.closest('[data-testid="legal-banner"]'); });
-    expect(top, `${p} 스크롤 뒤 배너가 다른 요소에 덮임`).toBe(true);
+    // 글자 줄 전체를 8px 간격으로 찍어 일부만 덮는 띠·배지도 잡는다
+    await expectReadable(banner, `${p} 스크롤 뒤 배너`);
   });
 
   test(`가로 스크롤 없음 ${p}`, async ({ page }) => {
