@@ -1,5 +1,7 @@
 // /lab·/ledger의 숫자와 공개 단서 — 인수인계서 4.2절 A-1·2(숫자 = evidence.json), B-6(한계·틀린 예측·맞바꿈), D-22(절 번호).
 // 기대 문자열은 evidence.json에서 다시 만든다(화면 문자열을 손으로 베끼지 않는다). 띄어쓰기는 무시하고 대조한다.
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { Page } from "@playwright/test";
 import { evidence as e, expect, expectReadable, test } from "./fixtures";
 
@@ -13,7 +15,7 @@ const LAB_SECTIONS: Record<string, string> = { breakeven: "①", map: "②", com
 test("/lab 절 번호와 앵커의 짝이 그대로", async ({ page }) => {
   await page.goto("/lab");
   for (const [id, n] of Object.entries(LAB_SECTIONS)) {
-    await expect(page.locator(`section#${id} > h2`), `#${id}`).toContainText(n);
+    await expect(page.locator(`[id="${id}"]`).getByRole("heading").first(), `#${id}`).toContainText(n);
   }
 });
 
@@ -32,11 +34,11 @@ test("/lab 공개 단서·숫자 = evidence.json", async ({ page }) => {
   ];
   for (const [what, s] of must) expect(t.includes(squash(s)), `/lab ${what}: 「${s}」`).toBe(true);
   // 틀린 예측 공개: 사전등록 대조 절에 틀린 판정(×)과 맞힌 수 표기가 있어야 한다
-  const prereg = page.locator("section#prereg");
+  const prereg = page.locator('[id="prereg"]');
   await expect(prereg).toContainText("×");
   await expect(prereg).toContainText("맞힘");
   await expect(prereg).toContainText("목표 0건에 못 미칩니다");
-  await expectReadable(page.locator("section#prereg > h2"), "/lab ⑥ 제목");
+  await expectReadable(page.locator('[id="prereg"]').getByRole("heading").first(), "/lab ⑥ 제목");
 });
 
 test("/ledger 공개 단서·숫자 = evidence.json", async ({ page }) => {
@@ -54,3 +56,40 @@ test("/ledger 공개 단서·숫자 = evidence.json", async ({ page }) => {
   ];
   for (const [what, str] of must) expect(t.includes(squash(str)), `/ledger ${what}: 「${str}」`).toBe(true);
 });
+
+/** 화면에 나오는 모든 %·분수가 evidence.json·lab.json·params.json의 값(또는 그 비율·반올림)으로 설명되는지(레드팀 10/24 R2-9: 같은 값이 여러 곳에 나올 때 한 곳만 보던 공백) */
+function allowedNumbers() {
+  const read = (p: string) => JSON.parse(readFileSync(path.join(__dirname, "..", p), "utf-8"));
+  const vals = new Set<number>();
+  const pairs: [number, number][] = [];
+  const walk = (o: unknown) => {
+    if (typeof o === "number") vals.add(o);
+    else if (o && typeof o === "object") {
+      const r = o as Record<string, unknown>;
+      for (const [a, b] of [["k", "n"], ["hit", "total"], ["w", "n"]] as const) if (typeof r[a] === "number" && typeof r[b] === "number") pairs.push([r[a] as number, r[b] as number]);
+      Object.values(r).forEach(walk);
+    }
+  };
+  for (const p of ["src/data/evidence.json", "src/data/lab.json", "../spec/params.json"]) walk(read(p));
+  for (const [k, n] of pairs) if (n) vals.add(k / n);
+  const pct = new Set<string>();
+  for (const v of vals) for (const x of [v, v * 100]) {
+    if (!isFinite(x)) continue;
+    for (const y of [x, Math.abs(x)]) for (const d of [0, 1, 2]) pct.add(y.toFixed(d));
+  }
+  return { vals, pct };
+}
+
+for (const p of ["/", "/lab", "/ledger"]) {
+  test(`${p} 화면의 모든 %·분수 = 데이터 값`, async ({ page }) => {
+    const { vals, pct } = allowedNumbers();
+    await page.goto(p);
+    const t = await page.locator("main").innerText();
+    const badPct = [...new Set([...t.matchAll(/(\d+(?:\.\d+)?)\s*%/g)].map((m) => m[1]))].filter((x) => !pct.has(x));
+    const badFrac = [...new Set([...t.matchAll(/(\d[\d,]*)\s*\/\s*(\d[\d,]*)/g)].map((m) => [m[1], m[2]]))]
+      .filter(([a, b]) => ![a, b].every((x) => vals.has(Number(x.replace(/,/g, ""))) || pct.has(x.replace(/,/g, ""))))
+      .map(([a, b]) => `${a}/${b}`);
+    expect(badPct, `${p}: 데이터로 설명되지 않는 %`).toEqual([]);
+    expect(badFrac, `${p}: 데이터로 설명되지 않는 분수`).toEqual([]);
+  });
+}

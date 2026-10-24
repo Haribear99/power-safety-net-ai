@@ -18,10 +18,9 @@ const norm = (t) => t.replace(/\s+/g, " ").trim();
 
 // ---- 규칙 (spec.md 9절 '금지 표현', 공용 목록) ----
 const { banned: BANNED } = JSON.parse(readFileSync(path.join(APP, "scripts", "claims-rules.json"), "utf-8"));
-const QUALIFIER = /모의|시뮬레이션|봉인 시험셋/;
+// 「봉인 측정」: 보호자 알림(S9) 실측도 봉인 시험셋 측정이라 같은 한정어로 인정(명세 9절 「봉인 시험셋」 대체 규칙의 취지)
+const QUALIFIER = /모의|시뮬레이션|봉인 시험셋|봉인 측정/;
 const MEASURED_OK = /실측 (정전|판독|분포)|실측 정전시간|실측 자료/;
-/** 화면의 성과·효과 문장(한정어 규칙 대상): %와 효과 동사가 같은 문장에 있을 때 */
-const CLAIM = /\d\s*%[^.]{0,40}(감소|줄|늘|낫|개선|우세|열등|닫|남)|(감소|줄|늘|낫|개선|우세|열등|닫)[^.]{0,40}\d\s*%/;
 
 // ---- 단위 수집 ----
 /** @type {{file:string, where:string, text:string, scope:Set<string>}[]} */
@@ -57,15 +56,34 @@ function jsxText(n) {
   (ts.isJsxElement(n) || ts.isJsxFragment(n) ? n.children : []).forEach(add);
   return out;
 }
-/** 문자열 리터럴과 그 + 이어 붙이기만 값으로 푼다(나머지는 null) */
-function constString(e) {
+/** 같은 파일의 const 문자열 상수(이름 → 값). 상수를 이어 붙여 금지 구문을 만드는 우회를 푼다 */
+let CONSTS = new Map();
+/** 문자열 리터럴, 같은 파일 const 상수, 템플릿(값 자리도 상수면 풂), + 이어 붙이기를 값으로 푼다(나머지는 null) */
+function constString(e, depth = 0) {
+  if (depth > 8) return null;
   if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) return e.text;
-  if (ts.isParenthesizedExpression(e)) return constString(e.expression);
+  if (ts.isParenthesizedExpression(e) || ts.isAsExpression(e)) return constString(e.expression, depth + 1);
+  if (ts.isIdentifier(e) && CONSTS.has(e.text)) return constString(CONSTS.get(e.text), depth + 1);
+  if (ts.isTemplateExpression(e)) {
+    let out = e.head.text;
+    for (const sp of e.templateSpans) { const v = constString(sp.expression, depth + 1); if (v == null) return null; out += v + sp.literal.text; }
+    return out;
+  }
   if (ts.isBinaryExpression(e) && e.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-    const a = constString(e.left), b = constString(e.right);
+    const a = constString(e.left, depth + 1), b = constString(e.right, depth + 1);
     return a != null && b != null ? a + b : null;
   }
   return null;
+}
+
+/** + 이어 붙이기·템플릿에서 풀 수 있는 조각만 잇고, 풀 수 없는 자리는 공백 한 칸으로 둔다 */
+function partsJoin(e) {
+  const v = constString(e);
+  if (v != null) return v;
+  if (ts.isParenthesizedExpression(e)) return partsJoin(e.expression);
+  if (ts.isBinaryExpression(e) && e.operatorToken.kind === ts.SyntaxKind.PlusToken) return partsJoin(e.left) + partsJoin(e.right);
+  if (ts.isTemplateExpression(e)) return e.head.text + e.templateSpans.map((sp) => (constString(sp.expression) ?? " ") + sp.literal.text).join("");
+  return " ";
 }
 
 // 1) 화면 코드 문자열(주석 제외). 시험 파일은 뺀다.
@@ -75,17 +93,21 @@ for (const f of SRC_DIRS.flatMap((d) => walk(d, (p) => /\.(ts|tsx)$/.test(p) && 
   const sf = ts.createSourceFile(f, src, ts.ScriptTarget.Latest, true, f.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
   const isClosing = /components[\\/]ClosingCard\.tsx$/.test(f);
   const line = (n) => `L${sf.getLineAndCharacterOfPosition(n.getStart()).line + 1}`;
+  CONSTS = new Map();
+  const collect = (n) => {
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.initializer && ts.isVariableDeclarationList(n.parent) && (n.parent.flags & ts.NodeFlags.Const)) CONSTS.set(n.name.text, n.initializer);
+    ts.forEachChild(n, collect);
+  };
+  collect(sf);
   const visit = (n) => {
     if (ts.isJsxElement(n) || ts.isJsxFragment(n)) {
       push(rel(f), line(n), jsxText(n), isClosing ? ["closing"] : []);
-    } else if (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-      const v = constString(n);
-      if (v != null) push(rel(f), line(n), v, isClosing ? ["closing"] : []);
+    } else if ((ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.PlusToken) || ts.isTemplateExpression(n)) {
+      // 값을 모두 풀 수 있으면 그 값으로, 아니면 풀 수 없는 자리를 공백으로 둔 채 한 덩어리로 본다(`생명을 ${x}지킵니다` 대비)
+      const v = constString(n) ?? partsJoin(n);
+      push(rel(f), line(n), v, isClosing ? ["closing"] : []);
     } else if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) || ts.isTemplateHead(n) || ts.isTemplateMiddle(n) || ts.isTemplateTail(n)) {
       push(rel(f), line(n), n.text, isClosing ? ["closing"] : []);
-    } else if (ts.isTemplateExpression(n)) {
-      // 템플릿 전체(값 자리는 공백)도 한 덩어리로 본다
-      push(rel(f), line(n), [n.head.text, ...n.templateSpans.map((s) => " " + s.literal.text)].join(""), isClosing ? ["closing"] : []);
     }
     ts.forEachChild(n, visit);
   };
@@ -104,7 +126,9 @@ for (const f of htmlFiles) {
   const html = readFileSync(f, "utf-8").replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ");
   const page = path.basename(f);
   const claimPage = ["index.html", "lab.html", "ledger.html"].includes(page);
-  for (const s of sentences(toText(html))) push(rel(f), "html", s, claimPage && CLAIM.test(norm(s)) ? ["qualify"] : []);
+  for (const s of sentences(toText(html))) push(rel(f), "html", s);
+  // 랜딩·랩·장부의 % 문장은 동사와 상관없이 같은 문장에 한정어가 있어야 한다(표 안 숫자 칸은 절 제목·표지가 한정어를 맡으므로 제외)
+  if (claimPage) for (const s of sentences(toText(html.replace(/<table[\s\S]*?<\/table>/g, " ")))) if (/\d\s*%/.test(s)) push(rel(f), "html:%", s, ["qualify"]);
   const closing = html.match(/data-testid="closing-card"[\s\S]*?<\/section>/);
   if (closing) for (const s of sentences(toText(closing[0]))) push(rel(f), "html:closing-card", s, ["closing"]);
 }

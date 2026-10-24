@@ -25,9 +25,28 @@ type Fixtures = {
   apiCalls: string[];
   /** 위치 권한 호출 수(페이지를 옮겨도 누적) */
   geo: { calls: number };
+  /** 시험 동안 화면에 한 번이라도 나타난 글자(오류·안내 문구처럼 잠깐 뜨는 것까지) */
+  seenText: string[];
 };
 
 export const test = base.extend<Fixtures>({
+  seenText: [async ({ page }, use) => {
+    const seen: string[] = [];
+    await page.exposeBinding("__seenPush", (_src, t: string) => { if (t && t.trim()) seen.push(t); });
+    await page.addInitScript(() => {
+      const push = (window as unknown as { __seenPush: (t: string) => void }).__seenPush;
+      const grab = (n: Node) => { const t = n.nodeType === Node.TEXT_NODE ? n.textContent : (n as HTMLElement).innerText ?? n.textContent; if (t) push(t); };
+      const start = () => {
+        grab(document.body);
+        new MutationObserver((ms) => { for (const m of ms) { if (m.type === "characterData") grab(m.target); for (const n of m.addedNodes) grab(n); } })
+          .observe(document.body, { childList: true, subtree: true, characterData: true });
+      };
+      if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
+    });
+    await use(seen);
+    // 시험 동안 나타난 모든 글자에 금지 구문이 없어야 한다(마지막 화면만 보면 잠깐 뜨는 문구를 놓친다)
+    expect([...new Set(seen.flatMap(bannedIn))], "시험 중 화면에 나타난 글자에 금지 구문(scripts/claims-rules.json)").toEqual([]);
+  }, { auto: true }],
   geo: [async ({ page }, use) => {
     const geo = { calls: 0 };
     await page.exposeBinding("__geoHit", () => { geo.calls++; });
@@ -82,9 +101,19 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const rect = he.getBoundingClientRect();
     const cs = getComputedStyle(he);
     const visible = typeof he.checkVisibility === "function" ? he.checkVisibility({ opacityProperty: true, visibilityProperty: true }) : true;
-    // 다른 요소에 덮였는지: 요소 안 여러 점에서 맨 위 요소가 이 요소(또는 그 자식)인지
-    const pts = [[0.5, 0.5], [0.15, 0.5], [0.85, 0.5]].map(([fx, fy]) => document.elementFromPoint(rect.left + rect.width * fx, rect.top + rect.height * fy));
-    const covered = pts.filter((p) => !(p && (p === he || he.contains(p)))).length;
+    // 다른 요소에 덮였는지: 글자가 실제로 그려진 줄 사각형마다 8px 간격으로 찍어, 맨 위 요소가 이 요소(또는 그 자식)인지
+    const range = document.createRange();
+    range.selectNodeContents(he);
+    const lines = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1 && r.bottom > 0 && r.top < innerHeight);
+    let covered = 0, sampled = 0;
+    for (const ln of lines) {
+      for (let x = ln.left + 2; x < ln.right - 1; x += 8) {
+        const p = document.elementFromPoint(x, ln.top + ln.height / 2);
+        sampled++;
+        if (!(p && (p === he || he.contains(p)))) covered++;
+      }
+    }
+    if (sampled === 0) covered = 1;
     // 대비: 글자색 대 실제 배경(투명이면 위로 올라가며 찾음)
     const parse = (c: string) => { const m = c.match(/[\d.]+/g)!.map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 }; };
     let bgEl: HTMLElement | null = he, bg = { r: 255, g: 255, b: 255, a: 0 };
@@ -102,7 +131,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
   expect(r.visible, `${what}: 보이지 않음`).toBe(true);
   expect(r.w > 4 && r.h > 4, `${what}: 크기 ${r.w}×${r.h}`).toBe(true);
   expect(r.font, `${what}: 글자 크기`).toBeGreaterThanOrEqual(12);
-  expect(r.covered, `${what}: 다른 요소에 덮임`).toBe(0);
+  expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음)`).toBe(0);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
 }
 
@@ -113,26 +142,17 @@ export async function startOutage(page: Page, preset = "PRESET-SUWON") {
   await expect(page.getByTestId("lane-table")).toBeVisible();
 }
 
-/** 처리 순서 표에서 레인별 '제안' 행 id 목록. device를 주면 기기 칸에 그 글자가 든 행만(예: "인공호흡기") */
-export async function rowIds(page: Page, lane: string, device?: string): Promise<string[]> {
-  return page.locator(`[data-testid="lane-table"] tbody tr[data-lane="${lane}"]`).evaluateAll((rows, dev) =>
-    rows.filter((r) => r.textContent?.includes("제안") && (!dev || r.children[1]?.textContent?.includes(dev)))
-      .map((r) => r.getAttribute("data-testid")!.replace(/^row-/, "")), device);
-}
+/** 처리 순서 표의 행(태그 구조가 아니라 data-lane 속성으로 찾는다: 표를 카드로 바꿔도 같은 속성이면 그대로 동작) */
+export const LANE_ROWS = '[data-testid="lane-table"] [data-lane][data-testid^="row-"]';
 
-/** 처리 순서 표의 '제안' 행: id·레인·기기·남은 하한(시간, 소진·미계산이면 null) */
-export async function rowsInfo(page: Page): Promise<{ id: string; lane: string; device: string; lH: number | null }[]> {
-  return page.locator('[data-testid="lane-table"] tbody tr').evaluateAll((rows) => rows
-    .filter((r) => r.textContent?.includes("제안"))
-    .map((r) => {
-      const l = r.children[2]?.textContent ?? "";
-      const m = /^([\d.]+)h/.exec(l.trim());
-      return { id: r.getAttribute("data-testid")!.replace(/^row-/, ""), lane: r.getAttribute("data-lane")!, device: r.children[1]?.textContent ?? "", lH: m ? Number(m[1]) : null };
-    }));
+/** 처리 순서 표에서 레인별 '제안' 행 id 목록 */
+export async function rowIds(page: Page, lane: string): Promise<string[]> {
+  return page.locator(`[data-testid="lane-table"] [data-lane="${lane}"][data-testid^="row-"]`).evaluateAll((rows) =>
+    rows.filter((r) => r.textContent?.includes("제안")).map((r) => r.getAttribute("data-testid")!.replace(/^row-/, "")));
 }
 
 export async function laneCounts(page: Page): Promise<Record<string, number>> {
-  return page.locator('[data-testid="lane-table"] tbody tr').evaluateAll((rows) => {
+  return page.locator(LANE_ROWS).evaluateAll((rows) => {
     const m: Record<string, number> = {};
     for (const r of rows) { const l = r.getAttribute("data-lane")!; m[l] = (m[l] ?? 0) + 1; }
     return m;
@@ -163,5 +183,5 @@ export async function backToOps(page: Page) {
 export async function auditRows(page: Page): Promise<string[]> {
   const t = page.getByTestId("audit-table");
   if (!(await t.count())) return [];
-  return t.locator("tbody tr").allInnerTexts();
+  return t.locator("[data-action]").allInnerTexts();
 }

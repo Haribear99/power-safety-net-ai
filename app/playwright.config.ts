@@ -24,7 +24,8 @@ export default defineConfig({
   webServer: {
     command: `npx next start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    // 남은 서버(이전 빌드)를 재사용하지 않는다: 중단된 실행이 남긴 서버로 옛 빌드를 시험하는 사고 방지(레드팀 10/24)
+    reuseExistingServer: false,
     timeout: 120_000,
     env: { ...BLANK, NODE_ENV: "production" },
   },
