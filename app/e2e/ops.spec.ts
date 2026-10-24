@@ -258,33 +258,65 @@ test("다른 가구를 열면 서랍의 입력(사유·수정 사유)이 비워�
   await expect(page.getByTestId("modify-text")).toHaveValue("");
 });
 
-test("어떤 버튼을 눌러도 승인이 생기지 않는다(승인·대안 승인 버튼 제외)", async ({ page }) => {
-  // 이름이 아니라 행동으로 본다: 이름에 '승인'이 없는 일괄 반영 버튼도 여기서 걸린다(레드팀 10/24 R2-2)
-  test.slow();
-  await page.route("**/api/**", (r) => r.fulfill({ json: { mode: "replay", reason: "no_store", message: "시험" } }));
+test("어떤 버튼을 눌러도 승인이 생기지 않는다: 승인 1번 = 기록 1건, 다른 버튼으로는 늘지 않음", async ({ page }) => {
+  // 이름이 아니라 행동으로 본다. 건너뛰는 것은 승인·대안 승인 버튼(data-testid)뿐이고, '닫기'·'정지'처럼 무해해 보이는 이름도 누른다
+  // (이름에 '승인'이 없는 일괄 반영·'추천 반영하고 닫기' 같은 우회 대비, 레드팀 10/24 R2-2·R3-2)
+  test.setTimeout(240_000);
+  // 이 시험은 시험용 서버의 실제 응답을 쓴다: 서버는 키·예산 저장소 변수가 비어 있어(playwright.config.ts) 외부 호출 없이 재생 모드로 답한다
+  await page.route("**/api/**", (r) => r.continue());
   page.on("dialog", (d) => d.dismiss());
   await startOutage(page);
+  const approves = () => page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count();
   const SKIP = new Set(["approve", "approve-alt"]);
-  // 처리 순서 표의 레인마다 한 가구씩 열어 서랍 안 버튼까지 누른다
+
+  /** scope 안의 버튼을 하나씩 모두 누른다(승인·대안 승인·행 열기 제외). 서랍이 닫히면 다시 연다 */
+  async function pressAll(id: string, scope: "drawer" | "outside") {
+    // 서랍 다시 열기: 고정 머리줄에 가려 클릭 대기가 길어질 수 있어 클릭 이벤트를 직접 보낸다
+    // 조작 결과 그 가구가 표에서 빠지면(결과에 없는 가구는 숨김) 그 가구는 끝낸다. 승인 기록 0 확인은 그대로 적용된다
+    const reopen = async () => {
+      if ((await page.getByTestId(`open-${id}`).count()) === 0) return false;
+      await page.getByTestId(`open-${id}`).dispatchEvent("click", undefined, { timeout: 5000 });
+      await expect(page.getByTestId("approve-drawer")).toBeVisible();
+      return true;
+    };
+    if (!(await reopen())) return;
+    let i = 0;
+    for (let guard = 0; guard < 60; guard++) {
+      if (!(await page.getByTestId("approve-drawer").isVisible().catch(() => false)) && !(await reopen())) break;
+      await page.evaluate(() => document.querySelectorAll("details").forEach((d) => (d.open = true)));
+      const buttons = scope === "drawer"
+        ? page.getByTestId("approve-drawer").getByRole("button")
+        : page.locator("button:not([data-testid='approve-drawer'] button)");
+      const n = await buttons.count();
+      if (i >= n) break;
+      const b = buttons.nth(i++);
+      const tid = (await b.getAttribute("data-testid", { timeout: 1000 }).catch(() => null)) ?? "";
+      if (SKIP.has(tid) || tid.startsWith("open-")) continue;
+      if (!(await b.isVisible().catch(() => false)) || !(await b.isEnabled().catch(() => false))) continue;
+      await b.click({ timeout: 2000 }).catch(() => {});
+      // 모의 시계 배속을 눌렀으면 바로 멈춘다(화면이 계속 다시 그려지면 이후 조작이 흔들림)
+      if (tid.startsWith("speed-")) await page.getByTestId("speed-0").click({ timeout: 2000 }).catch(() => {});
+      if (!page.url().includes("/ops") || page.url().includes("/ops/119")) await page.goBack();
+    }
+  }
+
+  // 1) 서랍 밖(상단 바·표·패널) 버튼을 한 번씩, 그리고 레인마다 한 가구씩 서랍 안 버튼을 모두: 승인 기록 0
   const lanes = Object.keys(await laneCounts(page));
+  const [first] = await rowIds(page, lanes[0]);
+  await pressAll(first, "outside");
+  expect(await approves(), "서랍 밖 버튼을 눌렀더니 승인 기록").toBe(0);
   for (const lane of lanes) {
     const [id] = await rowIds(page, lane);
     if (!id) continue;
-    await openRow(page, id);
-    for (const d of await page.locator("details").all()) await d.evaluate((e) => ((e as HTMLDetailsElement).open = true));
-    const buttons = page.getByRole("button");
-    const n = await buttons.count();
-    for (let i = 0; i < n; i++) {
-      const b = buttons.nth(i);
-      if (!(await b.isVisible().catch(() => false)) || !(await b.isEnabled().catch(() => false))) continue;
-      const tid = await b.getAttribute("data-testid");
-      const name = (await b.innerText().catch(() => "")).trim();
-      if ((tid && SKIP.has(tid)) || /^승인$|대안 승인|닫기|^×?\d+$|정지|^open-/.test(name) || tid?.startsWith("open-") || tid?.startsWith("speed-")) continue;
-      await b.click({ timeout: 2000 }).catch(() => {});
-      if (!page.url().includes("/ops") || page.url().includes("/ops/119")) await page.goBack();
-    }
-    expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count(), `레인 ${lane} 서랍 버튼을 눌렀더니 승인 기록`).toBe(0);
+    await pressAll(id, "drawer");
+    expect(await approves(), `레인 ${lane} 서랍의 버튼을 눌렀더니 승인 기록`).toBe(0);
   }
+  // 2) 승인 한 번 = 정확히 1건, 그 뒤 같은 서랍의 다른 버튼을 눌러도 늘지 않음
+  const [target] = await rowIds(page, "FALLBACK_119");
+  await approve(page, target);
+  expect(await approves()).toBe(1);
+  await pressAll(target, "drawer");
+  expect(await approves(), "승인 뒤 다른 버튼으로 승인 기록이 늘어남").toBe(1);
 });
 
 test("같은 가구에서 사실이 바뀌면 이전 AI 글을 버리고 고정 문안으로 돌아간다", async ({ page }) => {

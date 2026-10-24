@@ -26,7 +26,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-        run: gh api -X DELETE "repos/$REPO/issues/$PR/labels/test-change-approved" || true
+        # 실패를 숨기지 않는다(권한 문제로 라벨이 남으면 재승인 없이 통과할 수 있음)
+        run: gh api -X DELETE "repos/$REPO/issues/$PR/labels/test-change-approved"
       - name: 변경 파일 확인(이름 바꾸기는 원래 경로까지)
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
@@ -36,7 +37,7 @@ jobs:
         run: |
           git fetch --no-tags origin "pull/$PR/head:pr-head"
           # --no-renames: 이름 바꾸기를 '원래 경로 삭제 + 새 경로 추가'로 보여 줘 원래 경로가 목록에 남는다
-          changed=$(git diff --name-only --no-renames "$BASE"...pr-head | grep -E '^(app/e2e/|app/scripts/|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package(-lock)?[.]json|app/tsconfig[.]json|app/next[.]config[.]ts|app/src/lib/|app/src/data/|app/src/app/api/|app/public/samples/|app/src/lib/ops/approval-scan[.]test[.]ts|[.]github/|tools/|spec/|prereg/|seal/|datasets/|out/)' || true)
+          changed=$(git diff --name-only --no-renames "$BASE"...pr-head | grep -E '^(app/e2e/|app/scripts/|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package(-lock)?[.]json|app/tsconfig[.]json|app/next[.]config[.]ts|app/src/lib/|app/src/data/|app/src/app/api/|app/public/samples/|[.]test[.]tsx?$|[.]github/|tools/|spec/|prereg/|seal/|datasets/|out/)' || true)
           if [ -z "$changed" ]; then echo "검사 체계·수정 금지 파일 변경 없음"; exit 0; fi
           echo "검사 체계·수정 금지 파일 변경:"; echo "$changed"
           if [ "$OWNER_PR" = "true" ] || [ "$LABELED" = "true" ]; then echo "의뢰인 확인됨(저장소 주인 PR 또는 승인 라벨)"; exit 0; fi

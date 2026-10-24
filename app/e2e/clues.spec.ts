@@ -1,6 +1,6 @@
 // /lab·/ledger의 숫자와 공개 단서 — 인수인계서 4.2절 A-1·2(숫자 = evidence.json), B-6(한계·틀린 예측·맞바꿈), D-22(절 번호).
 // 기대 문자열은 evidence.json에서 다시 만든다(화면 문자열을 손으로 베끼지 않는다). 띄어쓰기는 무시하고 대조한다.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Page } from "@playwright/test";
 import { evidence as e, expect, expectReadable, test } from "./fixtures";
@@ -93,3 +93,35 @@ for (const p of ["/", "/lab", "/ledger"]) {
     expect(badFrac, `${p}: 데이터로 설명되지 않는 분수`).toEqual([]);
   });
 }
+
+// ---- 자리별 숫자표: 같은 데이터의 다른 값으로 바꿔치기(예: 14.9% → 4.9%)를 잡는다(레드팀 10/24 R3-4) ----
+// 각 %·분수 바로 앞 글자 12자(공백 제외)를 그 숫자의 자리 표지로 삼아 (자리, 값) 짝의 모음을 고정한다. 순서는 보지 않으므로 절 순서 개편은 통과.
+// 숫자 앞 문구를 바꾸면 이 표도 바뀌므로, 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만들고 guard 승인을 받는다.
+const NUMBER_MAP = path.join(__dirname, "number-map.json");
+function numberPairs(text: string): string[] {
+  const t = text.replace(/\s+/g, "");
+  const out: string[] = [];
+  for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?%|\d[\d,]*\/\d[\d,]*/g)) out.push(`${t.slice(Math.max(0, m.index! - 12), m.index)}|${m[0]}`);
+  return out.sort();
+}
+const numberMap: Record<string, string[]> = existsSync(NUMBER_MAP) ? JSON.parse(readFileSync(NUMBER_MAP, "utf-8")).pages : {};
+
+test.describe("자리별 숫자표", () => {
+  if (process.env.UPDATE_NUMBER_MAP) {
+    test("자리별 숫자표 다시 만들기", async ({ page }) => {
+      const pages: Record<string, string[]> = {};
+      for (const p of ["/", "/lab", "/ledger"]) { await page.goto(p); pages[p] = numberPairs(await page.locator("main").innerText()); }
+      writeFileSync(NUMBER_MAP, JSON.stringify({ _comment: "자리(숫자 앞 글자 12자)|값 짝. 숫자나 그 앞 문구가 바뀌면 시험이 실패한다. 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만든다", pages }, null, 2) + "\n");
+    });
+    return;
+  }
+  for (const p of ["/", "/lab", "/ledger"]) {
+    test(`${p} 숫자가 제자리에 그대로`, async ({ page }) => {
+      await page.goto(p);
+      const now = numberPairs(await page.locator("main").innerText());
+      const want = numberMap[p] ?? [];
+      const missing = want.filter((x) => { const i = now.indexOf(x); if (i < 0) return true; now.splice(i, 1); return false; });
+      expect({ 사라지거나_바뀐_숫자: missing, 새로_생긴_숫자: now }).toEqual({ 사라지거나_바뀐_숫자: [], 새로_생긴_숫자: [] });
+    });
+  }
+});
