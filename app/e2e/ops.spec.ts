@@ -146,8 +146,7 @@ test("재신고 빈칸은 거부, 승인 뒤 하한 감소 → 재검토 배지�
 });
 
 test("재신고 칸에 공백·글자만 넣으면 거부(0%로 저장되지 않음)", async ({ page }) => {
-  // 알려진 결함(레드팀 10/24 발견): Number("   ")은 0이라 공백 입력이 0% 재신고로 저장된다. 수정은 브랜치 fix/screen-defects
-  test.fail(!process.env.SCREEN_FIXES, "알려진 결함 — fix/screen-defects 병합 전까지 실패가 정상");
+  // 10/24 발견·수정: Number("   ")은 0이라 공백 입력이 0% 재신고로 저장됐다(ReReportForm이 parseOperatorNumber를 쓰게 고침)
   await startOutage(page);
   await enterNotice(page, "1");
   const [id] = await rowIds(page, "PROPOSE_ASSIGN");
@@ -224,6 +223,7 @@ test("보호자 알림 AI 상태(응답 모킹): AI 생성 표지·검사 통과
   await approve(page, other);
   await expect(page.getByTestId("notice-panel")).toContainText("고정 문안");
   await expect(page.getByTestId("notice-text")).not.toContainText("시험용 AI 문장입니다");
+  // 참고: 아직 결정하지 않은 가구를 열면 알림 판이 화면에서 빠져, 원래 가구로 돌아와도 AI 글은 다시 만들어야 한다(알려진 한계, 인수인계서 6.4절)
 });
 
 test("심사위원 경로를 따라가도 클릭 없이 승인 0", async ({ page }) => {

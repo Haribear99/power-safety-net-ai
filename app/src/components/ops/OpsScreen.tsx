@@ -270,8 +270,7 @@ function Board() {
         <AuditLog />
       </section>
       <aside className="space-y-4">
-        {/* key: 가구를 바꾸면 서랍을 새로 만들어 앞 가구에 쓰던 사유·수정 선택이 이어지지 않게 한다 */}
-        {sel ? <ApproveDrawer key={sel} householdId={sel} onClose={() => setSel(null)} /> : (
+        {sel ? <ApproveDrawer householdId={sel} onClose={() => setSel(null)} /> : (
           <p className="rounded-lg border border-dashed border-line p-3 text-[14px] text-muted">표에서 가구를 고르면 승인 서랍이 열립니다.</p>
         )}
         <ResourcePanel />

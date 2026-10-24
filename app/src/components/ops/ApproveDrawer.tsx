@@ -89,13 +89,14 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
           {(row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE") && (
             <p className="mt-1 text-[12px] text-muted">이 레인은 승인할 배정이 없습니다. 「수정」으로 수단을 고르거나 확인 조작을 하세요.</p>
           )}
-          <ModifyForm householdId={householdId} fromLane={row.rec.lane} fromRes={row.rec.resourceId} />
+          {/* key: 가구를 바꾸면 입력 양식을 새로 만들어 앞 가구에 쓰던 사유·선택이 이어지지 않게 한다(보호자 알림 판은 사실이 같으면 글을 유지) */}
+          <ModifyForm key={`modify-${householdId}`} householdId={householdId} fromLane={row.rec.lane} fromRes={row.rec.resourceId} />
         </div>
       ) : null}
 
       {decided && <DecidedNotice householdId={householdId} />}
-      <VerifyForms householdId={householdId} />
-      <ReReportForm householdId={householdId} />
+      <VerifyForms key={`verify-${householdId}`} householdId={householdId} />
+      <ReReportForm key={`rereport-${householdId}`} householdId={householdId} />
     </section>
   );
 }
@@ -268,7 +269,8 @@ function ReReportForm({ householdId }: { householdId: string }) {
   return (
     <details className="mt-3 rounded border border-dashed border-line p-2">
       <summary className="cursor-pointer text-[14px] text-muted">가구 재신고(시연)</summary>
-      <form className="mt-2 flex items-center gap-2 text-[14px]" onSubmit={(e) => { e.preventDefault(); const v = Number(pct); if (pct !== "" && v >= 0) update((x) => reReport(x, householdId, v)); }}>
+      {/* 빈칸·공백·글자는 0으로 바꾸지 않고 거부한다(Number("   ")은 0이라 0% 재신고가 되던 결함, 레드팀 10/24) */}
+      <form className="mt-2 flex items-center gap-2 text-[14px]" onSubmit={(e) => { e.preventDefault(); const v = parseOperatorNumber(pct); if (v != null) update((x) => reReport(x, householdId, v)); }}>
         충전량 <input className="w-14 rounded border border-line p-1" inputMode="numeric" value={pct} onChange={(e) => setPct(e.target.value)} aria-label="재신고 충전량 퍼센트" />%
         <button type="submit" className="rounded border border-ink px-2 py-0.5" data-testid="rereport">재신고</button>
         <span className="text-[12px] text-muted">정전 중에는 하한 소진 시각이 늘지 않습니다</span>
