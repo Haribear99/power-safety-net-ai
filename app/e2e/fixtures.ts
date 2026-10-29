@@ -147,6 +147,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     // 같은 요소 안의 자식(예: 배너 안에 끼운 띠)도 글자를 가진 요소가 아니면 덮개다.
     const range = document.createRange();
     const lines: DOMRect[] = [];
+    const ratios: number[] = [];
     const owners = new Set<HTMLElement>([he]);
     let covered = 0, sampled = 0, coverBy = "";
     const tw = document.createTreeWalker(he, NodeFilter.SHOW_TEXT);
@@ -157,8 +158,21 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
       if (owner.closest(".sr-only") || getComputedStyle(owner).display === "none") continue;
       owners.add(owner);
       range.selectNodeContents(tn);
+      // 같은 글꼴로 변형 없이 그린 기준 글자의 높이(글꼴마다 글자 높이 비율이 달라 글자 크기로 바로 비교하면 바탕체 등에서 오판: 레드팀 정상 개편 FM)
+      const probe = document.createElement("span");
+      probe.textContent = (tn.textContent ?? "").trim().slice(0, 40); // 같은 글자(숫자만인 글은 대체 글꼴이 달라 높이가 다름)
+      // font 축약값은 tabular-nums 등이 있으면 빈 문자열이 되므로 속성을 하나씩 옮긴다
+      const ocs = getComputedStyle(owner);
+      probe.style.cssText = "position:absolute;left:-9999px;top:0;white-space:nowrap";
+      for (const k of ["fontFamily", "fontSize", "fontWeight", "fontStyle", "fontStretch", "fontVariantNumeric"] as const) probe.style[k] = ocs[k];
+      document.body.appendChild(probe);
+      const pr = document.createRange();
+      pr.selectNodeContents(probe);
+      const natural = pr.getClientRects()[0]?.height ?? 0;
+      probe.remove();
       for (const ln of [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1 && r.bottom > 0 && r.top < innerHeight)) {
         lines.push(ln);
+        if (natural > 0) ratios.push(ln.height / natural);
         for (let x = ln.left + 2; x < ln.right - 1; x += 8) {
           sampled++;
           for (const p of document.elementsFromPoint(x, ln.top + ln.height / 2)) {
@@ -190,7 +204,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
       if (a === document.body) break;
     }
     // 실제로 그려진 크기: 계산된 글자 크기가 아니라 줄 높이와 변형(scale·transform·zoom) 비율로 본다
-    const lineH = lines.length ? Math.min(...lines.map((l) => l.height)) : 0;
+    const lineH = ratios.length ? Math.min(...ratios) : 0; // 그려진 줄 높이 / 같은 글꼴 기준 높이
     const scale = he.offsetWidth > 0 ? rect.width / he.offsetWidth : 1;
     // 대비: 글자색 대 실제 배경(투명이면 위로 올라가며 찾음)
     const parse = (c: string) => { const m = c.match(/[\d.]+/g)!.map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 }; };
@@ -210,7 +224,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
   expect(r.w > 4 && r.h > 4, `${what}: 크기 ${r.w}×${r.h}`).toBe(true);
   expect(r.font, `${what}: 글자 크기`).toBeGreaterThanOrEqual(12);
   expect(r.scale, `${what}: 축소 변형(그려진 폭/원래 폭)`).toBeGreaterThan(0.95);
-  expect(r.lineH, `${what}: 실제로 그려진 줄 높이(글자 ${r.font}px 대비)`).toBeGreaterThanOrEqual(r.font * 0.9);
+  expect(r.lineH, `${what}: 실제로 그려진 줄 높이 / 같은 글꼴 기준 높이(축소 변형)`).toBeGreaterThanOrEqual(0.9);
   expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음) ${r.coverBy}`).toBe(0);
   expect(r.clipped, `${what}: 잘라냄·흐림·말줄임`).toEqual([]);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
