@@ -111,14 +111,19 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
   // 고정 머리줄(배너·/ops 상단 바·/lab 탭 바)이 대상 윗줄을 덮는 것은 스크롤 위치 문제라 결함이 아니다(레드팀 10/30 H3 거짓 양성):
   // 대상 위쪽을 머리줄 바로 아래에 둔다. 대상이 머리줄 자신이면 그대로
   await loc.evaluate((el) => {
-    const pinned = [...document.querySelectorAll("body *")].filter((e) => {
+    const sticky = [...document.querySelectorAll("body *")].filter((e) => {
       if (e === el || e.contains(el)) return false;
       const p = getComputedStyle(e).position;
       return p === "sticky" || p === "fixed";
-    }).map((e) => e.getBoundingClientRect()).filter((r) => r.top < innerHeight * 0.25 && r.bottom > 0 && r.height < innerHeight / 2); // 배너 아래에 붙는 탭 바(top 32px)도 머리줄
-    const head = Math.max(0, ...pinned.map((r) => r.bottom));
-    const top = el.getBoundingClientRect().top;
-    if (top < head + 4 || top > innerHeight * 0.6) window.scrollBy(0, top - head - 8);
+    });
+    // 스크롤하면 그제야 위에 붙는 머리줄(위에 다른 내비가 있는 레이아웃의 /lab 탭 바, 레드팀 FB)이 있으므로 몇 번 다시 잰다
+    for (let i = 0; i < 4; i++) {
+      const pinned = sticky.map((e) => e.getBoundingClientRect()).filter((r) => r.top < innerHeight * 0.25 && r.bottom > 0 && r.height < innerHeight / 2); // 배너 아래에 붙는 탭 바(top 32px)도 머리줄
+      const head = Math.max(0, ...pinned.map((r) => r.bottom));
+      const top = el.getBoundingClientRect().top;
+      if (top >= head + 4 && top <= innerHeight * 0.6) break;
+      window.scrollBy(0, top - head - 8);
+    }
   });
   const r = await loc.evaluate((el) => {
     const he = el as HTMLElement;
