@@ -21,7 +21,7 @@ function collect() {
     if (ts.isShorthandPropertyAssignment(n) && n.name.text === "decisions") decisionWrites.push(n.getText(sf));
     if (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.EqualsToken && /decisions/.test(n.left.getText(sf))) decisionWrites.push(n.getText(sf).slice(0, 60));
     // commitDecision을 호출 말고 다른 식으로 쓰기(별칭·인자로 넘기기)
-    if (ts.isIdentifier(n) && n.text === "commitDecision" && !ts.isImportSpecifier(n.parent) && !(ts.isCallExpression(n.parent) && n.parent.expression === n)) commitRefs.push(n.parent.getText(sf).slice(0, 60));
+    if (ts.isIdentifier(n) && (n.text === "commitDecision" || n.text === "issueApproval") && !ts.isImportSpecifier(n.parent) && !(ts.isCallExpression(n.parent) && n.parent.expression === n)) commitRefs.push(n.parent.getText(sf).slice(0, 60)); // 재export·별칭 금지(3라운드 경미 6)
     if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) {
       const p = n.parent;
       const isType = ts.isLiteralTypeNode(p);

@@ -95,6 +95,15 @@ const eslintConfig = defineConfig([
     rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [NO_GATE_ALL] }] },
   },
   {
+    // 같은 페이지 안 변조 대비(Claude 3라운드 경미 5): 내장 객체 프로토타입 바꾸기, Proxy·Reflect는 소스에서 쓰지 않는다
+    files: ["src/**/*.{ts,tsx,js,jsx,mjs,cjs}"],
+    ignores: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    rules: {
+      "no-extend-native": "error",
+      "no-restricted-globals": ["error", { name: "Proxy", message: "Proxy는 쓰지 않는다(결정 관문 우회 대비)" }, { name: "Reflect", message: "Reflect는 쓰지 않는다(결정 관문 우회 대비)" }],
+    },
+  },
+  {
     files: ["src/lib/ops/session.ts"],
     rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [gateRule(["issueApproval", "ticketForTest"])] }] },
   },

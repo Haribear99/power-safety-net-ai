@@ -20,6 +20,8 @@ export interface ApprovalTicket { readonly id: string; readonly sessionId: strin
 // 발급한 표 → 처음 쓸 때의 결정·감사 내용(JSON). 같은 내용으로 다시 불리는 것(React 상태 갱신 재실행)만 통과
 const issued = new WeakMap<ApprovalTicket, { key: string | null }>();
 const usedEvents = new WeakSet<Event>();
+// 모듈을 읽을 때 원래 메서드를 붙잡아 둔다(뒤에서 WeakMap.prototype.get 등을 바꿔도 이 모듈에는 영향 없음, Claude 3라운드 경미 5)
+const wmGet = WeakMap.prototype.get, wmSet = WeakMap.prototype.set, wsHas = WeakSet.prototype.has, wsAdd = WeakSet.prototype.add;
 
 // ---- 지금 전달 중인 실제 클릭(Claude 3라운드 치명: Proxy로 감싼 이벤트는 instanceof·isTrusted·eventPhase를 모두 속였다) ----
 // 문서 맨 바깥(window) 붙잡기 단계에서 진짜 이벤트 객체를 기록하고, 맨 바깥 거품 단계와 다음 작업에서 지운다.
@@ -52,7 +54,7 @@ export function newGateId(): string {
 
 function newTicket(sessionId: string, householdId: string, gate: Gate): ApprovalTicket {
   const t: ApprovalTicket = Object.freeze({ id: newGateId(), sessionId, householdId, gate });
-  issued.set(t, { key: null });
+  wmSet.call(issued, t, { key: null });
   return t;
 }
 
@@ -64,7 +66,7 @@ export function issueApproval(ev: Event, sessionId: string, householdId: string)
   if (!real.isTrusted) deny("담당자의 실제 조작이 아닙니다(스크립트가 만든 이벤트)");
   if (real.type !== "click") deny("버튼 클릭이 아닙니다");
   if (keyRepeating && (real as MouseEvent).detail === 0) deny("키를 누르고 있는 동안 생긴 클릭은 받지 않습니다");
-  if (usedEvents.has(real)) deny("조작 한 번으로는 결정 한 건만 저장합니다");
+  if (wsHas.call(usedEvents, real)) deny("조작 한 번으로는 결정 한 건만 저장합니다");
   const target = real.target instanceof Element ? real.target : null;
   const gateEl = target?.closest("[data-gate]");
   const gate = gateEl?.getAttribute("data-gate") ?? "";
@@ -72,13 +74,13 @@ export function issueApproval(ev: Event, sessionId: string, householdId: string)
   if (!gateEl.isConnected || gateEl.matches(":disabled")) deny("화면에 없는 버튼이거나 비활성 버튼입니다");
   const drawer = gateEl.closest("[data-household]");
   if (drawer?.getAttribute("data-household") !== householdId) deny("이 가구의 승인 서랍에서 한 조작이 아닙니다");
-  usedEvents.add(real);
+  wsAdd.call(usedEvents, real);
   return newTicket(sessionId, householdId, gate);
 }
 
 /** commitDecision이 부른다. 표·결정·감사 행이 같은 가구·같은 동작이고, 표가 다른 내용에 쓰인 적이 없어야 통과. 표 id를 돌려준다 */
 export function consumeApproval(t: ApprovalTicket, sessionId: string, decision: { householdId: string; status: string }, audit: AuditEntry): string {
-  const slot = t ? issued.get(t) : undefined;
+  const slot = t ? (wmGet.call(issued, t) as { key: string | null } | undefined) : undefined;
   if (!slot) deny("발급하지 않은 표입니다");
   if (t.sessionId !== sessionId) deny("다른(지난) 세션에서 발급한 표입니다");
   if (decision.householdId !== t.householdId || audit.householdId !== t.householdId) deny("표와 결정의 가구가 다릅니다");

@@ -33,6 +33,17 @@ describe("결정 관문 import 범위(ESLint)", () => {
     ];
     for (const [file, code] of cases) expect(await blocked(file, code), `${file}: ${code}`).toBe(true);
   }, 180_000);
+  it("같은 페이지 안 변조 도구(내장 프로토타입 바꾸기·Proxy·Reflect)를 소스에서 막는다(Claude 3라운드 경미 5)", async () => {
+    const cases: [string, string, string][] = [
+      ["src/components/ops/ApproveDrawer.tsx", "export const f = () => { WeakMap.prototype.get = function (k: object) { return k; }; };\n", "no-extend-native"],
+      ["src/components/ops/Other.tsx", "export const p = (x: object) => new Proxy(x, {});\n", "no-restricted-globals"],
+      ["src/lib/ops/x.ts", "export const r = Reflect.get;\n", "no-restricted-globals"],
+    ];
+    for (const [file, code, rule] of cases) {
+      const [r] = await eslint.lintText(code, { filePath: path.join(APP, file) });
+      expect(r.messages.map((m) => m.ruleId), `${file}: ${code}`).toContain(rule);
+    }
+  }, 180_000);
   it("허용: ApproveDrawer의 발급, session.ts의 소비, 시험 파일의 시험용 표, 타입만 가져오기", async () => {
     const cases: [string, string][] = [
       ["src/components/ops/ApproveDrawer.tsx", 'import { issueApproval } from "@/lib/ops/approvalGate";\nexport const f = issueApproval;\n'],
