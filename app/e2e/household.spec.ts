@@ -33,8 +33,7 @@ test("샘플: API 호출 0, AI 추출 표지, 일치 → 확인 전 분해식 �
 });
 
 test("다른 샘플로 바꾸면 기종 확인을 다시 받아야 한다(확인 상태가 이어지지 않음) @mobile", async ({ page }) => {
-  // 알려진 결함(10/24 발견): 결과 화면이 샘플마다 새로 만들어지지 않아 '확인함'이 다음 샘플로 이어진다. 수정은 브랜치 fix/screen-defects
-  test.fail(!process.env.SCREEN_FIXES, "알려진 결함 — fix/screen-defects 병합 전까지 실패가 정상");
+  // 10/24 발견·수정: 결과 화면이 샘플마다 새로 만들어지지 않아 '확인함'이 다음 샘플로 이어졌다(HouseholdScreen ResultView key)
   await page.goto("/household");
   const buttons = page.getByRole("button", { name: SAMPLE_BTN });
   await buttons.nth(0).click();

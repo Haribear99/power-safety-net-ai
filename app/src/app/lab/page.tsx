@@ -201,7 +201,7 @@ function BreakEven({ d }: { d: LabDoc }) {
                   const pk = kr / n, pr = ru / n;
                   return (
                     <td key={a} className="px-1 py-1 text-center tabular-nums" title={`가구 ${n.toLocaleString("ko-KR")} · 현행 ${pct1(pk)} · 도구 ${pct1(pr)}`}>
-                      <div className="rounded px-1" style={{ background: `rgba(180,35,24,${(0.08 + 0.8 * pk).toFixed(2)})`, color: pk > 0.55 ? "#fff" : undefined }}>현행 {Math.round(pk * 100)}%</div>
+                      <div className="rounded px-1" style={heatStyle(pk)}>현행 {Math.round(pk * 100)}%</div>
                       <div className="text-muted">도구 {Math.round(pr * 100)}%</div>
                     </td>
                   );
@@ -466,13 +466,21 @@ function KpiOver() {
   );
 }
 
+/** 빈틈 지도 칸 색: 진하기는 비율이 클수록 진해진다(단조 증가). 글자 대비 4.5:1(WCAG AA)을 지키도록 검은 글자는 진하기 0.68까지,
+ *  그보다 진하면 진하기를 0.79 이상으로 올려 흰 글자를 쓴다(0.68~0.79 진하기에서는 어느 글자색도 4.5:1에 못 미친다).
+ *  그래서 비율 약 75~89% 칸은 같은 진하기(0.79)로 보인다. 칸 안의 % 숫자가 정확한 값이다 */
+function heatStyle(pk: number): { background: string; color?: string } {
+  const a = 0.08 + 0.8 * pk;
+  return a <= 0.68 ? { background: `rgba(180,35,24,${a.toFixed(2)})` } : { background: `rgba(180,35,24,${Math.max(a, 0.79).toFixed(2)})`, color: "#fff" };
+}
+
 export default function LabPage() {
   const d = lab();
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 text-[16px] leading-7">
       <h1 className="text-[24px] font-extrabold">리허설 랩</h1>
       <p className="mt-1">같은 정전을 같은 난수로 정책만 바꿔 다시 돌려, 현행 절차의 빈틈과 도구가 닫는 빈틈·닫지 못하는 빈틈을 가릅니다. 모든 값은 합성 가구·가정 분포 위의 모의 결과입니다.</p>
-      <nav aria-label="랩 탭" className="sticky top-8 z-10 mt-3 flex flex-wrap gap-2 bg-white/95 py-2 text-[14px]">
+      <nav aria-label="랩 탭" className="sticky top-[calc(var(--banner-h,29px)+3px)] z-10 mt-3 flex flex-wrap gap-2 bg-white/95 py-2 text-[14px]">
         <a className="rounded border border-line px-2 py-0.5" href="#map">② 빈틈 지도</a>
         <a className="rounded border border-line px-2 py-0.5" href="#compare">③ 도구 대 현행</a>
         <a className="rounded border border-line px-2 py-0.5" href="#breakeven">① 손익분기</a>

@@ -40,6 +40,8 @@ export function HouseholdScreen() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // 결과가 바뀔 때마다 결과 화면을 새로 만든다(앞 샘플에서 누른 「이 기종이 맞습니다」가 다음 판독으로 이어지지 않게)
+  const [seq, setSeq] = useState(0);
 
   async function upload(f: File) {
     setBusy(true); setMsg(null); setRes(null);
@@ -52,6 +54,7 @@ export function HouseholdScreen() {
       if (j.mode === "replay") { setMsg(j.message); setTab("sample"); return; }
       if (!r.ok || !j.ok) { setMsg(j.message ?? `판독 실패(${j.error ?? j.reason})`); return; }
       setRes({ label: j.label, match: j.match, source: `실시간 판독 · ${j.meta.model} · ${(j.meta.latencyMs / 1000).toFixed(1)}초` });
+      setSeq((n) => n + 1);
     } catch {
       setMsg("판독 요청에 실패했습니다");
     } finally { setBusy(false); }
@@ -75,7 +78,7 @@ export function HouseholdScreen() {
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="samples">
           {SAMPLES.map((s) => (
             <button key={s.key} className="rounded-lg border border-line p-1 text-left text-[13px] hover:border-ink"
-              onClick={() => { setImg(s.src); setRes({ label: s.label, match: matchLabel(s.label), source: `${s.recorded} 재생 · ${(s.latencyMs / 1000).toFixed(1)}초` }); }}>
+              onClick={() => { setImg(s.src); setRes({ label: s.label, match: matchLabel(s.label), source: `${s.recorded} 재생 · ${(s.latencyMs / 1000).toFixed(1)}초` }); setSeq((n) => n + 1); }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s.src} alt={`샘플 라벨: ${s.title}`} className="aspect-[9/6] w-full rounded object-cover" />
               <span className="mt-1 block">{s.title}</span>
@@ -94,7 +97,7 @@ export function HouseholdScreen() {
         </section>
       )}
 
-      {res && img ? <ResultView res={res} img={img} /> : null}
+      {res && img ? <ResultView key={seq} res={res} img={img} /> : null}
       <p className="mt-8 text-[14px]"><Link className="underline" href="/">← 처음으로</Link> · <Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link> · <Link className="underline" href="/ledger">AI 사용 장부(정확도 실측)</Link></p>
     </main>
   );
