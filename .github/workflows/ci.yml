@@ -31,14 +31,14 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      # 단위 시험을 지워 조용히 약화하는 것을 막는다(10/24 기준 385건, 새 복제본은 384 통과 + 1 skip)
+      # 단위 시험을 지워 조용히 약화하는 것을 막는다(10/30 기준 391건, 결정 관문 시험 추가)
       - name: 단위 시험·커버리지와 시험 수 하한
         run: |
           set -o pipefail
           npm run coverage 2>&1 | tee vitest-out.txt
           n=$(grep -E 'Tests .*\(([0-9]+)\)' vitest-out.txt | grep -oE '\(([0-9]+)\)' | tr -d '()' | tail -1)
           echo "단위 시험 수: $n"
-          test "$n" -ge 385
+          test "$n" -ge 391
 
   e2e:
     name: 빌드·문구·번들·예산·숫자 대조·E2E
@@ -59,12 +59,12 @@ jobs:
       # 한글 글꼴이 없으면 글자가 네모로 그려져 레이아웃 검사가 실제와 달라진다
       - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - run: npx playwright install --with-deps chromium
-      # 시험을 지우거나 testDir 밖으로 옮겨 조용히 빼는 것을 막는다(10/24 기준 102건)
+      # 시험을 지우거나 testDir 밖으로 옮겨 조용히 빼는 것을 막는다(10/30 기준 103건, 결정 관문 시험 추가)
       - name: E2E 시험 수 하한
         run: |
           n=$(npx playwright test --list | tail -1 | grep -oE '[0-9]+' | head -1)
           echo "E2E 시험 수: $n"
-          test "$n" -ge 102
+          test "$n" -ge 103
       - run: npm run test:e2e
         env: { CI: "true" }
       - if: failure()

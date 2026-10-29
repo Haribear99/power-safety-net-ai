@@ -13,6 +13,7 @@ function collect() {
   const commits: string[] = [];
   const decisionWrites: string[] = [];
   const commitRefs: string[] = [];
+  const issues: string[] = [];
   const visit = (n: ts.Node) => {
     // 결정을 감사 행 없이 직접 써넣는 길(레드팀 10/24 R4-2): decisions 속성 만들기·대입
     if (ts.isPropertyAssignment(n) && n.name.getText(sf) === "decisions") decisionWrites.push(n.getText(sf).slice(0, 60));
@@ -25,9 +26,16 @@ function collect() {
       const isType = ts.isLiteralTypeNode(p);
       const isAttr = ts.isJsxAttribute(p); // data-testid="approve" 같은 표지는 값이 아님
       const isCompare = ts.isBinaryExpression(p) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken].includes(p.operatorToken.kind);
-      if (!isType && !isCompare && !isAttr && /approv/i.test(n.text)) literals[n.text] = (literals[n.text] ?? 0) + 1;
+      const isModule = ts.isImportDeclaration(p); // import 경로("@/lib/ops/approvalGate")는 값이 아님
+      if (!isType && !isCompare && !isAttr && !isModule && /approv/i.test(n.text)) literals[n.text] = (literals[n.text] ?? 0) + 1;
     }
     if (ts.isTemplateExpression(n) && /approv/i.test(n.getText())) literals["<template>"] = (literals["<template>"] ?? 0) + 1;
+    // 결정 관문 표는 각 핸들러가 받은 이벤트(e.nativeEvent)로만 발급(10/30 런타임 승인 토큰)
+    if (ts.isCallExpression(n) && n.expression.getText(sf) === "issueApproval") {
+      let f: ts.Node | undefined = n;
+      while (f && !(ts.isFunctionDeclaration(f) && f.name)) f = f.parent;
+      issues.push(`${f && ts.isFunctionDeclaration(f) ? f.name!.text : "?"}:${n.arguments[0]?.getText(sf)}`);
+    }
     if (ts.isCallExpression(n) && n.expression.getText(sf) === "commitDecision") {
       let f: ts.Node | undefined = n;
       while (f && !(ts.isFunctionDeclaration(f) && f.name)) f = f.parent;
@@ -36,11 +44,14 @@ function collect() {
     ts.forEachChild(n, visit);
   };
   visit(sf);
-  return { literals, commits, decisionWrites, commitRefs };
+  return { literals, commits, decisionWrites, commitRefs, issues };
 }
 
 describe("ApproveDrawer 안 승인 경로 고정", () => {
-  const { literals, commits, decisionWrites, commitRefs } = collect();
+  const { literals, commits, decisionWrites, commitRefs, issues } = collect();
+  it("결정 관문 표는 세 핸들러가 각자 받은 이벤트로만 발급한다", () => {
+    expect(issues.sort()).toEqual(["onApprove:e.nativeEvent", "onApproveAlternative:e.nativeEvent", "submit:click ?? e.nativeEvent"]);
+  });
   it('값 "APPROVED"는 한 번(onApprove), 감사 값 "APPROVE"도 한 번, 그 밖의 승인 비슷한 값 없음', () => {
     expect(literals).toEqual({ APPROVED: 1, APPROVE: 1 });
   });

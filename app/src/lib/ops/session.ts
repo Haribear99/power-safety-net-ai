@@ -14,6 +14,7 @@ import { arrivalS, buildCtx, physCandidates, type AllocOptions } from "../alloc/
 import { recheckApproved, rule, type AllocResult, type AllocRow, type AllocState, type ApprovedRow } from "../alloc/rule";
 import { mockIso } from "../alloc/project119";
 import type { Slot119 } from "../alloc/fallback";
+import { consumeApproval, type ApprovalTicket } from "./approvalGate";
 
 export interface UiPreset {
   format: "pl26-ui-preset/1";
@@ -169,8 +170,10 @@ export function decisionFromRow(row: AllocRow): Omit<Decision, "status" | "decid
   return { householdId: r.householdId, lane: r.lane, resourceId: r.resourceId, etaH: r.etaH, slot119: row.slot119, late119: row.late119 };
 }
 
-/** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다 */
-export function commitDecision(s: Session, d: Decision, audit: AuditEntry): Session {
+/** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다.
+ *  ticket: 승인 서랍의 실제 조작으로 발급한 표(approvalGate). 조작 1번 = 결정 1건 */
+export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticket: ApprovalTicket): Session {
+  consumeApproval(ticket, d, audit);
   const s1 = pushAudit(s, [audit]);
   const { [d.householdId]: _drop, ...alts } = s1.alternatives;
   void _drop;

@@ -44,6 +44,9 @@ const NO_DECISION_WRITES = [
   { selector: "AssignmentExpression[left.object.property.name='decisions'], AssignmentExpression[left.property.name='decisions']", message: "화면 코드에서 decisions에 직접 대입하지 않는다(commitDecision으로만)." },
 ];
 const NO_COMMIT_IMPORT = { group: ["**/ops/session", "@/lib/ops/session"], importNames: ["commitDecision"], message: "결정 저장(commitDecision)은 components/ops/ApproveDrawer.tsx에서만 쓴다(I6, 감사 행이 남는 유일한 길)." };
+// 결정 관문(10/30 런타임 승인 토큰): 표 발급은 ApproveDrawer만, 시험용 표는 *.test.ts만
+const NO_GATE_ISSUE = { group: ["**/ops/approvalGate", "@/lib/ops/approvalGate"], importNames: ["issueApproval", "consumeApproval", "ticketForTest"], message: "결정 관문 표 발급(issueApproval)은 components/ops/ApproveDrawer.tsx에서만, 시험용 표(ticketForTest)는 시험 파일에서만 쓴다." };
+const NO_TEST_TICKET = { group: ["**/ops/approvalGate", "@/lib/ops/approvalGate", "./approvalGate"], importNames: ["ticketForTest"], message: "시험용 표(ticketForTest)는 *.test.ts에서만 쓴다." };
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -72,12 +75,18 @@ const eslintConfig = defineConfig([
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/lib/alloc/**/*.ts", "src/lib/sim/reentry.ts"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_COMMIT_IMPORT] }] },
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_COMMIT_IMPORT, NO_GATE_ISSUE] }] },
   },
   {
-    // ApproveDrawer만 commitDecision을 가져올 수 있다(그 안의 사용 횟수·위치는 lib/ops/approve-drawer-ast.test.ts가 고정)
+    // ApproveDrawer만 commitDecision·issueApproval을 가져올 수 있다(그 안의 사용 횟수·위치는 lib/ops/approve-drawer-ast.test.ts가 고정)
     files: ["src/components/ops/ApproveDrawer.tsx"],
-    rules: { "@typescript-eslint/no-restricted-imports": ["error", NO_WORLD_TRUTH] },
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_TEST_TICKET] }] },
+  },
+  {
+    // lib 쪽(시험 제외)도 시험용 표를 가져오지 않는다
+    files: ["src/lib/**/*.ts"],
+    ignores: ["src/**/*.test.ts", "src/lib/alloc/**/*.ts", "src/lib/sim/reentry.ts"],
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [NO_TEST_TICKET] }] },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
