@@ -197,6 +197,94 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
   expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음)`).toBe(0);
   expect(r.clipped, `${what}: 잘라냄·흐림·말줄임`).toEqual([]);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
+  await expectInked(loc, what);
+}
+
+/**
+ * 픽셀로 확인(레드팀 10/30 C3·C7·H1): 위의 계산식 검사는 글자 채우기 투명(bg-clip-text), 가상 요소 덮개(::after), 배경 이미지,
+ * 조상 불투명도, 화면 밖 이동, 자간 겹치기를 놓쳤다. 그래서 실제 화면을 찍어, 글자를 투명하게 한 화면과 비교한다.
+ * 달라진 픽셀 = 실제로 그려진 글자. 그 비율과 글자 픽셀 대 배경 픽셀의 대비(상위 5%)를 본다. 작은 글자는 가장자리 흐림 때문에
+ * 픽셀 대비가 색 대비보다 낮게 나와(정상 12px 배지 상위 10% 4.46) 문턱은 3.0으로 둔다. WCAG 4.5:1은 위의 계산식 검사가 따로 본다.
+ */
+async function expectInked(loc: import("@playwright/test").Locator, what: string) {
+  const page = loc.page();
+  const g = await loc.evaluate((el) => {
+    const range = document.createRange();
+    const owners = new Set<Element>();
+    const vis: DOMRect[] = [];
+    let total = 0, inView = 0;
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (tw.nextNode()) {
+      const tn = tw.currentNode as Text;
+      if (!tn.textContent?.trim() || !tn.parentElement) continue;
+      owners.add(tn.parentElement);
+      range.selectNodeContents(tn);
+      for (const r of range.getClientRects()) {
+        if (r.width <= 1 || r.height <= 1) continue;
+        total += r.width;
+        const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), t = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
+        if (rt > l && b > t) { inView += rt - l; vis.push(new DOMRect(l, t, rt - l, b - t)); }
+      }
+    }
+    for (const o of owners) o.setAttribute("data-xr", "");
+    // 자간·낱말 간격을 보통으로 되돌렸을 때의 폭과 비교(겹쳐 써서 못 읽게 만드는 자간)
+    const widths = () => { let w = 0; const tw2 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); while (tw2.nextNode()) { const tn = tw2.currentNode as Text; if (!tn.textContent?.trim()) continue; range.selectNodeContents(tn); for (const r of range.getClientRects()) w += r.width; } return w; };
+    const st = document.createElement("style");
+    st.textContent = "[data-xr] { letter-spacing: normal !important; word-spacing: normal !important; }";
+    document.head.appendChild(st);
+    const natural = widths();
+    st.remove();
+    if (!vis.length) return { box: null, total, inView, natural, rendered: total };
+    const x = Math.floor(Math.min(...vis.map((r) => r.left))), y = Math.floor(Math.min(...vis.map((r) => r.top)));
+    const r2 = Math.ceil(Math.max(...vis.map((r) => r.right))), b2 = Math.ceil(Math.max(...vis.map((r) => r.bottom)));
+    return { box: { x, y, width: Math.max(1, r2 - x), height: Math.max(1, b2 - y) }, total, inView, natural, rendered: total };
+  });
+  const clear = () => loc.evaluate((el) => { el.ownerDocument.querySelectorAll("[data-xr]").forEach((e) => e.removeAttribute("data-xr")); el.ownerDocument.getElementById("__xr")?.remove(); });
+  try {
+    expect(g.box, `${what}: 화면 안에 그려진 글자 줄이 없음`).not.toBeNull();
+    expect(g.inView / Math.max(1, g.total), `${what}: 글자 줄이 화면 밖으로 나감(가로)`).toBeGreaterThanOrEqual(0.9);
+    expect(g.rendered / Math.max(1, g.natural), `${what}: 자간을 좁혀 글자가 겹침(그려진 폭/보통 폭)`).toBeGreaterThanOrEqual(0.9);
+    const a = await page.screenshot({ clip: g.box!, scale: "css" });
+    await loc.evaluate((el) => {
+      const st = el.ownerDocument.createElement("style");
+      st.id = "__xr";
+      st.textContent = "[data-xr] { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; text-decoration-color: transparent !important; }";
+      el.ownerDocument.head.appendChild(st);
+    });
+    const b = await page.screenshot({ clip: g.box!, scale: "css" });
+    const m = await pixelInk(page, a, b);
+    if (process.env.XR_LOG) console.log(`[expectInked] ${what}: ink ${m.ink.toFixed(3)} p95 ${m.p95.toFixed(2)} px ${m.n}`);
+    expect(m.ink, `${what}: 실제로 그려진 글자 픽셀이 거의 없음(글자 투명·덮개·화면 밖)`).toBeGreaterThanOrEqual(INK_MIN);
+    expect(m.p95, `${what}: 그려진 글자의 실제 픽셀 대비(상위 5%)`).toBeGreaterThanOrEqual(INK_CONTRAST_MIN);
+  } finally {
+    await clear();
+  }
+}
+const INK_MIN = 0.02;
+const INK_CONTRAST_MIN = 3.0;
+
+/** 두 스크린샷(PNG)을 빈 보조 페이지의 캔버스로 풀어 비교한다(앱 페이지의 CSP·상태를 건드리지 않음, 의존성 추가 없음) */
+async function pixelInk(page: Page, a: Buffer, b: Buffer): Promise<{ ink: number; p95: number; n: number }> {
+  const helper = await page.context().newPage();
+  try {
+    return await helper.evaluate(async ([a64, b64]) => {
+      const load = async (s: string) => { const im = new Image(); im.src = `data:image/png;base64,${s}`; await im.decode(); const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; const x = c.getContext("2d")!; x.drawImage(im, 0, 0); return x.getImageData(0, 0, c.width, c.height).data; };
+      const [pa, pb] = await Promise.all([load(a64), load(b64)]);
+      const lum = (r: number, g: number, bl: number) => { const f = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(bl); };
+      const cs: number[] = [];
+      for (let i = 0; i < pa.length; i += 4) {
+        const d = Math.max(Math.abs(pa[i] - pb[i]), Math.abs(pa[i + 1] - pb[i + 1]), Math.abs(pa[i + 2] - pb[i + 2]));
+        if (d <= 24) continue;
+        const [l1, l2] = [lum(pa[i], pa[i + 1], pa[i + 2]), lum(pb[i], pb[i + 1], pb[i + 2])].sort((x, y) => y - x);
+        cs.push((l1 + 0.05) / (l2 + 0.05));
+      }
+      cs.sort((x, y) => x - y);
+      const total = pa.length / 4;
+      return { ink: cs.length / total, p95: cs.length ? cs[Math.floor(cs.length * 0.95)] : 1, n: cs.length };
+    }, [a.toString("base64"), b.toString("base64")] as const);
+  } finally {
+    await helper.close();
+  }
 }
 
 /** 모의 정전을 일으키고 처리 순서 표가 뜰 때까지 기다린다 */

@@ -74,10 +74,12 @@ export function newSession(preset: UiPreset): Session {
     if (reentry) reviewHints[h.id] = reentry;
     return hv as HouseholdView;
   });
-  return {
-    preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: {},
+  const s: Session = {
+    preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: Object.freeze({}),
     forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0, appliedTickets: [], sessionId: newGateId(),
   };
+  fresh.add(s);
+  return s;
 }
 
 export function allocOpts(s: Session): AllocOptions {
@@ -185,7 +187,26 @@ export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticke
   void _drop;
   // 파기 뒤 같은 가구를 다시 결정하면 새 결정이므로 119 화면에 다시 보인다
   const purged119Ids = s1.purged119Ids.filter((id) => id !== d.householdId);
-  return recompute({ ...s1, decisions: { ...s1.decisions, [d.householdId]: d }, alternatives: alts, purged119Ids });
+  const out = recompute({ ...s1, decisions: Object.freeze({ ...s1.decisions, [d.householdId]: Object.freeze({ ...d }) }), alternatives: alts, purged119Ids });
+  committed.add(out);
+  return out;
+}
+
+// ---------- 결정 감시(실행 중): 결정은 commitDecision으로만 바뀐다 ----------
+// 화면의 상태 갱신(OpsProvider)은 모두 guardTransition을 거친다. 상태 갱신 함수로 decisions를 직접 덮어쓰거나(레드팀 10/30 R5A5),
+// 지난 상태로 되돌리거나, 세션 id를 바꿔 끼우는 길을 실행 중에 거부한다. 결정 객체는 동결해 제자리 수정도 막는다.
+const committed = new WeakSet<Session>();
+const fresh = new WeakSet<Session>();
+
+export function guardTransition(prev: Session, next: Session): Session {
+  if (next === prev || next.decisions === prev.decisions) return next;
+  if (next.sessionId !== prev.sessionId) {
+    if (fresh.has(next) && Object.keys(next.decisions).length === 0) return next;
+    throw new Error("결정 관문: 세션을 바꿔 결정을 넣을 수 없습니다");
+  }
+  const oneMore = next.appliedTickets.length === prev.appliedTickets.length + 1 && prev.appliedTickets.every((t, i) => next.appliedTickets[i] === t);
+  if (!committed.has(next) || !oneMore) throw new Error("결정 관문: 결정은 승인 서랍의 commitDecision으로만 바뀝니다");
+  return next;
 }
 
 /** 운영자 숫자 입력 파싱: 0 이상 십진수만(빈 칸·공백·"abc"·"0x1"·"1e1"·음수는 null). 빈 칸이 0으로 바뀌어 하한이 오르는 것을 막는다 */

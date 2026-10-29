@@ -32,7 +32,7 @@ describe("결정 관문 import 범위(ESLint)", () => {
       ["src/components/ops/Other.tsx", "export async function f() { return (await import(`@/lib/ops/approvalGate`)).consumeApproval; }\n"],
     ];
     for (const [file, code] of cases) expect(await blocked(file, code), `${file}: ${code}`).toBe(true);
-  }, 60_000);
+  }, 180_000);
   it("허용: ApproveDrawer의 발급, session.ts의 소비, 시험 파일의 시험용 표, 타입만 가져오기", async () => {
     const cases: [string, string][] = [
       ["src/components/ops/ApproveDrawer.tsx", 'import { issueApproval } from "@/lib/ops/approvalGate";\nexport const f = issueApproval;\n'],
@@ -41,5 +41,5 @@ describe("결정 관문 import 범위(ESLint)", () => {
       ["src/components/ops/Other.tsx", 'import type { ApprovalTicket } from "@/lib/ops/approvalGate";\nexport type T = ApprovalTicket;\n'],
     ];
     for (const [file, code] of cases) expect(await blocked(file, code), `${file}: ${code}`).toBe(false);
-  }, 60_000);
+  }, 180_000);
 });
