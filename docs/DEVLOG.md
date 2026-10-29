@@ -635,7 +635,7 @@
   - 시험: 단위 `approvalGate.test.ts` 7건(거부 쪽·묶음 규칙·재적용·지난 표·고친 내용·상태 값, 시험용 표는 NODE_ENV=test에서만), `approval-gate-eslint.test.ts` 2건(실제 ESLint 설정으로 반례 10건 차단·허용 4건), AST 시험에 '세 핸들러만 표 발급' 추가, E2E 2건(스크립트 클릭·dispatchEvent·requestSubmit·button.click 거부, 실제 클릭·Enter 저장, MODIFY 정확히 1건, 재검토 대안 승인).
   - ESLint: `issueApproval`(ApproveDrawer)·`consumeApproval`(session.ts)·`ticketForTest`(시험 파일) 밖에서 import 금지, 시험 아닌 소스 전체.
   - **Codex 2라운드(치명 0·중대 1·경미 3, 모두 반영)**: 세션을 새로 시작하면 지난 세션의 표로 결정 가능 → 표를 발급 세션 id(`Session.sessionId`)에 묶음. 표 id 카운터 충돌 → 무작위 id(`randomUUID`, 보안 컨텍스트가 아닌 LAN http 개발 서버에서는 `getRandomValues`로 대신). `.js` 소스·동적 import도 ESLint로 막음.
-  - CI 하한: 단위 397, E2E 104.
+  - CI 하한: 단위 408, E2E 112(레드팀 5라운드·3라운드 대응 포함, 최종).
 - **Claude 3라운드 리뷰(red-judge, 치명 1·중대 2·경미 3, 모두 반영)**
   - [치명] 이벤트를 `Proxy`로 감싸면 `instanceof`·`isTrusted`·`eventPhase`·`target`을 모두 속였다. 실제 클릭 1번에 14가구가 더 승인됐고, 수동검토 가구도 승인됐다(정적 검사 전부 통과).
     - 대응: 관문 모듈이 `window` 붙잡기 단계에서 지금 전달 중인 진짜 클릭 객체를 기록하고, 받은 객체가 그것과 **같은 객체**일 때만 발급한다. 비활성 버튼·화면에 없는 버튼 거부. 세션은 막힌 레인(수동검토·대기·미배정)을 승인 상태로 저장하지 않는다.
