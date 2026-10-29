@@ -31,14 +31,14 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      # 단위 시험을 지워 조용히 약화하는 것을 막는다(10/30 기준 395건, 결정 관문 시험 추가)
+      # 단위 시험을 지워 조용히 약화하는 것을 막는다(10/30 기준 397건, 결정 관문 시험 추가)
       - name: 단위 시험·커버리지와 시험 수 하한
         run: |
           set -o pipefail
           npm run coverage 2>&1 | tee vitest-out.txt
           n=$(grep -E 'Tests .*\(([0-9]+)\)' vitest-out.txt | grep -oE '\(([0-9]+)\)' | tr -d '()' | tail -1)
           echo "단위 시험 수: $n"
-          test "$n" -ge 395
+          test "$n" -ge 397
 
   e2e:
     name: 빌드·문구·번들·예산·숫자 대조·E2E

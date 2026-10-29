@@ -31,7 +31,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
 
   function onApprove(e: React.MouseEvent) {
     if (!row) return;
-    const t = issueApproval(e.nativeEvent, householdId);
+    const t = issueApproval(e.nativeEvent, s.sessionId, householdId);
     const d: Decision = { ...decisionFromRow(row), status: "APPROVED", decidedAtS: s.nowS };
     const slot = { lane: row.rec.lane, ...(row.rec.resourceId ? { resourceId: row.rec.resourceId } : {}) };
     const a: AuditEntry = { at: nowIso(s), actor: "demo-operator", householdId, action: "APPROVE", from: slot, to: slot };
@@ -39,7 +39,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
   }
   function onApproveAlternative(e: React.MouseEvent) {
     if (!alt || !decided) return;
-    const t = issueApproval(e.nativeEvent, householdId);
+    const t = issueApproval(e.nativeEvent, s.sessionId, householdId);
     const d: Decision = { ...decisionFromRow(alt), status: "MODIFIED", decidedAtS: s.nowS };
     const a: AuditEntry = {
       at: nowIso(s), actor: "demo-operator", householdId, action: "MODIFY",
@@ -140,7 +140,7 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
   const ticketRef = useRef<ApprovalTicket | null>(null);
   function onSubmitClick(e: React.MouseEvent) {
     ticketRef.current = null;
-    try { ticketRef.current = issueApproval(e.nativeEvent, householdId); } catch (ex) { setErr(String((ex as Error).message)); }
+    try { ticketRef.current = issueApproval(e.nativeEvent, s.sessionId, householdId); } catch (ex) { setErr(String((ex as Error).message)); }
     setTimeout(() => { ticketRef.current = null; }, 0);
   }
   function submit(e: React.FormEvent) {

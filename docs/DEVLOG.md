@@ -635,4 +635,5 @@
     - ESLint 범위(lib·hooks·`.js` 경로·재export) 확장, 수정 표 상태는 정확히 MODIFIED, 시험 반례 추가.
   - 시험: 단위 `approvalGate.test.ts` 7건(거부 쪽·묶음 규칙·재적용·지난 표·고친 내용·상태 값, 시험용 표는 NODE_ENV=test에서만), `approval-gate-eslint.test.ts` 2건(실제 ESLint 설정으로 반례 10건 차단·허용 4건), AST 시험에 '세 핸들러만 표 발급' 추가, E2E 2건(스크립트 클릭·dispatchEvent·requestSubmit·button.click 거부, 실제 클릭·Enter 저장, MODIFY 정확히 1건, 재검토 대안 승인).
   - ESLint: `issueApproval`(ApproveDrawer)·`consumeApproval`(session.ts)·`ticketForTest`(시험 파일) 밖에서 import 금지, 시험 아닌 소스 전체.
-  - CI 하한: 단위 395, E2E 104.
+  - **Codex 2라운드(치명 0·중대 1·경미 3, 모두 반영)**: 세션을 새로 시작하면 지난 세션의 표로 결정 가능 → 표를 발급 세션 id(`Session.sessionId`)에 묶음. 표 id 카운터 충돌 → 무작위 id(`randomUUID`, 보안 컨텍스트가 아닌 LAN http 개발 서버에서는 `getRandomValues`로 대신). `.js` 소스·동적 import도 ESLint로 막음.
+  - CI 하한: 단위 397, E2E 104.

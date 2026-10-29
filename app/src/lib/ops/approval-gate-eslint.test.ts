@@ -10,7 +10,7 @@ const RULE = "@typescript-eslint/no-restricted-imports";
 
 async function blocked(file: string, code: string): Promise<boolean> {
   const [r] = await eslint.lintText(code, { filePath: path.join(APP, file) });
-  return r.messages.some((m) => m.ruleId === RULE && m.message.includes("결정 관문"));
+  return r.messages.some((m) => [RULE, "no-restricted-imports", "no-restricted-syntax"].includes(m.ruleId ?? "") && m.message.includes("결정 관문"));
 }
 
 describe("결정 관문 import 범위(ESLint)", () => {
@@ -26,6 +26,10 @@ describe("결정 관문 import 범위(ESLint)", () => {
       ["src/components/ops/ApproveDrawer.tsx", 'import { ticketForTest } from "@/lib/ops/approvalGate";\nexport const f = ticketForTest;\n'],
       ["src/lib/ops/session.ts", 'import { issueApproval } from "./approvalGate";\nexport const f = issueApproval;\n'],
       ["src/lib/alloc/x.ts", 'import { consumeApproval } from "../ops/approvalGate";\nexport const f = consumeApproval;\n'],
+      // Codex 2라운드: JS 소스, 동적 import(문자열·템플릿)
+      ["src/hooks/helper.js", 'import { issueApproval } from "@/lib/ops/approvalGate";\nexport const f = issueApproval;\n'],
+      ["src/hooks/helper.ts", 'export async function f() { return (await import("@/lib/ops/approvalGate")).issueApproval; }\n'],
+      ["src/components/ops/Other.tsx", "export async function f() { return (await import(`@/lib/ops/approvalGate`)).consumeApproval; }\n"],
     ];
     for (const [file, code] of cases) expect(await blocked(file, code), `${file}: ${code}`).toBe(true);
   }, 60_000);

@@ -18,7 +18,7 @@ function approve(s: Session, id: string): Session {
   const row = s.result!.rows.find((r) => r.rec.householdId === id)!;
   const d: Decision = { ...decisionFromRow(row), status: "APPROVED", decidedAtS: s.nowS };
   const a: AuditEntry = { at: "t", actor: "demo-operator", householdId: id, action: "APPROVE", from: { lane: row.rec.lane }, to: { lane: row.rec.lane, resourceId: row.rec.resourceId } };
-  return commitDecision(s, d, a, ticketForTest(id, "gate-approve"));
+  return commitDecision(s, d, a, ticketForTest(s.sessionId, id, "gate-approve"));
 }
 function rows119(s: Session) {
   return project119(Object.values(s.decisions).map((d) => ({ householdId: d.householdId, lane: d.lane, status: d.status, lEndH: lEndH(s.households.find((h) => h.id === d.householdId)!) })), s.households, preset.meta.baseIso);
@@ -43,13 +43,13 @@ describe("ops 세션", () => {
     const other = rows.find((r) => r.rec.householdId !== first.rec.householdId)!;
     const d: Decision = { ...decisionFromRow(other), lane: "FALLBACK_119", status: "MODIFIED", decidedAtS: s1.nowS };
     const a: AuditEntry = { at: "t", actor: "demo-operator", householdId: other.rec.householdId, action: "MODIFY", from: { lane: other.rec.lane }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "현장 요청으로 119" };
-    const s2 = commitDecision(s1, d, a, ticketForTest(other.rec.householdId, "gate-modify"));
+    const s2 = commitDecision(s1, d, a, ticketForTest(s0.sessionId, other.rec.householdId, "gate-modify"));
     expect(visible119Ids(s2)).toEqual([other.rec.householdId]);
     expect(purge119(s1)).toBe(s1);
     // 같은 가구를 파기 뒤 다시 119로 결정하면 다시 보인다
     const d2: Decision = { ...s1.decisions[first.rec.householdId], status: "MODIFIED", decidedAtS: s1.nowS };
     const a2: AuditEntry = { at: "t", actor: "demo-operator", householdId: first.rec.householdId, action: "MODIFY", from: { lane: "FALLBACK_119" }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "재결정 확인용" };
-    expect(visible119Ids(commitDecision(s1, d2, a2, ticketForTest(first.rec.householdId, "gate-modify")))).toContain(first.rec.householdId);
+    expect(visible119Ids(commitDecision(s1, d2, a2, ticketForTest(s0.sessionId, first.rec.householdId, "gate-modify")))).toContain(first.rec.householdId);
   });
 
   it("운영자 숫자 입력은 0 이상 십진수만 받는다(빈 칸이 0이 되지 않음)", () => {
@@ -87,8 +87,8 @@ describe("ops 세션", () => {
     const row = s0.result!.rows[0];
     const d: Decision = { ...decisionFromRow(row), lane: "FALLBACK_119", status: "MODIFIED", decidedAtS: s0.nowS };
     const bad: AuditEntry = { at: "t", actor: "demo-operator", householdId: row.rec.householdId, action: "MODIFY", from: { lane: row.rec.lane }, to: { lane: "FALLBACK_119" }, reasonCode: "OTHER", reasonText: "짧음" };
-    expect(() => commitDecision(s0, d, bad, ticketForTest(row.rec.householdId, "gate-modify"))).toThrow(/감사 행 규칙/);
-    const ok = commitDecision(s0, d, { ...bad, reasonText: "현장 연락 결과 이송 희망" }, ticketForTest(row.rec.householdId, "gate-modify"));
+    expect(() => commitDecision(s0, d, bad, ticketForTest(s0.sessionId, row.rec.householdId, "gate-modify"))).toThrow(/감사 행 규칙/);
+    const ok = commitDecision(s0, d, { ...bad, reasonText: "현장 연락 결과 이송 희망" }, ticketForTest(s0.sessionId, row.rec.householdId, "gate-modify"));
     expect(rows119(ok)).toHaveLength(1);
   });
 

@@ -49,6 +49,10 @@ const NO_COMMIT_IMPORT = { group: ["**/ops/session", "@/lib/ops/session"], impor
 const GATE_SRC = ["**/approvalGate", "**/approvalGate.*", "./approvalGate", "./approvalGate.*", "@/lib/ops/approvalGate", "@/lib/ops/approvalGate.*"];
 const gateRule = (names) => ({ group: GATE_SRC, importNames: names, message: "결정 관문: 표 발급(issueApproval)은 components/ops/ApproveDrawer.tsx, 표 소비(consumeApproval)는 lib/ops/session.ts, 시험용 표(ticketForTest)는 시험 파일에서만 쓴다." });
 const NO_GATE_ALL = gateRule(["issueApproval", "consumeApproval", "ticketForTest"]);
+// 동적 import("…approvalGate")는 import 규칙이 보지 않는다(Codex 2라운드): 시험·ApproveDrawer 밖에서 금지
+const NO_GATE_DYNAMIC = [
+  { selector: "ImportExpression[source.value=/approvalGate/], ImportExpression[source.quasis.0.value.raw=/approvalGate/]", message: "결정 관문 모듈을 동적 import로 가져오지 않는다(정적 import만, 허용 파일 규칙이 적용되도록)." },
+];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -56,18 +60,18 @@ const eslintConfig = defineConfig([
   {
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_GATE_DYNAMIC] },
   },
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_DECISION_WRITES] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_DECISION_WRITES, ...NO_GATE_DYNAMIC] },
   },
   {
     // restoration.ts: CONFIRMED 범위 exp(±zσ)는 Math.exp 직후 qT로 바꾸는 명세 예외(3절)라 초월함수 규칙에서 뺀다
     files: ["src/lib/alloc/**/*.ts", "src/lib/engine/**/*.ts"],
     ignores: ["src/**/*.test.ts", "src/lib/engine/restoration.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_TRANSCENDENTAL] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_TRANSCENDENTAL, ...NO_GATE_DYNAMIC] },
   },
   {
     // 승인 핸들러가 있는 유일한 파일
@@ -93,6 +97,14 @@ const eslintConfig = defineConfig([
   {
     files: ["src/lib/ops/session.ts"],
     rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [gateRule(["issueApproval", "ticketForTest"])] }] },
+  },
+  {
+    // JS 소스(allowJs)에서는 관문 함수를 아예 쓰지 않는다(Codex 2라운드: .js 파일이 규칙 밖이었음)
+    files: ["src/**/*.{js,jsx,mjs,cjs}"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [NO_GATE_ALL] }],
+      "no-restricted-syntax": ["error", ...NO_GATE_DYNAMIC],
+    },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
