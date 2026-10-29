@@ -143,7 +143,7 @@ API 키·저장소 토큰·심사용 접근 코드는 **드리지 않습니다.*
   - `app/next.config.ts`(보안 헤더), `app/package.json`·lock, `app/eslint.config.mjs`, `app/vitest.config.mts`
   - `app/scripts/`, `tools/`, `spec/`, `prereg/`, `seal/`, `out/`, `datasets/`
   - **검사 체계**: `app/e2e/**`(시험·`axe-baseline.json`), `app/scripts/**`, `app/playwright.config.ts`, `app/lighthouserc*.json`, `.github/**`
-  - 위 수정 금지 파일(검사 체계 포함)을 바꾼 PR은 GitHub의 `guard` 검사가 빨간불을 띄웁니다. 의뢰인이 내용을 보고 `test-change-approved` 라벨을 붙여야 통과하고, 라벨을 붙인 뒤 새 커밋을 올리면 라벨이 자동으로 떨어져 다시 확인받아야 합니다. `guard`는 master에 있는 정의로 돌아서 PR에서 지우거나 고칠 수 없습니다. **다만 브랜치 보호(0-2)를 걸기 전까지는 빨간불이 떠도 병합 버튼이 눌리므로, 의뢰인은 빨간불인 PR을 병합하지 마세요.**
+  - 위 수정 금지 파일(검사 체계 포함, 10/30부터 승인 경로 화면 `components/ops/ApproveDrawer.tsx`·`OpsProvider.tsx`도)을 바꾼 PR은 GitHub의 `guard` 검사가 빨간불을 띄웁니다. 의뢰인이 내용을 보고 `test-change-approved` 라벨을 붙여야 통과하고, 라벨을 붙인 뒤 새 커밋을 올리면 라벨이 자동으로 떨어져 다시 확인받아야 합니다. `guard`는 master에 있는 정의로 돌아서 PR에서 지우거나 고칠 수 없습니다. 10/30부터 `master` 보호로 이 검사가 필수입니다. **다만 fork PR이 같은 이름의 작업을 넣어 초록불을 흉내 낼 수 있는지는 확인하지 못했습니다. 병합 전 PR 검사 목록에서 `guard` 워크플로의 결과를 직접 확인하세요.**
 - 범위 밖 파일을 고쳐야 할 것 같으면 **멈추고 먼저 물어 주세요.**
 - **`data-testid`·`data-lane`·`data-field`·`data-action`·`data-gate`·`data-household` 속성은 지우거나 이름을 바꾸지 마세요.** 시험이 화면 요소를 찾는 표지입니다. 시험은 태그 구조(표·목록·제목 태그)에 기대지 않으므로 표를 카드로, 목록을 카드로 바꿔도 되지만, 요소가 옮겨 가면 같은 속성을 새 요소에 붙여 주세요.
 
@@ -178,7 +178,8 @@ API 키·저장소 토큰·심사용 접근 코드는 **드리지 않습니다.*
 
 **D. 사람 승인 구조와, 화면 컴포넌트 안에만 있는 로직** — 아래 로직은 lib가 아니라 **화면 파일 안에만** 있습니다. 재구성할 때 같이 옮기지 않으면 조용히 사라집니다.
 11. 배정 승인은 사람이 버튼을 눌러야 합니다. 자동·일괄 승인("추천대로 모두 승인") UI를 추가하지 마세요.
-    - **결정 관문(10/30 추가, `lib/ops/approvalGate.ts`).** 결정은 담당자가 그 가구 서랍에서 실제로 누른 조작 1번에 1건만 저장됩니다. 스크립트가 만든 클릭·제출이나 효과·타이머로 부르는 경우, 한 번 클릭으로 여러 가구를 결정하는 경우는 실행 중에 거부됩니다.
+    - **결정 관문과 결정 감시(10/30 추가, `lib/ops/approvalGate.ts`·`session.ts`).** 결정은 담당자가 그 가구 서랍에서 실제로 누른 클릭 1번에 1건만 저장됩니다. 다음 경로는 실행 중에 거부되는 것을 변이를 넣어 확인했습니다: 한 번 클릭으로 여러 가구 반복, 타이머·효과·키보드 단축키·URL 파라미터로 부르기, 스크립트가 만든 클릭·제출, 저장해 둔 이벤트, 이벤트를 감싼 객체(Proxy), 비활성 버튼, 키를 누르고 있는 동안의 클릭, 상태 갱신 함수로 `decisions` 직접 쓰기.
+    - **한계:** 같은 페이지에서 도는 코드가 관문 모듈 자체를 바꿔치기하는 의도적 변조까지는 막지 못합니다. 그래서 `ApproveDrawer.tsx`·`OpsProvider.tsx`와 `lib/`를 바꾼 PR은 `guard`가 의뢰인 확인을 요구합니다(4.1절).
     - 서랍 `section`의 **`data-household`**, 승인·대안 승인 버튼과 수정 양식의 **`data-gate`**(`gate-approve`·`gate-approve-alt`·`gate-modify`)를 지우거나 옮기지 마세요. 버튼이 이 표지 밖으로 나가면 실제 클릭도 거부되고 E2E가 실패합니다.
 12. `status: "APPROVED"` 대입은 **`components/ops/ApproveDrawer.tsx` 한 곳에만** 있어야 합니다.
     - 시험(`lib/ops/approval-scan.test.ts`)이 경로까지 검사하므로 **이 파일의 이름·위치를 바꾸지 마세요.**

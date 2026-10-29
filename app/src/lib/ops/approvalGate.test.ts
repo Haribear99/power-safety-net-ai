@@ -21,9 +21,18 @@ const modifyOf = (r: typeof row, lane: Decision["lane"]): [Decision, AuditEntry]
 const approvals = (s: typeof s0) => s.audit.filter((a) => a.action === "APPROVE").length;
 
 describe("결정 관문", () => {
-  it("스크립트가 만든 이벤트·이벤트 아닌 값으로는 표를 발급하지 않는다", () => {
-    expect(() => issueApproval(new Event("click"), s0.sessionId, id)).toThrow(/실제 조작이 아닙니다/);
-    expect(() => issueApproval({ isTrusted: true, type: "click" } as unknown as Event, s0.sessionId, id)).toThrow(/이벤트가 아닙니다/);
+  it("지금 전달 중인 진짜 클릭 객체가 아니면(만든 이벤트·흉내 낸 객체·감싼 객체) 표를 발급하지 않는다", () => {
+    const ev = new Event("click");
+    expect(() => issueApproval(ev, s0.sessionId, id)).toThrow(/지금 처리 중인 실제 클릭이 아닙니다/);
+    expect(() => issueApproval({ isTrusted: true, type: "click" } as unknown as Event, s0.sessionId, id)).toThrow(/지금 처리 중인 실제 클릭이 아닙니다/);
+    expect(() => issueApproval(new Proxy(ev, {}), s0.sessionId, id)).toThrow(/지금 처리 중인 실제 클릭이 아닙니다/);
+    expect(() => issueApproval(null as unknown as Event, s0.sessionId, id)).toThrow(/지금 처리 중인 실제 클릭이 아닙니다/);
+  });
+  it("승인할 배정이 없는 레인(수동검토·대기·미배정)은 표가 있어도 승인 상태로 저장하지 않는다", () => {
+    for (const lane of ["MANUAL_REVIEW", "HOLD", "UNSERVED_VISIBLE"] as const) {
+      const [d, a] = approveOf(row);
+      expect(() => commitDecision(s0, { ...d, lane }, a, ticketForTest(s0.sessionId, id, "gate-approve")), lane).toThrow(/승인할 배정이 없는 레인/);
+    }
   });
   it("표 없이·발급하지 않은 표로는 저장하지 않는다", () => {
     const [d, a] = approveOf(row);

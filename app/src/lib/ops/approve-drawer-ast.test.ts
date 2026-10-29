@@ -14,6 +14,7 @@ function collect() {
   const decisionWrites: string[] = [];
   const commitRefs: string[] = [];
   const issues: string[] = [];
+  const forging: string[] = [];
   const visit = (n: ts.Node) => {
     // 결정을 감사 행 없이 직접 써넣는 길(레드팀 10/24 R4-2): decisions 속성 만들기·대입
     if (ts.isPropertyAssignment(n) && n.name.getText(sf) === "decisions") decisionWrites.push(n.getText(sf).slice(0, 60));
@@ -34,8 +35,19 @@ function collect() {
     if (ts.isCallExpression(n) && n.expression.getText(sf) === "issueApproval") {
       let f: ts.Node | undefined = n;
       while (f && !(ts.isFunctionDeclaration(f) && f.name)) f = f.parent;
-      issues.push(`${f && ts.isFunctionDeclaration(f) ? f.name!.text : "?"}:${n.arguments[0]?.getText(sf)}`);
+      const fn = f && ts.isFunctionDeclaration(f) ? f : undefined;
+      // e는 그 핸들러의 첫 매개변수여야 하고, 핸들러 안에서 같은 이름을 다시 선언해 가리면 안 된다(Claude 3라운드: 안쪽 블록의 const e = { nativeEvent: Proxy })
+      const param = fn?.parameters[0]?.name.getText(sf);
+      let shadowed = false;
+      const scan = (m: ts.Node) => {
+        if ((ts.isVariableDeclaration(m) || ts.isParameter(m) || ts.isBindingElement(m)) && m !== fn?.parameters[0] && m.name.getText(sf) === param) shadowed = true;
+        ts.forEachChild(m, scan);
+      };
+      if (fn?.body) scan(fn.body);
+      issues.push(`${fn ? fn.name!.text : "?"}:${n.arguments[0]?.getText(sf)}${param === "e" && !shadowed ? "" : " (e가 핸들러 매개변수가 아님)"}`);
     }
+    // 이벤트를 꾸미거나 만들어 내는 도구는 승인 서랍에서 쓰지 않는다
+    if (ts.isIdentifier(n) && ["Proxy", "Reflect", "dispatchEvent", "cloneNode", "createElement", "setAttribute", "defineProperty", "MouseEvent", "PointerEvent", "KeyboardEvent", "CustomEvent", "Event"].includes(n.text) && !ts.isQualifiedName(n.parent) && !ts.isTypeReferenceNode(n.parent)) forging.push(n.parent.getText(sf).slice(0, 60));
     if (ts.isCallExpression(n) && n.expression.getText(sf) === "commitDecision") {
       let f: ts.Node | undefined = n;
       while (f && !(ts.isFunctionDeclaration(f) && f.name)) f = f.parent;
@@ -44,13 +56,16 @@ function collect() {
     ts.forEachChild(n, visit);
   };
   visit(sf);
-  return { literals, commits, decisionWrites, commitRefs, issues };
+  return { literals, commits, decisionWrites, commitRefs, issues, forging };
 }
 
 describe("ApproveDrawer 안 승인 경로 고정", () => {
-  const { literals, commits, decisionWrites, commitRefs, issues } = collect();
+  const { literals, commits, decisionWrites, commitRefs, issues, forging } = collect();
   it("결정 관문 표는 세 핸들러가 각자 받은 이벤트로만 발급한다", () => {
     expect(issues.sort()).toEqual(["onApprove:e.nativeEvent", "onApproveAlternative:e.nativeEvent", "onSubmitClick:e.nativeEvent"]);
+  });
+  it("이벤트를 꾸미거나 만들어 내는 도구(Proxy·Reflect·dispatchEvent·new *Event 등)를 쓰지 않는다", () => {
+    expect(forging).toEqual([]);
   });
   it('값 "APPROVED"는 한 번(onApprove), 감사 값 "APPROVE"도 한 번, 그 밖의 승인 비슷한 값 없음', () => {
     expect(literals).toEqual({ APPROVED: 1, APPROVE: 1 });

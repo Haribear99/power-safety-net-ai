@@ -26,7 +26,8 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
   const alt = s.alternatives[householdId];
   const lbd = computeLowerBoundDetail(hh, DB);
   const now = sToH(s.nowS);
-  const ref = useRef<HTMLButtonElement>(null);
+  // 서랍을 열면 제목으로 포커스를 옮긴다(승인 버튼이 아님): 행 열기 Enter를 누르고 있으면 열기와 승인이 함께 일어나던 문제(Claude 3라운드)
+  const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => { ref.current?.focus(); }, [householdId]);
 
   function onApprove(e: React.MouseEvent) {
@@ -53,7 +54,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
   return (
     <section role="dialog" aria-modal="false" aria-labelledby="drawer-title" className="rounded-lg border border-ink p-3" data-testid="approve-drawer" data-household={householdId}>
       <div className="flex items-start justify-between">
-        <h2 id="drawer-title" className="text-[18px] font-bold">{hh.pseudonym} · {DEVICE_CLASS_LABEL[deviceClass(hh)]}</h2>
+        <h2 id="drawer-title" ref={ref} tabIndex={-1} className="text-[18px] font-bold">{hh.pseudonym} · {DEVICE_CLASS_LABEL[deviceClass(hh)]}</h2>
         <button type="button" onClick={onClose} className="text-[14px] underline">닫기</button>
       </div>
       <p className="mt-1 text-[14px] text-muted">격자 ({hh.cell.x}, {hh.cell.y}) km · {hh.floor}층 · 보호자 {hh.caregiver ? "있음" : "없음"} · 이동지원 {hh.mobilityNeed ? "필요" : "불필요"}</p>
@@ -76,7 +77,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
             <div className="mt-2 rounded border border-gap bg-white p-2">
               <p>대안(제안): {LANE_KO[alt.rec.lane]}{alt.rec.resourceId ? ` · ${alt.rec.resourceId}` : ""}</p>
               <p className="text-[13px] text-muted">{safeReason(alt.rec.reason)}</p>
-              <button ref={ref} type="button" className="mt-1 rounded bg-ink px-3 py-1 text-white" onClick={onApproveAlternative} data-testid="approve-alt" data-gate="gate-approve-alt">대안 승인</button>
+              <button type="button" className="mt-1 rounded bg-ink px-3 py-1 text-white" onClick={onApproveAlternative} data-testid="approve-alt" data-gate="gate-approve-alt">대안 승인</button>
             </div>
           )}
         </div>
@@ -86,7 +87,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
           <p className="text-[15px]"><strong>{LANE_KO[row.rec.lane]}</strong>{row.rec.resourceId ? ` · ${row.rec.resourceId}` : ""}</p>
           <p className="mt-1 text-[13px] leading-5 text-muted" data-testid="drawer-reason">{safeReason(row.rec.reason)}</p>
           <div className="mt-2 flex gap-2">
-            <button ref={ref} type="button" onClick={onApprove} disabled={row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE"}
+            <button type="button" onClick={onApprove} disabled={row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE"}
               className="rounded bg-ink px-4 py-1.5 text-[15px] font-bold text-white disabled:opacity-40" data-testid="approve" data-gate="gate-approve">승인</button>
           </div>
           {(row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE") && (

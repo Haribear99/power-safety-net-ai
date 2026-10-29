@@ -423,3 +423,23 @@ test("재검토 대안 승인도 실제 클릭만 저장(스크립트 클릭 거
   await expect(page.getByTestId("approve-drawer")).toContainText("수정됨");
   expect(await modifies()).toBe(1);
 });
+
+test("행 열기 버튼에서 Enter를 누르고 있어도(자동 반복) 결정이 생기지 않고, 서랍은 제목에 포커스", async ({ page }) => {
+  await startOutage(page);
+  const [id] = await rowIds(page, "FALLBACK_119");
+  await page.getByTestId(`open-${id}`).focus();
+  await page.keyboard.down("Enter");
+  await expect(page.getByTestId("approve-drawer")).toBeVisible();
+  // 같은 키를 누른 채로 다시 down = 자동 반복(repeat) 키 이벤트
+  for (let i = 0; i < 3; i++) await page.keyboard.down("Enter");
+  await page.keyboard.up("Enter");
+  await page.waitForTimeout(200);
+  await expect(page.locator("#drawer-title")).toBeFocused();
+  expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count()).toBe(0);
+  await expect(page.getByTestId("approve-drawer")).not.toContainText("승인됨");
+  // 키보드로 승인 버튼에 가서 Enter 한 번은 정상 승인
+  await page.getByTestId("approve").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("approve-drawer")).toContainText("승인됨");
+  expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count()).toBe(1);
+});

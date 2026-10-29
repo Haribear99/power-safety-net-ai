@@ -36,7 +36,8 @@ describe("결정 감시", () => {
   });
   it("commitDecision 결과를 펼쳐 결정만 바꿔 끼우거나, 지난 결정 상태로 되돌리면 거부", () => {
     const s1 = approve(s0);
-    const other = s0.result!.rows.find((r) => r.rec.householdId !== id)!;
+    // 승인할 배정이 있는 레인의 다른 가구(수동검토·대기·미배정은 승인 자체가 거부됨)
+    const other = s0.result!.rows.find((r) => r.rec.householdId !== id && !["MANUAL_REVIEW", "HOLD", "UNSERVED_VISIBLE"].includes(r.rec.lane))!;
     const s2 = approve(s1, other);
     const forged: Decision = { ...decisionFromRow(other), status: "MODIFIED", decidedAtS: s0.nowS };
     expect(() => guardTransition(s1, { ...s2, decisions: { ...s2.decisions, [id]: forged } })).toThrow(/commitDecision으로만/);

@@ -180,6 +180,8 @@ export function decisionFromRow(row: AllocRow): Omit<Decision, "status" | "decid
  *  ticket: 승인 서랍의 실제 조작으로 발급한 표(approvalGate). 조작 1번 = 결정 1건 */
 export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticket: ApprovalTicket): Session {
   const ticketId = consumeApproval(ticket, s.sessionId, d, audit);
+  // 승인할 배정이 없는 레인은 승인 상태로 저장하지 않는다(버튼 비활성만으로는 부족: Claude 3라운드 — 수동검토 → 수동검토 APPROVE)
+  if (d.status === "APPROVED" && (d.lane === "MANUAL_REVIEW" || d.lane === "HOLD" || d.lane === "UNSERVED_VISIBLE")) throw new Error("결정 관문: 승인할 배정이 없는 레인입니다");
   // 이미 적용한 표: React 재실행은 적용 전 상태로 다시 부르므로 같은 결과가 되고, 적용된 상태에 다시 부르면 그대로 둔다
   if (s.appliedTickets.includes(ticketId)) return s;
   const s1 = pushAudit({ ...s, appliedTickets: [...s.appliedTickets, ticketId] }, [audit]);
