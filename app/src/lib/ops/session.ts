@@ -200,15 +200,20 @@ export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticke
 const committed = new WeakSet<Session>();
 const fresh = new WeakSet<Session>();
 
-export function guardTransition(prev: Session, next: Session): Session {
-  if (next === prev || next.decisions === prev.decisions) return next;
-  if (next.sessionId !== prev.sessionId) {
-    if (fresh.has(next) && Object.keys(next.decisions).length === 0) return next;
-    throw new Error("결정 관문: 세션을 바꿔 결정을 넣을 수 없습니다");
-  }
+/** 이 상태 변화가 결정 규칙을 어기면 그 이유, 아니면 null */
+export function transitionViolation(prev: Session, next: Session): string | null {
+  if (next === prev || next.decisions === prev.decisions) return null;
+  if (next.sessionId !== prev.sessionId) return fresh.has(next) && Object.keys(next.decisions).length === 0 ? null : "세션을 바꿔 결정을 넣을 수 없습니다";
   const oneMore = next.appliedTickets.length === prev.appliedTickets.length + 1 && prev.appliedTickets.every((t, i) => next.appliedTickets[i] === t);
-  if (!committed.has(next) || !oneMore) throw new Error("결정 관문: 결정은 승인 서랍의 commitDecision으로만 바뀝니다");
-  return next;
+  return committed.has(next) && oneMore ? null : "결정은 승인 서랍의 commitDecision으로만 바뀝니다";
+}
+
+/** 규칙을 어긴 변화는 버리고 이전 상태를 그대로 둔다(던지면 상태 갱신 중이라 화면 전체가 멈춘다: 10/30 R5A5 변이 확인). 오류는 기록한다 */
+export function guardTransition(prev: Session, next: Session): Session {
+  const v = transitionViolation(prev, next);
+  if (v === null) return next;
+  console.error(`결정 관문: ${v}`);
+  return prev;
 }
 
 /** 운영자 숫자 입력 파싱: 0 이상 십진수만(빈 칸·공백·"abc"·"0x1"·"1e1"·음수는 null). 빈 칸이 0으로 바뀌어 하한이 오르는 것을 막는다 */

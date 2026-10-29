@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import suwon from "@/data/presets/suwon.json";
 import type { AuditEntry } from "../domain/types";
 import { ticketForTest } from "./approvalGate";
-import { commitDecision, decisionFromRow, guardTransition, newSession, purge119, recompute, reReport, start, type Decision, type Session, type UiPreset } from "./session";
+import { commitDecision, decisionFromRow, guardTransition, transitionViolation, newSession, purge119, recompute, reReport, start, type Decision, type Session, type UiPreset } from "./session";
 
 const preset = suwon as unknown as UiPreset;
 const s0 = start(newSession(preset));
@@ -25,14 +25,14 @@ describe("결정 감시", () => {
     expect(guardTransition(fresh, start(fresh))).toBeTruthy();
     const s1 = approve(s0);
     expect(guardTransition(s0, s1)).toBe(s1);
-    expect(() => guardTransition(s1, recompute(s1, s1.nowS + 1800))).not.toThrow();
-    expect(() => guardTransition(s1, reReport(s1, id, 50))).not.toThrow();
-    expect(() => guardTransition(s1, purge119(s1))).not.toThrow();
+    expect(transitionViolation(s1, recompute(s1, s1.nowS + 1800))).toBeNull();
+    expect(transitionViolation(s1, reReport(s1, id, 50))).toBeNull();
+    expect(transitionViolation(s1, purge119(s1))).toBeNull();
   });
   it("상태 갱신 함수로 decisions를 직접 덮어쓰면 거부(가짜 표 id를 붙여도)", () => {
     const forged: Decision = { ...decisionFromRow(row), status: "MODIFIED", decidedAtS: s0.nowS };
-    expect(() => guardTransition(s0, { ...s0, decisions: { ...s0.decisions, [id]: forged } })).toThrow(/commitDecision으로만/);
-    expect(() => guardTransition(s0, { ...s0, decisions: { [id]: forged }, appliedTickets: ["fake"] })).toThrow(/commitDecision으로만/);
+    expect(transitionViolation(s0, { ...s0, decisions: { ...s0.decisions, [id]: forged } })).toMatch(/commitDecision으로만/);
+    expect(transitionViolation(s0, { ...s0, decisions: { [id]: forged }, appliedTickets: ["fake"] })).toMatch(/commitDecision으로만/);
   });
   it("commitDecision 결과를 펼쳐 결정만 바꿔 끼우거나, 지난 결정 상태로 되돌리면 거부", () => {
     const s1 = approve(s0);
@@ -40,14 +40,26 @@ describe("결정 감시", () => {
     const other = s0.result!.rows.find((r) => r.rec.householdId !== id && !["MANUAL_REVIEW", "HOLD", "UNSERVED_VISIBLE"].includes(r.rec.lane))!;
     const s2 = approve(s1, other);
     const forged: Decision = { ...decisionFromRow(other), status: "MODIFIED", decidedAtS: s0.nowS };
-    expect(() => guardTransition(s1, { ...s2, decisions: { ...s2.decisions, [id]: forged } })).toThrow(/commitDecision으로만/);
-    expect(() => guardTransition(s2, s1)).toThrow(/commitDecision으로만/);
+    expect(transitionViolation(s1, { ...s2, decisions: { ...s2.decisions, [id]: forged } })).toMatch(/commitDecision으로만/);
+    expect(transitionViolation(s2, s1)).toMatch(/commitDecision으로만/);
   });
   it("세션 id를 바꿔 결정을 넣으면 거부(새 빈 세션만 허용)", () => {
     const s1 = approve(s0);
-    expect(() => guardTransition(s0, { ...s1, sessionId: "other" })).toThrow(/세션을 바꿔/);
+    expect(transitionViolation(s0, { ...s1, sessionId: "other" })).toMatch(/세션을 바꿔/);
     const fresh = newSession(preset);
     expect(guardTransition(s1, fresh)).toBe(fresh);
+  });
+  it("규칙을 어긴 변화는 버리고 이전 상태를 그대로 둔다(화면이 멈추지 않게 던지지 않음), 오류는 기록", () => {
+    const forged: Decision = { ...decisionFromRow(row), status: "MODIFIED", decidedAtS: s0.nowS };
+    const errors: unknown[] = [];
+    const orig = console.error;
+    console.error = (...a: unknown[]) => { errors.push(a.join(" ")); };
+    try {
+      expect(guardTransition(s0, { ...s0, decisions: { [id]: forged } })).toBe(s0);
+    } finally {
+      console.error = orig;
+    }
+    expect(String(errors[0])).toMatch(/결정 관문: 결정은 승인 서랍의 commitDecision으로만/);
   });
   it("결정 객체는 동결되어 제자리 수정이 안 된다", () => {
     const s1 = approve(s0);
