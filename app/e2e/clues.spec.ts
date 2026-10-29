@@ -9,6 +9,23 @@ const squash = (t: string) => t.replace(/\s+/g, "");
 const pct1 = (x: number) => `${(x * 100).toFixed(1)}%`;
 async function mainText(page: Page) { return squash(await page.locator("main").innerText()); }
 
+/** 단서 문장을 감싼 가장 안쪽 요소가 사람이 읽을 수 있는지(레드팀 10/30 C5: sr-only·1px 글씨로 숨겨도 innerText 대조는 통과했음) */
+async function expectClueReadable(page: Page, s: string, what: string) {
+  const found = await page.locator("main").evaluate((m, want) => {
+    const sq = (t: string) => t.replace(/\s+/g, "");
+    let best: Element | null = null;
+    for (const el of m.querySelectorAll("*")) if (sq(el.textContent ?? "").includes(want) && (!best || best.contains(el))) best = el;
+    best?.setAttribute("data-clue-target", "");
+    return !!best;
+  }, squash(s));
+  expect(found, `${what}: 단서 문장을 감싼 요소 없음`).toBe(true);
+  try {
+    await expectReadable(page.locator("[data-clue-target]"), what);
+  } finally {
+    await page.locator("main").evaluate((m) => m.querySelectorAll("[data-clue-target]").forEach((e) => e.removeAttribute("data-clue-target")));
+  }
+}
+
 /** /lab 절 번호와 앵커의 짝(다른 화면·콘티가 「랩 ⑥」「리허설 랩 ⑨」처럼 부른다) */
 const LAB_SECTIONS: Record<string, string> = { breakeven: "①", map: "②", compare: "③", patches: "④", prereg: "⑥", empirical: "⑦", "ai-target": "⑧", notice: "⑨" };
 
@@ -19,7 +36,7 @@ test("/lab 절 번호와 앵커의 짝이 그대로", async ({ page }) => {
   }
 });
 
-test("/lab 공개 단서·숫자 = evidence.json", async ({ page }) => {
+test("/lab 공개 단서·숫자 = evidence.json @mobile", async ({ page }) => {
   await page.goto("/lab");
   const t = await mainText(page);
   const must: [string, string][] = [
@@ -33,6 +50,7 @@ test("/lab 공개 단서·숫자 = evidence.json", async ({ page }) => {
     ["맞바꿈", "맞바꿈"],
   ];
   for (const [what, s] of must) expect(t.includes(squash(s)), `/lab ${what}: 「${s}」`).toBe(true);
+  for (const [what, s] of must) await expectClueReadable(page, s, `/lab ${what}`);
   // 틀린 예측 공개: 사전등록 대조 절에 틀린 판정(×)과 맞힌 수 표기가 있어야 한다
   const prereg = page.locator('[id="prereg"]');
   await expect(prereg).toContainText("×");
@@ -41,7 +59,7 @@ test("/lab 공개 단서·숫자 = evidence.json", async ({ page }) => {
   await expectReadable(page.locator('[id="prereg"]').getByRole("heading").first(), "/lab ⑥ 제목");
 });
 
-test("/ledger 공개 단서·숫자 = evidence.json", async ({ page }) => {
+test("/ledger 공개 단서·숫자 = evidence.json @mobile", async ({ page }) => {
   await page.goto("/ledger");
   const t = await mainText(page);
   const s = e.c1.sonnet.modelExact;
@@ -55,6 +73,7 @@ test("/ledger 공개 단서·숫자 = evidence.json", async ({ page }) => {
     ["고친 검사는 미측정", "고침·고친검사는미측정"],
   ];
   for (const [what, str] of must) expect(t.includes(squash(str)), `/ledger ${what}: 「${str}」`).toBe(true);
+  for (const [what, str] of must) await expectClueReadable(page, str, `/ledger ${what}`);
 });
 
 /** 화면에 나오는 모든 %·분수가 evidence.json·lab.json·params.json의 값(또는 그 비율·반올림)으로 설명되는지(레드팀 10/24 R2-9: 같은 값이 여러 곳에 나올 때 한 곳만 보던 공백) */
@@ -94,48 +113,66 @@ for (const p of ["/", "/lab", "/ledger"]) {
   });
 }
 
-// ---- 자리별 숫자표: 같은 데이터의 다른 값으로 바꿔치기(예: 14.9% → 4.9%)를 잡는다(레드팀 10/24 R3-4) ----
-// 각 숫자(%·분수·소수·두 자리 이상, 단위 무관 — '9,000회'·'1.4시간'도) 바로 앞 글자 12자(공백 제외)를 그 숫자의 자리 표지로 삼아
-// (자리, 값) 짝의 모음을 고정한다. 순서는 보지 않으므로 절 순서 개편은 통과(레드팀 10/24 R3-4·R4-3).
-// 숫자 앞 문구를 바꾸면 이 표도 바뀌므로, 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만들고(바뀐 짝을 나눠 출력) guard 승인을 받는다.
+// ---- 자리별 숫자표: 같은 데이터의 다른 값으로 바꿔치기(예: 14.9% → 4.9%)와 숫자 옆 뜻 바꾸기(「더 줄고」→「더 늘고」)를 잡는다(레드팀 10/24 R3-4, 10/30 C6) ----
+// 각 숫자(%·분수·소수·두 자리 이상, 그리고 바로 뒤에 단위가 붙은 한 자리 수 — 「1시간급」「3곳」)의 앞 12자·뒤 12자(공백 제외)를
+// 그 숫자의 자리 표지로 삼아 (앞, 값, 뒤) 짝의 모음을 고정한다. 앞뒤 문맥은 같은 줄(블록) 안에서만 따고 nav(탭 바)는 빼므로
+// 절 순서 개편·탭 바 개편은 통과한다(레드팀 10/30 H2: 절 경계를 넘던 문맥, 탭 바 숫자). 데스크톱과 모바일 표를 따로 둔다(모바일에서만 숨기기, C4).
+// 숫자 앞뒤 문구를 바꾸면 이 표도 바뀌므로, 의도한 변경이면 UPDATE_NUMBER_MAP=1 npx playwright test e2e/clues.spec.ts --workers=1로 다시 만들고(바뀐 짝을 나눠 출력) guard 승인을 받는다.
 const NUMBER_MAP = path.join(__dirname, "number-map.json");
+const UNIT_AFTER = /^[시분초일주개곳건년회명대배층급차]/;
 function numberPairs(text: string): string[] {
-  const t = text.replace(/\s+/g, "");
   const out: string[] = [];
-  for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?(?:%|\/\d[\d,]*)?/g)) {
-    const v = m[0];
-    // 한 자리 정수(① 같은 번호·문장 속 작은 수)는 뺀다. %·분수·소수·두 자리 이상은 모두 고정
-    if (!/[%/.]/.test(v) && v.replace(/,/g, "").length < 2) continue;
-    out.push(`${t.slice(Math.max(0, m.index! - 12), m.index)}|${v}`);
+  for (const line of text.split("\n")) {
+    const t = line.replace(/\s+/g, "");
+    for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?(?:%|\/\d[\d,]*)?/g)) {
+      const v = m[0], end = m.index! + v.length;
+      // 한 자리 정수는 바로 뒤에 단위가 붙을 때만 고정(① 같은 번호·문장 속 작은 수는 뺀다)
+      if (!/[%/.]/.test(v) && v.replace(/,/g, "").length < 2 && !UNIT_AFTER.test(t.slice(end))) continue;
+      out.push(`${t.slice(Math.max(0, m.index! - 12), m.index)}|${v}|${t.slice(end, end + 12)}`);
+    }
   }
   return out.sort();
 }
-const numberMap: Record<string, string[]> = existsSync(NUMBER_MAP) ? JSON.parse(readFileSync(NUMBER_MAP, "utf-8")).pages : {};
+/** main 글자(탭 바 nav는 잠시 숨겨 뺀다). innerText는 블록마다 줄을 나눈다 */
+async function mapText(page: Page): Promise<string> {
+  return page.locator("main").evaluate((m) => {
+    const navs = [...m.querySelectorAll("nav")] as HTMLElement[];
+    const prev = navs.map((n) => n.style.display);
+    navs.forEach((n) => { n.style.display = "none"; });
+    const t = (m as HTMLElement).innerText;
+    navs.forEach((n, i) => { n.style.display = prev[i]; });
+    return t;
+  });
+}
+const mapKey = (project: string, p: string) => (project === "desktop" ? p : `${project}:${p}`);
+const readMap = (): Record<string, string[]> => (existsSync(NUMBER_MAP) ? JSON.parse(readFileSync(NUMBER_MAP, "utf-8")).pages : {});
 
 test.describe("자리별 숫자표", () => {
   if (process.env.UPDATE_NUMBER_MAP) {
-    test("자리별 숫자표 다시 만들기", async ({ page }) => {
-      const pages: Record<string, string[]> = {};
-      for (const p of ["/", "/lab", "/ledger"]) { await page.goto(p); pages[p] = numberPairs(await page.locator("main").innerText()); }
-      // 검토용 차이: 값이 바뀐 짝(같은 자리, 다른 값)과 자리 문구만 바뀐 짝(같은 값, 다른 자리)을 나눠 출력한다
-      for (const [p, now] of Object.entries(pages)) {
-        const old = numberMap[p] ?? [];
-        const gone = old.filter((x) => !now.includes(x)), added = now.filter((x) => !old.includes(x));
+    test("자리별 숫자표 다시 만들기 @mobile", async ({ page }, info) => {
+      const old = readMap();
+      const pages: Record<string, string[]> = { ...old };
+      for (const p of ["/", "/lab", "/ledger"]) { await page.goto(p); pages[mapKey(info.project.name, p)] = numberPairs(await mapText(page)); }
+      // 검토용 차이: 값이 바뀐 짝(같은 자리, 다른 값)과 문맥만 바뀐 짝(같은 값, 다른 자리)을 나눠 출력한다
+      for (const p of ["/", "/lab", "/ledger"]) {
+        const k = mapKey(info.project.name, p), now = pages[k], was = old[k] ?? [];
+        const gone = was.filter((x) => !now.includes(x)), added = now.filter((x) => !was.includes(x));
         const key = (x: string) => x.split("|");
-        const valueChanged = added.filter((a) => gone.some((g) => key(g)[0] === key(a)[0]));
+        const valueChanged = added.filter((a) => gone.some((g) => key(g)[0] === key(a)[0] && key(g)[2] === key(a)[2]));
         const placeChanged = added.filter((a) => !valueChanged.includes(a) && gone.some((g) => key(g)[1] === key(a)[1]));
-        console.log(`[${p}] 값이 바뀐 짝 ${valueChanged.length}: ${valueChanged.join(" , ")}`);
-        console.log(`[${p}] 자리 문구만 바뀐 짝 ${placeChanged.length}, 새 짝 ${added.length - valueChanged.length - placeChanged.length}, 없어진 짝 ${gone.length}`);
+        console.log(`[${k}] 값이 바뀐 짝 ${valueChanged.length}: ${valueChanged.join(" , ")}`);
+        console.log(`[${k}] 문맥만 바뀐 짝 ${placeChanged.length}, 새 짝 ${added.length - valueChanged.length - placeChanged.length}, 없어진 짝 ${gone.length}`);
       }
-      writeFileSync(NUMBER_MAP, JSON.stringify({ _comment: "자리(숫자 앞 글자 12자)|값 짝. 숫자나 그 앞 문구가 바뀌면 시험이 실패한다. 의도한 변경이면 UPDATE_NUMBER_MAP=1로 다시 만든다(바뀐 짝을 나눠 출력)", pages }, null, 2) + "\n");
+      writeFileSync(NUMBER_MAP, JSON.stringify({ _comment: "앞 12자|값|뒤 12자 짝(같은 줄 안, nav 제외). 키 '/'는 데스크톱, 'mobile:/'는 모바일. 숫자나 그 앞뒤 문구가 바뀌면 시험이 실패한다. 의도한 변경이면 UPDATE_NUMBER_MAP=1(--workers=1)로 다시 만든다", pages }, null, 2) + "\n");
     });
     return;
   }
   for (const p of ["/", "/lab", "/ledger"]) {
-    test(`${p} 숫자가 제자리에 그대로`, async ({ page }) => {
+    test(`${p} 숫자가 제자리에 그대로 @mobile`, async ({ page }, info) => {
       await page.goto(p);
-      const now = numberPairs(await page.locator("main").innerText());
-      const want = numberMap[p] ?? [];
+      const now = numberPairs(await mapText(page));
+      const want = readMap()[mapKey(info.project.name, p)] ?? [];
+      expect(want.length, `${p}: 숫자표가 비어 있음(UPDATE_NUMBER_MAP=1로 만들 것)`).toBeGreaterThan(0);
       const missing = want.filter((x) => { const i = now.indexOf(x); if (i < 0) return true; now.splice(i, 1); return false; });
       expect({ 사라지거나_바뀐_숫자: missing, 새로_생긴_숫자: now }).toEqual({ 사라지거나_바뀐_숫자: [], 새로_생긴_숫자: [] });
     });

@@ -108,6 +108,18 @@ export async function expectNoBanned(page: Page) {
  */
 export async function expectReadable(loc: import("@playwright/test").Locator, what: string) {
   await loc.scrollIntoViewIfNeeded();
+  // 고정 머리줄(배너·/ops 상단 바·/lab 탭 바)이 대상 윗줄을 덮는 것은 스크롤 위치 문제라 결함이 아니다(레드팀 10/30 H3 거짓 양성):
+  // 대상 위쪽을 머리줄 바로 아래에 둔다. 대상이 머리줄 자신이면 그대로
+  await loc.evaluate((el) => {
+    const pinned = [...document.querySelectorAll("body *")].filter((e) => {
+      if (e === el || e.contains(el)) return false;
+      const p = getComputedStyle(e).position;
+      return p === "sticky" || p === "fixed";
+    }).map((e) => e.getBoundingClientRect()).filter((r) => r.top < innerHeight * 0.25 && r.bottom > 0 && r.height < innerHeight / 2); // 배너 아래에 붙는 탭 바(top 32px)도 머리줄
+    const head = Math.max(0, ...pinned.map((r) => r.bottom));
+    const top = el.getBoundingClientRect().top;
+    if (top < head + 4 || top > innerHeight * 0.6) window.scrollBy(0, top - head - 8);
+  });
   const r = await loc.evaluate((el) => {
     const he = el as HTMLElement;
     const rect = he.getBoundingClientRect();
@@ -131,7 +143,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const range = document.createRange();
     const lines: DOMRect[] = [];
     const owners = new Set<HTMLElement>([he]);
-    let covered = 0, sampled = 0;
+    let covered = 0, sampled = 0, coverBy = "";
     const tw = document.createTreeWalker(he, NodeFilter.SHOW_TEXT);
     while (tw.nextNode()) {
       const tn = tw.currentNode as Text;
@@ -146,7 +158,7 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
           sampled++;
           for (const p of document.elementsFromPoint(x, ln.top + ln.height / 2)) {
             if (p === owner || p.contains(owner)) break; // 글자를 가진 요소(또는 그 조상)에 닿음: 덮개 없음
-            if (paints(p)) { covered++; break; }
+            if (paints(p)) { covered++; coverBy ||= `${p.tagName}.${String((p as HTMLElement).className).slice(0, 60)} @${Math.round(x)},${Math.round(ln.top)}`; break; }
           }
         }
       }
@@ -187,14 +199,14 @@ export async function expectReadable(loc: import("@playwright/test").Locator, wh
     const fg = { r: fg0.r * fg0.a * op + bg.r * (1 - fg0.a * op), g: fg0.g * fg0.a * op + bg.g * (1 - fg0.a * op), b: fg0.b * fg0.a * op + bg.b * (1 - fg0.a * op) };
     const lum = (c: { r: number; g: number; b: number }) => { const f = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
     const [l1, l2] = [lum(fg), lum(bg)].sort((a, b) => b - a);
-    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), lineH, scale, covered, clipped, contrast: (l1 + 0.05) / (l2 + 0.05) };
+    return { visible, w: rect.width, h: rect.height, font: parseFloat(cs.fontSize), lineH, scale, covered, coverBy, clipped, contrast: (l1 + 0.05) / (l2 + 0.05) };
   });
   expect(r.visible, `${what}: 보이지 않음`).toBe(true);
   expect(r.w > 4 && r.h > 4, `${what}: 크기 ${r.w}×${r.h}`).toBe(true);
   expect(r.font, `${what}: 글자 크기`).toBeGreaterThanOrEqual(12);
   expect(r.scale, `${what}: 축소 변형(그려진 폭/원래 폭)`).toBeGreaterThan(0.95);
   expect(r.lineH, `${what}: 실제로 그려진 줄 높이(글자 ${r.font}px 대비)`).toBeGreaterThanOrEqual(r.font * 0.9);
-  expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음)`).toBe(0);
+  expect(r.covered, `${what}: 글자 일부가 다른 요소에 덮임(또는 그려진 글자 없음) ${r.coverBy}`).toBe(0);
   expect(r.clipped, `${what}: 잘라냄·흐림·말줄임`).toEqual([]);
   expect(r.contrast, `${what}: 명도 대비`).toBeGreaterThanOrEqual(4.5);
   await expectInked(loc, what);
@@ -221,6 +233,7 @@ async function expectInked(loc: import("@playwright/test").Locator, what: string
       range.selectNodeContents(tn);
       for (const r of range.getClientRects()) {
         if (r.width <= 1 || r.height <= 1) continue;
+        if (r.bottom <= 0 || r.top >= innerHeight) continue; // 세로로 화면 밖인 줄(긴 요소의 아래쪽)은 이 검사에서 뺀다
         total += r.width;
         const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth), t = Math.max(r.top, 0), b = Math.min(r.bottom, innerHeight);
         if (rt > l && b > t) { inView += rt - l; vis.push(new DOMRect(l, t, rt - l, b - t)); }
