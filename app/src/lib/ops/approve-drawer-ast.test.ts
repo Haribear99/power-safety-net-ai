@@ -50,7 +50,7 @@ function collect() {
 describe("ApproveDrawer 안 승인 경로 고정", () => {
   const { literals, commits, decisionWrites, commitRefs, issues } = collect();
   it("결정 관문 표는 세 핸들러가 각자 받은 이벤트로만 발급한다", () => {
-    expect(issues.sort()).toEqual(["onApprove:e.nativeEvent", "onApproveAlternative:e.nativeEvent", "submit:click ?? e.nativeEvent"]);
+    expect(issues.sort()).toEqual(["onApprove:e.nativeEvent", "onApproveAlternative:e.nativeEvent", "onSubmitClick:e.nativeEvent"]);
   });
   it('값 "APPROVED"는 한 번(onApprove), 감사 값 "APPROVE"도 한 번, 그 밖의 승인 비슷한 값 없음', () => {
     expect(literals).toEqual({ APPROVED: 1, APPROVE: 1 });

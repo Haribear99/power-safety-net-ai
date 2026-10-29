@@ -59,6 +59,8 @@ export interface Session {
   /** /ops/119에서 파기한 가구 id(재난안전법 제74조의3⑤). 파기 뒤 새로 승인한 119 건은 다시 보인다 */
   purged119Ids: string[];
   auditSeq: number;
+  /** 결정 관문에서 이미 적용한 표 id. 같은 표를 다시 쓰면 아무것도 바꾸지 않는다(감사 행 중복·이전 결정으로 되돌리기 방지) */
+  appliedTickets: string[];
 }
 
 export const DB = DEFAULT_DB;
@@ -72,7 +74,7 @@ export function newSession(preset: UiPreset): Session {
   });
   return {
     preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: {},
-    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0,
+    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0, appliedTickets: [],
   };
 }
 
@@ -173,8 +175,10 @@ export function decisionFromRow(row: AllocRow): Omit<Decision, "status" | "decid
 /** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다.
  *  ticket: 승인 서랍의 실제 조작으로 발급한 표(approvalGate). 조작 1번 = 결정 1건 */
 export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticket: ApprovalTicket): Session {
-  consumeApproval(ticket, d, audit);
-  const s1 = pushAudit(s, [audit]);
+  const ticketId = consumeApproval(ticket, d, audit);
+  // 이미 적용한 표: React 재실행은 적용 전 상태로 다시 부르므로 같은 결과가 되고, 적용된 상태에 다시 부르면 그대로 둔다
+  if (s.appliedTickets.includes(ticketId)) return s;
+  const s1 = pushAudit({ ...s, appliedTickets: [...s.appliedTickets, ticketId] }, [audit]);
   const { [d.householdId]: _drop, ...alts } = s1.alternatives;
   void _drop;
   // 파기 뒤 같은 가구를 다시 결정하면 새 결정이므로 119 화면에 다시 보인다

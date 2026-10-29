@@ -136,16 +136,20 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
   const [err, setErr] = useState<string | null>(null);
   const o = opts[pick];
   // 결정 관문은 제출 버튼의 클릭으로 판정한다: 스크립트의 requestSubmit()·button.click()도 브라우저가 낸 submit 이벤트는 isTrusted라서
-  // submit 이벤트로는 가를 수 없다. 클릭은 같은 작업 안에서 submit보다 먼저 오므로, 다음 작업에서 지운다
-  const clickRef = useRef<Event | null>(null);
+  // submit 이벤트로는 가를 수 없다. 클릭을 처리하는 중에 표를 받아 두고(같은 작업 안에서 submit보다 먼저 옴), 다음 작업에서 지운다
+  const ticketRef = useRef<ApprovalTicket | null>(null);
+  function onSubmitClick(e: React.MouseEvent) {
+    ticketRef.current = null;
+    try { ticketRef.current = issueApproval(e.nativeEvent, householdId); } catch (ex) { setErr(String((ex as Error).message)); }
+    setTimeout(() => { ticketRef.current = null; }, 0);
+  }
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const click = clickRef.current;
-    clickRef.current = null;
+    const t = ticketRef.current;
+    ticketRef.current = null;
     if (!o) return;
     if (!code || text.trim().length < 5) { setErr("사유 코드와 자유문 5자 이상이 필요합니다"); return; }
-    let t: ApprovalTicket;
-    try { t = issueApproval(click ?? e.nativeEvent, householdId); } catch (ex) { setErr(String((ex as Error).message)); return; }
+    if (!t) { setErr("결정 관문: 「수정 저장」 버튼을 직접 눌러 저장하세요"); return; }
     const etaH = o.resourceId ? etaForResource(s, householdId, o.resourceId) : undefined;
     const d: Decision = { householdId, lane: o.lane, resourceId: o.resourceId, etaH, status: "MODIFIED", decidedAtS: s.nowS };
     const a: AuditEntry = {
@@ -175,7 +179,7 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
         </label>
         {err && <p className="text-gap" role="alert">{err}</p>}
         <button type="submit" className="rounded border border-ink px-3 py-1 font-semibold" data-testid="modify-submit" data-gate="gate-modify"
-          onClick={(e) => { clickRef.current = e.nativeEvent; setTimeout(() => { clickRef.current = null; }, 0); }}>수정 저장</button>
+          onClick={onSubmitClick}>수정 저장</button>
       </form>
     </details>
   );

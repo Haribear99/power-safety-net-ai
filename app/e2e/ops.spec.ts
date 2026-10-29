@@ -392,11 +392,34 @@ test("스크립트가 만든 클릭·제출로는 결정이 저장되지 않는�
   await expect(page.getByTestId("approve-drawer").getByRole("alert")).toContainText("결정 관문");
   expect((await auditRows(page)).length).toBe(before);
   await expect(page.getByTestId("approve-drawer")).not.toContainText("수정됨");
-  // 담당자의 실제 조작은 그대로 저장된다: 사유 칸에서 Enter(암묵 제출)도 실제 조작이다
+  // 담당자의 실제 조작은 그대로 저장된다: 사유 칸에서 Enter(암묵 제출)도 실제 조작이다. 감사 MODIFY는 정확히 1건 늘어난다
   await page.getByTestId("modify-text").press("Enter");
   await expect(page.getByTestId("approve-drawer")).toContainText("수정됨");
+  expect((await auditRows(page)).filter((t) => t.includes(mr) && t.includes("MODIFY")).length).toBe(1);
   await openRow(page, id);
   await page.getByTestId("approve").click();
   await expect(page.getByTestId("approve-drawer")).toContainText("승인됨");
   expect(await approveCount()).toBe(1);
+});
+
+test("재검토 대안 승인도 실제 클릭만 저장(스크립트 클릭 거부), 실제 클릭 1번 = MODIFY 1건", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await startOutage(page);
+  await enterNotice(page, "1");
+  const [id] = await rowIds(page, "PROPOSE_ASSIGN");
+  await approve(page, id);
+  await page.getByText("가구 재신고(시연)").click();
+  await page.getByLabel("재신고 충전량 퍼센트").fill("0");
+  await page.getByTestId("rereport").click();
+  await expect(page.getByTestId(`recheck-${id}`)).toBeVisible();
+  const alt = page.getByTestId("approve-alt");
+  await expect(alt, "재검토 대안이 없어 이 시험의 전제가 깨짐").toBeVisible();
+  const modifies = async () => (await auditRows(page)).filter((t) => t.includes(id) && t.includes("MODIFY")).length;
+  await alt.evaluate((b: HTMLButtonElement) => b.click());
+  expect(await modifies()).toBe(0);
+  expect(errors.filter((m) => m.includes("결정 관문")).length).toBe(1);
+  await alt.click();
+  await expect(page.getByTestId("approve-drawer")).toContainText("수정됨");
+  expect(await modifies()).toBe(1);
 });

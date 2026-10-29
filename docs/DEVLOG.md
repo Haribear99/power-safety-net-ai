@@ -629,6 +629,10 @@
   - 처음엔 수정 저장을 submit 이벤트로 판정했는데, E2E에서 구멍을 발견했다. 스크립트가 `requestSubmit()`이나 제출 버튼 `click()`을 불러도 브라우저가 낸 submit 이벤트는 `isTrusted=true`라 통과했다. 그래서 제출 버튼의 클릭을 기록해 판정하도록 바꿨다. 사유 칸 Enter(암묵 제출)는 브라우저가 실제 클릭을 내므로 그대로 저장된다(E2E 확인).
   - 막는 것: 효과·타이머·스크립트 클릭·dispatchEvent·requestSubmit, 한 번 클릭으로 여러 가구 결정, 표 없이 부르기.
   - 막지 못하는 것: 같은 서랍 안 다른 요소에 `data-gate`를 붙여 그 요소를 누르면 결정이 나게 바꾸는 코드(조작 1번 = 결정 1건만 보장). 정적 검사와 사람 리뷰가 맡는다.
-  - 시험: 단위 `approvalGate.test.ts` 5건(거부 쪽·묶음 규칙, 시험용 표는 NODE_ENV=test에서만), AST 시험에 '세 핸들러만 표 발급' 추가, E2E 1건(스크립트 클릭·dispatchEvent·requestSubmit·button.click 거부, 실제 클릭·Enter 저장).
-  - ESLint: `issueApproval`·`consumeApproval`·`ticketForTest`는 ApproveDrawer·session.ts·시험 밖에서 import 금지.
-  - CI 하한: 단위 391, E2E 103.
+  - **Codex 리뷰(치명 0·중대 2·경미 3, 모두 반영, `docs/reviews/2026-10-30-codex-approval-gate.md`)**:
+    - 같은 결정 객체로 표 재사용 → 감사 중복·이전 결정으로 되돌리기: `Session.appliedTickets`로 이미 적용한 표는 그대로 두고, 표에 처음 내용(JSON)을 묶음.
+    - 저장해 둔 실제 클릭 이벤트로 나중에 다른 가구 표 발급: 전달 중(`eventPhase !== NONE`) 이벤트만 받고, 수정 양식은 클릭 처리 중에 발급한 표를 보관.
+    - ESLint 범위(lib·hooks·`.js` 경로·재export) 확장, 수정 표 상태는 정확히 MODIFIED, 시험 반례 추가.
+  - 시험: 단위 `approvalGate.test.ts` 7건(거부 쪽·묶음 규칙·재적용·지난 표·고친 내용·상태 값, 시험용 표는 NODE_ENV=test에서만), `approval-gate-eslint.test.ts` 2건(실제 ESLint 설정으로 반례 10건 차단·허용 4건), AST 시험에 '세 핸들러만 표 발급' 추가, E2E 2건(스크립트 클릭·dispatchEvent·requestSubmit·button.click 거부, 실제 클릭·Enter 저장, MODIFY 정확히 1건, 재검토 대안 승인).
+  - ESLint: `issueApproval`(ApproveDrawer)·`consumeApproval`(session.ts)·`ticketForTest`(시험 파일) 밖에서 import 금지, 시험 아닌 소스 전체.
+  - CI 하한: 단위 395, E2E 104.
