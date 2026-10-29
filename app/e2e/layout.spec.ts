@@ -41,3 +41,41 @@ for (const w of WIDTHS) {
     }
   });
 }
+
+// 배너가 실제로 두 줄이 되는 폭을 찾아(글꼴에 따라 폭이 다르므로 고정하지 않음) 그 폭에서 확인한다(레드팀 10/30 L3:
+// 배너에 고정 높이(h-[29px])를 주면 두 줄째 글자가 배너 밖으로 넘치는데, 시험 폭에서 한 줄이면 드러나지 않았다)
+test("배너가 두 줄이 되는 폭에서도 글자가 배너 상자 안에 있고 머리줄을 가리지 않음", async ({ page }) => {
+  await page.goto("/ops?s=PRESET-SUWON");
+  await page.getByTestId("start-outage").click();
+  const banner = page.getByTestId("legal-banner");
+  let found = 0;
+  for (let w = 640; w <= 1000 && !found; w += 10) {
+    await page.setViewportSize({ width: w, height: 900 });
+    const lines = await banner.evaluate((el) => {
+      const sp = [...el.querySelectorAll("span")].find((s) => getComputedStyle(s).display !== "none");
+      if (!sp) return 0;
+      const r = document.createRange();
+      r.selectNodeContents(sp);
+      return new Set([...r.getClientRects()].filter((x) => x.width > 1).map((x) => Math.round(x.top))).size;
+    });
+    if (lines >= 2) found = w;
+  }
+  if (!found) {
+    // 이 환경의 글꼴이 좁아 한 줄로 끝나면(로컬 Windows: 긴 문구 565px), 넓은 글꼴 환경을 흉내 내 배너 글자를 키워 640px에서 두 줄을 만든다
+    found = 640;
+    await page.setViewportSize({ width: found, height: 900 });
+    await page.addStyleTag({ content: '[data-testid="legal-banner"] { font-size: 16px !important; }' });
+  }
+  await page.waitForTimeout(150);
+  const spill = await banner.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    return [...r.getClientRects()].filter((x) => x.width > 1 && (x.bottom > box.bottom + 0.5 || x.top < box.top - 0.5)).length;
+  });
+  expect(spill, `${found}px: 배너 글자 줄이 배너 상자 밖으로 넘침(고정 높이?)`).toBe(0);
+  await expectReadable(banner, `${found}px 두 줄 배너`);
+  const b = (await banner.boundingBox())!;
+  const bar = (await page.locator("header.sticky").first().boundingBox())!;
+  expect(bar.y, `${found}px: 배너 아래 ${b.y + b.height}px, 상단 바 위 ${bar.y}px`).toBeGreaterThanOrEqual(b.y + b.height - 0.5);
+});
