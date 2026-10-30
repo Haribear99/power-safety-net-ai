@@ -384,6 +384,50 @@ if (n1) {
   }
 }
 
+// ---- 실패 가정 점검(10/30) 사후 집계: 남는 공백 분해(scripts/posthoc-decomp.ts), 하한 v2(scripts/posthoc-lb-v2.ts) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_decomp.json");
+  if (existsSync(f)) {
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { policies: Record<string, { runs: number; mismatch: number; sumMismatch: number; gapHPerRun: number; byClassShare: Record<string, number>; byClassHPerRun: Record<string, number>; byServedHPerRun: Record<string, number>; householdsPerRun: Record<string, number> }> };
+    const p = d.policies.RULE;
+    out.gapDecomp = {
+      posthoc: true, runs: p.runs, mismatch: Object.values(d.policies).reduce((s, x) => s + x.mismatch + x.sumMismatch, 0),
+      ruleGapHPerRun: p.gapHPerRun, byClassShare: p.byClassShare, byClassHPerRun: p.byClassHPerRun, byServedHPerRun: p.byServedHPerRun, householdsPerRun: p.householdsPerRun,
+      gapHPerRun: Object.fromEntries(Object.entries(d.policies).map(([k, x]) => [k, x.gapHPerRun])),
+    };
+  }
+  const g = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_lb_v2.json");
+  if (existsSync(g)) {
+    const d = JSON.parse(readFileSync(g, "utf-8")) as { rows: Record<string, { mismatch: number; overCount: number; shown: number; overRate: number; gapHPerRun: number; overH: { p50: number; p90: number; max: number } | null }>; paired: Record<string, { meanDiffHPerRun: number; se: number }> };
+    const v1 = d.rows["v1:RULE"], v2 = d.rows["v2:RULE"];
+    out.lbV2 = {
+      posthoc: true, mismatch: Object.values(d.rows).reduce((s, x) => s + x.mismatch, 0),
+      v1: { k: v1.overCount, n: v1.shown, overH: v1.overH, gapHPerRun: v1.gapHPerRun },
+      v2: { k: v2.overCount, n: v2.shown, overH: v2.overH, gapHPerRun: v2.gapHPerRun },
+      gapDiffHPerRun: d.paired.RULE.meanDiffHPerRun, gapDiffSe: d.paired.RULE.se,
+    };
+  }
+}
+
+// ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts) ----
+const e7 = take("out/e7_sealed.json") as {
+  source: { n: number };
+  gapHPerRun: Record<string, number>;
+  compares: Record<string, Cmp5>;
+  hhRates: Record<string, Record<string, HhRate>>;
+  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
+} | null;
+if (e7) {
+  const c = (x: Cmp5) => ({ rel: x.rel, lo: x.lo, hi: x.hi });
+  const bat = "RULE+P7P", match = "RULE+CYL10S+P7V";
+  out.e7 = {
+    n: e7.source.n,
+    compares: Object.fromEntries(Object.entries(e7.compares).map(([k, x]) => [k, c(x)])),
+    hhGap: Object.fromEntries(Object.entries(e7.hhRates).map(([cls, r]) => [cls, { none: r.RULE?.rate ?? null, battery: r[bat]?.rate ?? null, matched: r[match]?.rate ?? null }])),
+    prereg: { hit: e7.prereg.hit, total: e7.prereg.total, missed: e7.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
+  };
+}
+
 // ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----
 // 7.x(E6)는 레드팀 3라운드가 봉인 E5 시드 400추첨으로 같은 평시 순위의 효과를 먼저 보고한 뒤 쓴 예측이라 '확인' 쪽에 넣는다(레드팀 4라운드)
 {
@@ -393,11 +437,13 @@ if (n1) {
     ...(e4?.prereg.items ?? []),
     ...(e5?.prereg.items ?? []),
     ...(e6?.prereg.items ?? []),
+    ...(e7?.prereg.items ?? []),
     ...(n1?.prereg.items ?? []).filter((x) => x.id !== "9.5"),
   ];
   const pre = items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit != null);
   // 9.x(N1)는 dev를 보고 문턱을 정했으므로 '확인' 쪽(predictions_n1.md에 공개)
-  const post = items.filter((x) => /^(2\.|3\.|5\.|7\.|9\.)/.test(x.id) && x.hit != null);
+  // 10.x(E7)는 예비 실행을 보고 문턱을 정했다(predictions_e7.md 1·3절)
+  const post = items.filter((x) => /^(2\.|3\.|5\.|7\.|9\.|10\.)/.test(x.id) && x.hit != null);
   if (items.length) {
     out.preregSplit = {
       before: { hit: pre.filter((x) => x.hit).length, total: pre.length, untested: items.filter((x) => /^(1\.|H|4\.|6\.)/.test(x.id) && x.hit == null).length + (scoreE3?.notTested?.length ?? 0) },
