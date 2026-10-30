@@ -54,7 +54,7 @@ export default function LedgerPage() {
             const rv = (x: { k: number; n: number }) => `${x.n - x.k}/${x.n}`;
             return (
               <p className="mt-2 rounded border border-line p-2 text-[14px]" data-testid="c1-workload">
-                <strong>AI의 몫(수동검토 부담)</strong>: 봉인 렌더 라벨에서 담당자가 기종을 직접 확인해야 하는 라벨은 깨끗한 라벨 AI {rv(b.sonnet.clean)}·OCR {rv(b.tesseract.clean)}, 흐림·가림 라벨 AI {rv(b.sonnet.degraded)}·OCR {rv(b.tesseract.degraded)}입니다. 실제 가구의 라벨 상태 분포는 모르고, 보호자가 모델명을 직접 적는 경로와는 비교하지 않았습니다. 정전 모의에서 판독 정확도가 공백을 바꾼다는 근거는 없었고(랩 ⑧), 검토 1건당 시간은 재지 않았습니다.
+                <strong>AI의 몫(수동검토 부담)</strong>: 봉인 렌더 라벨에서 담당자가 기종을 직접 확인해야 하는 라벨은 깨끗한 라벨 AI {rv(b.sonnet.clean)}·OCR {rv(b.tesseract.clean)}, 흐림·가림 라벨 AI {rv(b.sonnet.degraded)}·OCR {rv(b.tesseract.degraded)}입니다. DB 밖 기종을 엉뚱한 기종으로 표시 없이 확정한 라벨은 AI {c1.sonnet.unflaggedMismatch.k}장·OCR {c1.tesseract?.unflaggedMismatch.k ?? "—"}장입니다. 실제 가구의 라벨 상태 분포는 모르고, 보호자가 모델명을 직접 적는 경로와는 비교하지 않았습니다. 정전 모의에서 판독 정확도가 공백을 바꾼다는 근거는 없었고(랩 ⑧), 검토 1건당 시간은 재지 않았습니다.
               </p>
             );
           })()}
