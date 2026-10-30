@@ -447,7 +447,7 @@ function NoticeCheck() {
       <p className="mt-1 text-[13px] text-muted">
         검사가 보는 범위: 시각 표기·날짜, 수단과 이름, 먼저 떨어질 수 있다는 경고, 늦음, 할 일(정해진 것만), 안심 약속·의료·기기 조작·위험 행동. 문장의 모든 뜻을 보장하지는 않습니다(2차 검사도 AI).
         예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘({n.prereg.structural.map((x) => x.id).join(", ")}는 사전등록 때 &lsquo;구조상 보장 확인 항목&rsquo;으로 표시한 것이라 집계에서 뺌, 넣으면 {n.prereg.hit + 1}/{n.prereg.total + 1}).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text}(봉인 원문) → 실제 ${m.value}`).join(" · ") : ""}
-        {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전입니다.{(() => { const f = n1Fresh(); return f ? ` 이 검사(${f.versions.check})를 10/30 처음 새 사례로 쟀습니다(사후·탐색, 독립 에이전트가 쓴 모음 100건): 틀린 글 통과 ${f.badMissed.k}/${f.badMissed.n}(95% ${(100 * (f.badMissed.lo ?? 0)).toFixed(1)}~${(100 * (f.badMissed.hi ?? 0)).toFixed(1)}%), 맞는 글 잘못 막음 ${f.goodFalseReject.k}/${f.goodFalseReject.n}. 같은 Claude 계열이 쓴 사례라 맹점이 겹칠 수 있습니다.` : " 새 사례로 측정하지 않았습니다."; })()}
+        {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전입니다.{(() => { const f = n1Fresh(); return f ? ` 이 검사(${f.versions.check})를 10/30 처음 새 사례로 쟀습니다(사후·탐색 측정, 독립 에이전트가 쓴 모음 100건): 틀린 글 통과 ${f.badMissed.k}/${f.badMissed.n}(95% ${(100 * (f.badMissed.lo ?? 0)).toFixed(1)}~${(100 * (f.badMissed.hi ?? 0)).toFixed(1)}%), 맞는 글 잘못 막음 ${f.goodFalseReject.k}/${f.goodFalseReject.n}. 같은 Claude 계열이 쓴 사례라 맹점이 겹칠 수 있습니다.` : " 새 사례로 측정하지 않았습니다."; })()}
       </p>
     </div>
   );
@@ -464,7 +464,7 @@ function Premortem() {
       <h3 className="mt-3 text-[16px] font-bold">남는 공백은 어디서 나오는가(사후 집계)</h3>
       {g ? (
         <p className="mt-1 text-[14px]">
-          봉인 E2 시드 {g.runs.toLocaleString("ko-KR")}회를 다시 돌려(봉인 값과 {g.mismatch === 0 ? "모두 일치" : `${g.mismatch}건 불일치`}) 도구를 써도 남는 공백 가구·시간 {h(g.ruleGapHPerRun)}/실행을 나눴습니다. 배터리 없는 거치형 산소발생기 가구가 {pct1(g.byClassShare.O2_STAT)}, 미등록 가구가 {pct1(g.byClassShare.UNREG)}입니다. 정전과 동시에 공백이 시작되는 가구라 정전 뒤 처리 순서로는 줄일 수 없습니다. 같은 기기에 산소통이 있는 가구는 실행당 {h(g.byClassHPerRun.O2_STAT_CYL ?? 0)}만 남았습니다(가구 수가 달라 인과 추정은 아님).
+          봉인 E2 시드 {g.runs.toLocaleString("ko-KR")}회를 다시 돌려(봉인 값과 {g.mismatch === 0 ? "모두 일치" : `${g.mismatch}건 불일치`}) 도구를 써도 남는 공백 가구·시간 {h(g.ruleGapHPerRun)}/실행을 나눴습니다. 배터리 없는 거치형 산소발생기 가구가 {pct1(g.byClassShare.O2_STAT)}, 미등록 가구가 {pct1(g.byClassShare.UNREG)}입니다(모의). 정전과 동시에 공백이 시작되는 가구라 정전 뒤 처리 순서로는 줄일 수 없습니다. 같은 기기에 산소통이 있는 가구는 실행당 {h(g.byClassHPerRun.O2_STAT_CYL ?? 0)}만 남았습니다(가구 수가 달라 인과 추정은 아님).
         </p>
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
       <h3 className="mt-3 text-[16px] font-bold">평시 산소통과 &lsquo;배터리는 인공호흡기 먼저&rsquo;(E7, 봉인 S10)</h3>
@@ -472,11 +472,11 @@ function Premortem() {
         <>
           <p className="mt-1 text-[14px]">영국 NHS 가정산소처럼 산소 기기 가구에 예비 산소통(10시간)을 두고, 배터리는 같은 개수를 인공호흡기 가구에 먼저 줍니다. <strong>AI가 아닌 평시 보급 정책의 효과</strong>입니다. 등록부는 기기 등급을 고르게 뽑아 인공호흡기가 실제 비율보다 많고, 보급률·고장률은 가정입니다.</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px]">
-            <li>같은 산소통·같은 배터리 개수에서 배터리를 인공호흡기 가구에 먼저 주면: 공백 {ci(e.compares.noOverlap)} 감소. 이 감소 시간 중 산소통 때문에 생기는 몫 {ci(e.cylShare.strat)}(나머지는 배터리가 인공호흡기에서 더 오래 가서). 등급을 고르게 뽑지 않은 등록부에서는 {ci(e.compares.uNoOverlap)}.</li>
-            <li>산소 기기 가구 전원(60가구 중 평균 {(e.usedMean["RULE+CYL10S"]?.[0] ?? 0).toFixed(0)}개)에 산소통만 두면: 도구의 공백 {ci(e.compares.cylVsNone)} 감소(보호자 자기신고가 늘 맞다고 가정). 등급을 고르게 뽑지 않은 등록부 {ci(e.compares.uCylVsNone)}, 보급률을 배터리와 같게 제한하면 {ci(e.compares.cylCovVsNone)}.</li>
-            <li>E6 표적 배터리 대비 맞춤 조합(산소통이 더해진 비교): {ci(e.compares.matchedVsBattery)}. 같은 개수끼리는 표적 산소통이 배터리보다 {ci(e.compares.cylKVsBattery)}.</li>
-            <li>AI의 몫: 등록부가 라벨로만 기종을 안다면 AI 판독이 OCR보다 {ci(e.compares.aiVsOcr)} 낫지만, 보호자가 기기 종류만 체크해도 AI 판독만보다 {ci(e.compares.selfVsAi)} 낫습니다. 산소통 보급에는 AI 판독이 필요 없습니다.</li>
-            <li>공백 가구 비율(E6 배터리 → 맞춤 조합): 배터리 없는 산소발생기 {pct1(e.hhGap.O2_STAT?.battery)} → {pct1(e.hhGap.O2_STAT?.matched)}, 1시간급 인공호흡기 {pct1(e.hhGap.VENT_1H?.battery)} → {pct1(e.hhGap.VENT_1H?.matched)}.</li>
+            <li>같은 산소통·같은 배터리 개수에서 배터리를 인공호흡기 가구에 먼저 주면 모의 공백 {ci(e.compares.noOverlap)} 감소. 이 감소 시간 중 산소통 때문에 생기는 몫은 {ci(e.cylShare.strat)}입니다(나머지는 배터리가 인공호흡기에서 더 오래 가서, 모의). 등급을 고르게 뽑지 않은 등록부에서는 {ci(e.compares.uNoOverlap)}입니다(모의).</li>
+            <li>산소 기기 가구 전원(60가구 중 평균 {(e.usedMean["RULE+CYL10S"]?.[0] ?? 0).toFixed(0)}개)에 산소통만 두면 도구의 모의 공백 {ci(e.compares.cylVsNone)} 감소(보호자 자기신고가 늘 맞다고 가정). 등급을 고르게 뽑지 않은 등록부 {ci(e.compares.uCylVsNone)}, 보급률을 배터리와 같게 제한하면 {ci(e.compares.cylCovVsNone)}입니다(모의).</li>
+            <li>E6 표적 배터리 대비 맞춤 조합(산소통이 더해진 비교)은 {ci(e.compares.matchedVsBattery)} 감소입니다(모의). 같은 개수끼리는 표적 산소통이 배터리보다 {ci(e.compares.cylKVsBattery)} 낫습니다(모의).</li>
+            <li>AI의 몫: 등록부가 라벨로만 기종을 안다면 AI 판독이 OCR보다 {ci(e.compares.aiVsOcr)} 낫지만, 보호자가 기기 종류만 체크해도 AI 판독만보다 {ci(e.compares.selfVsAi)} 낫습니다(모의). 산소통 보급에는 AI 판독이 필요 없습니다.</li>
+            <li>모의 공백 가구 비율(E6 배터리 → 맞춤 조합): 배터리 없는 산소발생기 {pct1(e.hhGap.O2_STAT?.battery)} → {pct1(e.hhGap.O2_STAT?.matched)}, 1시간급 인공호흡기 {pct1(e.hhGap.VENT_1H?.battery)} → {pct1(e.hhGap.VENT_1H?.matched)}.</li>
           </ul>
           <p className="mt-1 text-[13px] text-muted">E7 사전등록 {e.prereg.hit}/{e.prereg.total}(예비 실행을 보고 문턱을 정한 확인 항목이라 다른 사전등록과 따로 셉니다){e.prereg.missed.length ? ` · 틀림: ${e.prereg.missed.map((x) => x.id).join(", ")}` : ""}{e.prereg.structuralMissed.length ? ` · 구조 확인 틀림: ${e.prereg.structuralMissed.map((x) => x.id).join(", ")}` : ""}. 봉인 전 레드팀 4라운드(prereg/predictions_e7.md).</p>
         </>
@@ -487,7 +487,7 @@ function Premortem() {
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
       <h3 className="mt-3 text-[16px] font-bold">119 도착 실측으로 다시(사후 집계)</h3>
       {a ? (
-        <p className="mt-1 text-[14px]">소방청 전국 구급 현황 {a.year}년 {a.n.toLocaleString("ko-KR")}건의 신고→현장 도착은 중앙값 {a.p50Min.toFixed(1)}분, 90% {a.p90Min.toFixed(1)}분으로, 모의 가정(10~30분 × 지연 배수 1~4)보다 짧습니다. 이 실측(평시)으로 바꿔도 도구의 남는 공백은 {h(a.assumed.ruleGapHPerRun)} → {h(a.empirical.ruleGapHPerRun)}/실행, 그중 119 경로 {h(a.assumed.rule119H)} → {h(a.empirical.rule119H)}에 그칩니다. 남는 공백은 도착 시간보다 119 처리 용량(대기열)에서 나오며, 용량은 실측 자료에 없습니다. 도구 대 현행 {pct1(a.empirical.toolVsKr)} 감소, 가까운 순과는 차이 없음({pct1(a.empirical.toolVsNearest)})으로 결론은 같습니다. 실측은 평시 값이라 대규모 정전의 수요 폭증을 담지 않습니다.</p>
+        <p className="mt-1 text-[14px]">소방청 전국 구급 현황 {a.year}년 {a.n.toLocaleString("ko-KR")}건의 신고→현장 도착은 중앙값 {a.p50Min.toFixed(1)}분, 90% {a.p90Min.toFixed(1)}분으로, 모의 가정(10~30분 × 지연 배수 1~4)보다 짧습니다. 이 실측(평시)으로 바꿔도 도구의 남는 공백은 {h(a.assumed.ruleGapHPerRun)} → {h(a.empirical.ruleGapHPerRun)}/실행, 그중 119 경로 {h(a.assumed.rule119H)} → {h(a.empirical.rule119H)}에 그칩니다. 남는 공백은 도착 시간보다 119 처리 용량(대기열)에서 나오며, 용량은 실측 자료에 없습니다. 모의에서 도구 대 현행 {pct1(a.empirical.toolVsKr)} 감소, 가까운 순과는 차이 없음({pct1(a.empirical.toolVsNearest)})으로 결론은 같습니다. 실측은 평시 값이라 대규모 정전의 수요 폭증을 담지 않습니다.</p>
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
     </div>
   );

@@ -19,7 +19,8 @@ const norm = (t) => t.replace(/\s+/g, " ").trim();
 // ---- 규칙 (spec.md 9절 '금지 표현', 공용 목록) ----
 const { banned: BANNED } = JSON.parse(readFileSync(path.join(APP, "scripts", "claims-rules.json"), "utf-8"));
 // 「봉인 측정」: 보호자 알림(S9) 실측도 봉인 시험셋 측정이라 같은 한정어로 인정(명세 9절 「봉인 시험셋」 대체 규칙의 취지)
-const QUALIFIER = /모의|시뮬레이션|봉인 시험셋|봉인 측정/;
+// 「사후·탐색 측정」: 봉인 밖 시험셋 측정(10/30 알림 검사 새 사례)임을 밝히는 한정어(실제 성능 주장이 아님을 같은 취지로 표시)
+const QUALIFIER = /모의|시뮬레이션|봉인 시험셋|봉인 측정|사후·탐색 측정/;
 const MEASURED_OK = /실측 (정전|판독|분포)|실측 정전시간|실측 자료/;
 
 // ---- 단위 수집 ----

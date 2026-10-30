@@ -64,7 +64,7 @@ export function ClosingCard() {
       ) : null}
       {e7 && e7.compares.noOverlap?.rel != null && e7.hhGap.VENT_1H?.battery != null && e7.hhGap.VENT_1H?.matched != null ? (
         <p className="mt-3 text-[16px] leading-6" data-testid="closing-e7">
-          정전 전 기기에 맞춰 대비하면(봉인 S10, AI가 아닌 평시 보급 정책): 산소 기기 가구에는 예비 산소통, 배터리는 인공호흡기 가구에 먼저. 같은 산소통·배터리 개수에서 공백 가구·시간이 {pct(e7.compares.noOverlap.rel)} 더 줄고(그 감소의 약 {Math.round(e7.cylShare.strat.rel! * 100)}%가 산소통 몫), 1시간급 인공호흡기 공백 비율은 {pct(e7.hhGap.VENT_1H.battery)} → {pct(e7.hhGap.VENT_1H.matched)}입니다. 기기 등급을 고르게 뽑은 등록부(인공호흡기 과대표집)·보급률·고장률은 가정이며, 고르게 뽑지 않으면 {pct(e7.compares.uNoOverlap.rel!)}입니다(모의정전).
+          정전 전 기기에 맞춰 대비하면(봉인 S10, AI가 아닌 평시 보급 정책): 산소 기기 가구에는 예비 산소통, 배터리는 인공호흡기 가구에 먼저. 같은 산소통·배터리 개수에서 공백 가구·시간이 {pct(e7.compares.noOverlap.rel)} 더 줄고(그 감소의 약 {Math.round(e7.cylShare.strat.rel! * 100)}%가 산소통 몫), 1시간급 인공호흡기 공백 비율은 {pct(e7.hhGap.VENT_1H.battery)} → {pct(e7.hhGap.VENT_1H.matched)}입니다(모의). 기기 등급을 고르게 뽑은 등록부(인공호흡기 과대표집)·보급률·고장률은 가정이며, 고르게 뽑지 않으면 {pct(e7.compares.uNoOverlap.rel!)}입니다(모의정전).
         </p>
       ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">
