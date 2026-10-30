@@ -478,6 +478,7 @@ function Premortem() {
             <li>AI의 몫: 등록부가 라벨로만 기종을 안다면 AI 판독이 OCR보다 {ci(e.compares.aiVsOcr)} 낫지만, 보호자가 기기 종류만 체크해도 AI 판독만보다 {ci(e.compares.selfVsAi)} 낫습니다(모의). 산소통 보급에는 AI 판독이 필요 없습니다.</li>
             <li>모의 공백 가구 비율(E6 배터리 → 맞춤 조합): 배터리 없는 산소발생기 {pct1(e.hhGap.O2_STAT?.battery)} → {pct1(e.hhGap.O2_STAT?.matched)}, 1시간급 인공호흡기 {pct1(e.hhGap.VENT_1H?.battery)} → {pct1(e.hhGap.VENT_1H?.matched)}.</li>
           </ul>
+          <p className="mt-1 text-[14px]">실현 경로: 국내 가정산소치료는 건강보험공단에 등록한 업체가 산소발생기를 대여하고, 등록 기준(요양비 고시 별표 2)은 업체에 365일 24시간 콜센터와 응급상황에 즉각 대처하는 전국 조직망, 전원 중단 경보를 요구합니다. 이 업체를 평시 예비 산소통 보급 경로로 쓸 수 있는지, 산소통이 요양비 대상인지는 확인하지 못했습니다(도상훈련 과제).</p>
           <p className="mt-1 text-[13px] text-muted">E7 사전등록 {e.prereg.hit}/{e.prereg.total}(예비 실행을 보고 문턱을 정한 확인 항목이라 다른 사전등록과 따로 셉니다){e.prereg.missed.length ? ` · 틀림: ${e.prereg.missed.map((x) => x.id).join(", ")}` : ""}{e.prereg.structuralMissed.length ? ` · 구조 확인 틀림: ${e.prereg.structuralMissed.map((x) => x.id).join(", ")}` : ""}. 봉인 전 레드팀 4라운드(prereg/predictions_e7.md).</p>
         </>
       ) : <p className="mt-1 text-[14px]" data-testid="e7">E7 봉인 실행: <strong>{BEFORE_MEASURE}</strong></p>}
