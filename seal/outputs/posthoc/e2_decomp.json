@@ -1,0 +1,247 @@
+{
+ "format": "pl26-e2-decomp-posthoc/1",
+ "note": "사후 집계(사전등록 밖, 실패 가정 점검 10/30). 봉인 E2 시드 재실행, M1·M2S 봉인 값 대조(mismatch), 분해 합 = M2S 대조(sumMismatch). 단위: 실행당 공백 가구·시간. pre = 실제 배터리 종료 뒤 도움 도달까지, post = 도움이 먼저 끝나 다시 생긴 공백",
+ "seedLo": 3000001,
+ "policies": {
+  "RULE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "sumMismatch": 0,
+   "gapHPerRun": 71.68,
+   "byClassHPerRun": {
+    "O2_PORT": 10.54,
+    "O2_STAT": 36.23,
+    "O2_STAT_CYL": 0.56,
+    "UNREG": 14.83,
+    "VENT_1H": 2.86,
+    "VENT_3H": 5.35,
+    "VENT_8H": 1.32,
+    "VENT_8H_EXT2": 0
+   },
+   "byClassShare": {
+    "O2_STAT": 0.505,
+    "VENT_3H": 0.075,
+    "VENT_1H": 0.04,
+    "UNREG": 0.207,
+    "O2_PORT": 0.147,
+    "VENT_8H": 0.018,
+    "O2_STAT_CYL": 0.008,
+    "VENT_8H_EXT2": 0
+   },
+   "householdsPerRun": {
+    "O2_PORT": 7.64,
+    "O2_STAT": 12.77,
+    "O2_STAT_CYL": 5.07,
+    "UNREG": 9,
+    "VENT_1H": 1,
+    "VENT_3H": 2.3,
+    "VENT_8H": 1.19,
+    "VENT_8H_EXT2": 0.03
+   },
+   "byServedHPerRun": {
+    "LANE_119": 38.83,
+    "RESOURCE": 14.73,
+    "RESTORE": 16.18,
+    "SHELTER": 1.95
+   },
+   "preServeHPerRun": 64.27,
+   "postServeHPerRun": 7.41,
+   "byRatioHPerRun": {
+    "r1.5": 66.08,
+    "r3": 72.66,
+    "r6": 76.31
+   }
+  },
+  "B1_SHORTEST": {
+   "runs": 5400,
+   "mismatch": 0,
+   "sumMismatch": 0,
+   "gapHPerRun": 71.53,
+   "byClassHPerRun": {
+    "O2_PORT": 10.56,
+    "O2_STAT": 36.21,
+    "O2_STAT_CYL": 0.48,
+    "UNREG": 14.83,
+    "VENT_1H": 2.81,
+    "VENT_3H": 5.32,
+    "VENT_8H": 1.31,
+    "VENT_8H_EXT2": 0.01
+   },
+   "byClassShare": {
+    "O2_STAT": 0.506,
+    "VENT_3H": 0.074,
+    "VENT_1H": 0.039,
+    "UNREG": 0.207,
+    "O2_PORT": 0.148,
+    "VENT_8H": 0.018,
+    "O2_STAT_CYL": 0.007,
+    "VENT_8H_EXT2": 0
+   },
+   "householdsPerRun": {
+    "O2_PORT": 7.64,
+    "O2_STAT": 12.77,
+    "O2_STAT_CYL": 5.07,
+    "UNREG": 9,
+    "VENT_1H": 1,
+    "VENT_3H": 2.3,
+    "VENT_8H": 1.19,
+    "VENT_8H_EXT2": 0.03
+   },
+   "byServedHPerRun": {
+    "LANE_119": 38.48,
+    "RESOURCE": 15.38,
+    "RESTORE": 15.81,
+    "SHELTER": 1.86
+   },
+   "preServeHPerRun": 63.77,
+   "postServeHPerRun": 7.76,
+   "byRatioHPerRun": {
+    "r1.5": 65.92,
+    "r3": 72.85,
+    "r6": 75.81
+   }
+  },
+  "B2_NEAREST": {
+   "runs": 5400,
+   "mismatch": 0,
+   "sumMismatch": 0,
+   "gapHPerRun": 71.26,
+   "byClassHPerRun": {
+    "O2_PORT": 10.63,
+    "O2_STAT": 35.43,
+    "O2_STAT_CYL": 0.59,
+    "UNREG": 14.87,
+    "VENT_1H": 2.97,
+    "VENT_3H": 5.44,
+    "VENT_8H": 1.31,
+    "VENT_8H_EXT2": 0
+   },
+   "byClassShare": {
+    "O2_STAT": 0.497,
+    "VENT_3H": 0.076,
+    "VENT_1H": 0.042,
+    "UNREG": 0.209,
+    "O2_PORT": 0.149,
+    "VENT_8H": 0.018,
+    "O2_STAT_CYL": 0.008,
+    "VENT_8H_EXT2": 0
+   },
+   "householdsPerRun": {
+    "O2_PORT": 7.64,
+    "O2_STAT": 12.77,
+    "O2_STAT_CYL": 5.07,
+    "UNREG": 9,
+    "VENT_1H": 1,
+    "VENT_3H": 2.3,
+    "VENT_8H": 1.19,
+    "VENT_8H_EXT2": 0.03
+   },
+   "byServedHPerRun": {
+    "LANE_119": 41.45,
+    "RESOURCE": 11.38,
+    "RESTORE": 16.32,
+    "SHELTER": 2.11
+   },
+   "preServeHPerRun": 64.66,
+   "postServeHPerRun": 6.59,
+   "byRatioHPerRun": {
+    "r1.5": 64.97,
+    "r3": 72.67,
+    "r6": 76.13
+   }
+  },
+  "KR_BASELINE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "sumMismatch": 0,
+   "gapHPerRun": 84.32,
+   "byClassHPerRun": {
+    "O2_PORT": 18.28,
+    "O2_STAT": 36.86,
+    "O2_STAT_CYL": 0.75,
+    "UNREG": 15.15,
+    "VENT_1H": 3.39,
+    "VENT_3H": 7.17,
+    "VENT_8H": 2.7,
+    "VENT_8H_EXT2": 0.02
+   },
+   "byClassShare": {
+    "O2_STAT": 0.437,
+    "VENT_3H": 0.085,
+    "VENT_1H": 0.04,
+    "UNREG": 0.18,
+    "O2_PORT": 0.217,
+    "VENT_8H": 0.032,
+    "O2_STAT_CYL": 0.009,
+    "VENT_8H_EXT2": 0
+   },
+   "householdsPerRun": {
+    "O2_PORT": 7.64,
+    "O2_STAT": 12.77,
+    "O2_STAT_CYL": 5.07,
+    "UNREG": 9,
+    "VENT_1H": 1,
+    "VENT_3H": 2.3,
+    "VENT_8H": 1.19,
+    "VENT_8H_EXT2": 0.03
+   },
+   "byServedHPerRun": {
+    "LANE_119": 67.25,
+    "RESTORE": 17.07
+   },
+   "preServeHPerRun": 84.32,
+   "postServeHPerRun": 0,
+   "byRatioHPerRun": {
+    "r1.5": 84.58,
+    "r3": 84.64,
+    "r6": 83.74
+   }
+  },
+  "NONE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "sumMismatch": 0,
+   "gapHPerRun": 295.51,
+   "byClassHPerRun": {
+    "O2_PORT": 53.34,
+    "O2_STAT": 122.4,
+    "O2_STAT_CYL": 13.57,
+    "UNREG": 68.75,
+    "VENT_1H": 9.6,
+    "VENT_3H": 19.54,
+    "VENT_8H": 8.15,
+    "VENT_8H_EXT2": 0.14
+   },
+   "byClassShare": {
+    "O2_STAT": 0.414,
+    "VENT_3H": 0.066,
+    "VENT_1H": 0.032,
+    "UNREG": 0.233,
+    "O2_PORT": 0.181,
+    "VENT_8H": 0.028,
+    "O2_STAT_CYL": 0.046,
+    "VENT_8H_EXT2": 0
+   },
+   "householdsPerRun": {
+    "O2_PORT": 7.64,
+    "O2_STAT": 12.77,
+    "O2_STAT_CYL": 5.07,
+    "UNREG": 9,
+    "VENT_1H": 1,
+    "VENT_3H": 2.3,
+    "VENT_8H": 1.19,
+    "VENT_8H_EXT2": 0.03
+   },
+   "byServedHPerRun": {
+    "RESTORE": 295.51
+   },
+   "preServeHPerRun": 295.51,
+   "postServeHPerRun": 0,
+   "byRatioHPerRun": {
+    "r1.5": 294.01,
+    "r3": 304.19,
+    "r6": 288.33
+   }
+  }
+ }
+}
