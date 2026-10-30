@@ -52,9 +52,10 @@ export default function Home() {
   const apt = aptCalib();
   return (
     <main className="pb-4">
-      {/* 첫 화면(390×844: 배너·H1·두 시계·CTA). 데스크톱은 왼쪽 글·오른쪽 두 시계, 모바일은 H1 → 시계 → 문장 → CTA 순서 그대로 */}
-      <section className="border-b border-line bg-white" aria-labelledby="h1">
-        <div className="mx-auto grid max-w-6xl gap-x-12 px-4 pb-8 pt-4 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pb-14 lg:pt-12 lg:[grid-template-areas:'h_c'_'a_c'_'b_c']">
+      {/* 첫 화면(390×844: 배너·H1·두 시계·CTA). 데스크톱은 왼쪽 글·오른쪽 두 시계, 모바일은 H1 → 시계 → 문장 → CTA 순서 그대로.
+          md 이상은 히어로가 첫 화면을 채워 다음 절(「AI 생성」 표기 포함)이 첫 화면에 들어오지 않게 한다(첫 화면 금지어, 57px = 내비 한 줄) */}
+      <section className="border-b border-line bg-white md:flex md:min-h-[calc(100svh-var(--banner-h,29px)-57px)] md:items-center" aria-labelledby="h1">
+        <div className="mx-auto grid max-w-6xl gap-x-12 md:w-full px-4 pb-8 pt-4 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pb-14 lg:pt-12 lg:[grid-template-areas:'h_c'_'a_c'_'b_c']">
           <h1 id="h1" className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[44px] lg:leading-[1.15] lg:[grid-area:h]">배터리가 먼저 끝날까, 전기가 먼저 올까</h1>
           <div className="mt-3 lg:mt-0 lg:[grid-area:c]"><TwoClocks /></div>
           <p className="mt-3 max-w-[60ch] text-[16px] leading-7 text-ink lg:mt-5 lg:text-[18px] lg:leading-8 lg:[grid-area:a]" data-testid="avg-line">
@@ -83,8 +84,8 @@ export default function Home() {
         </figure>
         <div>
           <h2 id="problem" className="text-[24px] font-extrabold leading-8 tracking-tight text-brand-strong lg:text-[30px] lg:leading-10">정전이 길어지면, 배터리가 먼저 끝나는 집이 생깁니다</h2>
-          <p className="mt-3 max-w-[60ch] text-[16px] leading-7">인공호흡기·산소발생기를 쓰는 집은 정전과 동시에 기기 배터리 시간이 줄어듭니다. 공개된 복구·순환단전 절차에는 어느 집이 먼저 꺼지는지 계산하는 단계가 없습니다.</p>
-          <p className="mt-2 max-w-[60ch] text-[16px] leading-7">전력안심망은 집마다 배터리가 버티는 시간과 전기가 돌아올 시각을 나란히 놓고, 담당자가 먼저 챙길 집을 고르게 돕습니다.</p>
+          <p className="mt-3 max-w-[60ch] text-[16px] leading-7">인공호흡기는 내장 배터리로 버티는 시간이 정해져 있고, 배터리가 없는 거치형 산소발생기는 정전과 동시에 멈춥니다. 공개된 복구·순환단전 절차에는 어느 집이 먼저 꺼지는지 계산하는 단계가 없습니다.</p>
+          <p className="mt-2 max-w-[60ch] text-[16px] leading-7">전력안심망은 집마다 배터리가 버티는 시간과 전기가 돌아올 가정 범위를 나란히 놓고, 담당자가 먼저 챙길 집을 고르게 돕습니다.</p>
         </div>
       </section>
 
@@ -101,8 +102,8 @@ export default function Home() {
             <NoticeItem />
           </ol>
           <figure className="lg:sticky lg:top-[calc(var(--banner-h,29px)+16px)]">
-            <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고, 사람이 버튼을 눌러 승인하면 구급차로 이어지는 흐름" className="illust illust-reveal aspect-[3/1] w-full bg-[url('/illustrations/approve-flow.webp')] bg-contain bg-white" />
-            <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 119 연계. 일러스트: AI 생성</figcaption>
+            <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고 담당자가 버튼을 눌러 승인하는 흐름. 구급차 그림은 119 연계 화면을 나타내는 상징" className="illust illust-reveal aspect-[3/1] w-full bg-[url('/illustrations/approve-flow.webp')] bg-contain bg-white" />
+            <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 비상전원 배정 또는 119 연계 화면(시연용, 실제 출동 연동 없음). 일러스트: AI 생성</figcaption>
           </figure>
         </div>
       </section>
@@ -132,12 +133,12 @@ function NoticeItem() {
   return (
     <li>
       승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조(검사 범위: 시각·수단·경고·할 일·금지 표현)를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
+      {/* 측정 문장은 바이트 그대로(HANDOFF 4.2 2번), 상자로만 구획 */}
       {n ? (
-        <ul className="mt-2 space-y-1.5 rounded-xl border border-line bg-paper p-3 text-[16px] leading-7">
-          <li>봉인 측정(봉인 당시 검사 기준): AI 글 통과 {ci(n.aiSent)}</li>
-          {n.judgeSplit ? <li>봉인 측정의 나간 글 60건 중 봉인 뒤 결함 판정 {n.sentDefects ?? "—"}건: 같은 시각 경고 모순 {n.judgeSplit.aiSameTime.n}·모순 고정 문안 {n.judgeSplit.sentContradiction}·외장 합산 미표기 {n.extUndisclosed?.k ?? "—"}·경고 여유 미달 {n.marginMissed?.length ?? "—"}·없는 약속 {n.unsupportedPromise?.length ?? "—"}. &lsquo;적어도&rsquo;만 있는 글 {n.atLeastOnly?.length ?? "—"}건은 기준 변경이라 제외(합치면 {(n.sentDefects ?? 0) + (n.atLeastOnly?.length ?? 0)}건), 고침·고친 검사는 미측정.</li> : null}
-          <li>봉인 측정에서 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}. <Link className="underline" href="/lab#notice">자세히</Link></li>
-        </ul>
+        <p className="mt-2 rounded-xl border border-line bg-paper p-3 text-[16px] leading-7">
+          {` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순 ${n.judgeSplit.aiSameTime.n}·모순 고정 문안 ${n.judgeSplit.sentContradiction}·외장 합산 미표기 ${n.extUndisclosed?.k ?? "—"}·경고 여유 미달 ${n.marginMissed?.length ?? "—"}·없는 약속 ${n.unsupportedPromise?.length ?? "—"}, '적어도'만 있는 글 ${n.atLeastOnly?.length ?? "—"}건은 기준 변경이라 제외(합치면 ${(n.sentDefects ?? 0) + (n.atLeastOnly?.length ?? 0)}건), 고침·고친 검사는 미측정)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.`}{" "}
+          <Link className="underline" href="/lab#notice">자세히</Link>
+        </p>
       ) : <>{" "}<Link className="underline" href="/lab#notice">자세히</Link></>}
     </li>
   );

@@ -129,8 +129,8 @@ function BeforeOutage() {
       <p className="mt-2 text-[14px] text-muted">봉인 sha256 {s.preset.meta.scenarioSha256.slice(0, 16)}… · 시드 {s.preset.meta.seed}</p>
     </section>
     <figure className="hidden lg:block">
-      <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고, 사람이 버튼을 눌러 승인하면 구급차로 이어지는 흐름" className="illust aspect-[3/1] w-full bg-white bg-contain bg-[url('/illustrations/approve-flow.webp')]" />
-      <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 119 연계. 일러스트: AI 생성</figcaption>
+      <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고 담당자가 버튼을 눌러 승인하는 흐름. 구급차 그림은 119 연계 화면을 나타내는 상징" className="illust aspect-[3/1] w-full bg-white bg-contain bg-[url('/illustrations/approve-flow.webp')]" />
+      <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 비상전원 배정 또는 119 연계 화면(시연용, 실제 출동 연동 없음). 일러스트: AI 생성</figcaption>
     </figure>
     </div>
   );
@@ -195,8 +195,14 @@ function Board() {
   const now = sToH(s.nowS);
   const R = s.restoration?.view;
   return (
-    <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <section aria-labelledby="tbl-title" className="min-w-0">
+    // DOM 순서 = 좁은 화면의 보이는 순서(서랍 → 표 → 자원, WCAG 2.4.3). xl 이상은 표 왼쪽, 서랍·자원 오른쪽(10/30 디자인 레드팀)
+    <div className="mt-3 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:grid-rows-[auto_1fr]">
+      {sel && (
+        <div className="xl:col-start-2 xl:row-start-1">
+          <ApproveDrawer householdId={sel} onClose={() => setSel(null)} />
+        </div>
+      )}
+      <section aria-labelledby="tbl-title" className="min-w-0 xl:col-start-1 xl:row-span-2 xl:row-start-1">
         <div className="flex flex-wrap items-center gap-3">
           <h2 id="tbl-title" className="text-[20px] font-extrabold text-brand-strong">처리 순서</h2>
           {R && (
@@ -275,9 +281,8 @@ function Board() {
         <OmissionAudit />
         <AuditLog />
       </section>
-      {/* 좁은 화면: 가구를 고르면 서랍이 표 위로(표 아래에 열려 보이지 않던 문제, 10/30 디자인 개편). 서랍 파일은 그대로 */}
-      <aside className={`space-y-4 ${sel ? "order-first lg:order-none" : ""}`}>
-        {sel ? <ApproveDrawer householdId={sel} onClose={() => setSel(null)} /> : (
+      <aside className={`space-y-4 xl:col-start-2 ${sel ? "xl:row-start-2" : "xl:row-start-1"}`}>
+        {!sel && (
           <p className="rounded-2xl border border-dashed border-brand-line bg-white p-4 text-[14px] text-muted">표에서 가구를 고르면 승인 서랍이 열립니다.</p>
         )}
         <ResourcePanel />

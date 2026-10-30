@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* 제목·로고용 Pretendard 하위집합(tools/build_heading_font.py, 303자 41KB, SIL OFL — public/fonts/OFL-Pretendard.txt).
+/* 제목·로고용 Pretendard 하위집합(tools/build_heading_font.py, 랜딩 80자 13KB + 나머지 223자 30KB 두 파일, SIL OFL — public/fonts/OFL-Pretendard.txt).
    본문은 시스템 글꼴: 본문까지 웹폰트를 쓰면 랜딩이 글꼴 조각 20여 개를 받아 로컬 lhci LCP가 5초대가 됐다(10/30 측정) */
 @font-face {
   font-family: "Pretendard Display";
@@ -8,6 +8,16 @@
   font-weight: 700 900;
   font-style: normal;
   font-display: optional;
+  /* rest-range:start */ unicode-range: U+0022, U+0023, U+0024, U+0026, U+0027, U+002A, U+002B, U+002F, U+003B, U+003C, U+003D, U+003E, U+0040, U+0041, U+0042, U+0043, U+0044, U+0045, U+0046, U+0047, U+0048, U+0049, U+004A, U+004B, U+004C, U+004D, U+004E, U+004F, U+0050, U+0051, U+0052, U+0053, U+0054, U+0055, U+0056, U+0057, U+0058, U+0059, U+005A, U+005B, U+005C, U+005D, U+005E, U+005F, U+0060, U+0061, U+0062, U+0063, U+0064, U+0065, U+0066, U+0067, U+0068, U+0069, U+006A, U+006B, U+006C, U+006D, U+006E, U+006F, U+0070, U+0071, U+0072, U+0073, U+0074, U+0075, U+0076, U+0077, U+0078, U+0079, U+007A, U+007B, U+007C, U+007D, U+00D7, U+2018, U+2019, U+201C, U+201D, U+2026, U+2190, U+2192, U+2212, U+2460, U+2461, U+2462, U+2463, U+2464, U+2465, U+2466, U+2467, U+2468, U+2469, U+300C, U+300D, U+300E, U+300F, U+AC04, U+AC08, U+AC10, U+AC12, U+AC1C, U+AC74, U+AC80, U+AC83, U+ACBD, U+ACC4, U+ACE0, U+ACF3, U+ACF5, U+ADDC, U+ADF8, U+AE00, U+B0A8, U+B0B4, U+B204, U+B2CC, U+B2D8, U+B2E8, U+B300, U+B3C5, U+B4A4, U+B4DC, U+B4F1, U+B514, U+B54C, U+B5A4, U+B77D, U+B7A9, U+B85C, U+B85D, U+B960, U+B97C, U+B9BC, U+B9DE, U+BAA8, U+BAAB, U+BB38, U+BC18, U+BC1C, U+BC31, U+BC94, U+BC95, U+BCA8, U+BCC4, U+BCF4, U+BD09, U+BD80, U+BD84, U+BE48, U+BFD0, U+C0AC, U+C0B0, U+C0C1, U+C11C, U+C124, U+C131, U+C14B, U+C18C, U+C190, U+C21C, U+C26C, U+C2DD, U+C2E4, U+C4F4, U+C544, U+C54C, U+C591, U+C5B9, U+C5F0, U+C601, U+C624, U+C644, U+C678, U+C6A9, U+C6B4, U+C6D0, U+C704, U+C724, U+C728, U+C73C, U+C74C, U+C758, U+C775, U+C778, U+C77D, U+C785, U+C790, U+C7A5, U+C801, U+C808, U+C810, U+C81C, U+C870, U+C99D, U+CC28, U+CC29, U+CC98, U+CC9C, U+CD94, U+CDA9, U+CE21, U+CE58, U+CE59, U+CE68, U+D1B5, U+D2C0, U+D2C8, U+D310, U+D328, U+D3C9, U+D45C, U+D504, U+D55C, U+D589, U+D5C8, U+D604, U+D638, U+D654, U+D6A8, U+D6C4, U+D761, U+D78C; /* rest-range:end */
+}
+/* 랜딩 제목·로고 글자만 담은 작은 파일. 위 파일과 글자가 겹치지 않아 랜딩은 이 파일만 받는다 */
+@font-face {
+  font-family: "Pretendard Display";
+  src: url("/fonts/pretendard-display-landing.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: optional;
+  /* landing-range:start */ unicode-range: U+0020, U+0021, U+0025, U+0028, U+0029, U+002C, U+002D, U+002E, U+0030, U+0031, U+0032, U+0033, U+0034, U+0035, U+0036, U+0037, U+0038, U+0039, U+003A, U+003F, U+007E, U+00B7, U+AC00, U+AC19, U+ACB0, U+ACFC, U+AD50, U+AD6C, U+AE30, U+AE38, U+AE41, U+AE4C, U+AFD4, U+B05D, U+B098, U+B0A0, U+B294, U+B2C8, U+B2E4, U+B2EC, U+B3C4, U+B3CC, U+B450, U+B77C, U+B825, U+B9AC, U+B9B0, U+B9CC, U+B9DD, U+BA3C, U+BA74, U+BC14, U+BC30, U+BE44, U+C0DD, U+C2DC, U+C2EC, U+C548, U+C5B4, U+C5D0, U+C62C, U+C640, U+C6B0, U+C720, U+C740, U+C744, U+C774, U+C77C, U+C800, U+C804, U+C815, U+C900, U+C9C0, U+C9D1, U+CC45, U+CD08, U+D130, U+D558, U+D574, U+D615; /* landing-range:end */
 }
 
 /* 10/30 디자인 개편: 공공 서비스 신뢰형. 강조 색은 남색 하나(brand), 의미 색(gap/restore/batt/warn)은 이름 유지.
@@ -64,7 +74,7 @@ h1, h2, h3, .font-display { word-break: keep-all; text-wrap: balance; font-famil
 .press:active { transform: translateY(1px); }
 
 /* 카드 표면 */
-.card { background: #ffffff; border: 1px solid var(--color-line); border-radius: 16px; box-shadow: var(--shadow-card); }
+@layer components { .card { background: #ffffff; border: 1px solid var(--color-line); border-radius: 16px; box-shadow: var(--shadow-card); } } /* 레이어 안: border-l-4 같은 유틸리티가 덮을 수 있게(Codex 10/30) */
 
 /* AI 생성 일러스트 칸: 글자와 겹치지 않는 별도 칸(배경 이미지는 글자 위에 두지 않는다 — expectReadable 덮개 검사) */
 .illust { background-position: center; background-size: cover; background-repeat: no-repeat; border-radius: 16px; background-color: var(--color-brand-soft); }
