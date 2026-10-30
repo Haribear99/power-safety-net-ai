@@ -1,6 +1,6 @@
 // 끝 카드 (spec.md 12.3절, 라운드 5 '끝 카드'). evidence.json만 읽는다. 측정 전이면 「측정 전」으로 표시하고 숫자를 하드코딩하지 않는다.
 // 관문 2를 통과하지 못했으면 비교 문장을 싣지 않는다(대체안의 C1·C2 실측은 아직 없으므로 「측정 전」).
-import { BEFORE_MEASURE, e6Evidence, labHeadline } from "@/lib/evidence";
+import { BEFORE_MEASURE, e6Evidence, e7Evidence, labHeadline } from "@/lib/evidence";
 import { CLASS_KO, CLASS_ORDER } from "@/lib/lab";
 import { pRange } from "@/lib/engine/params";
 import type { GenClass } from "@/lib/sim/labels";
@@ -19,7 +19,7 @@ export function ClosingCard() {
   const h = labHeadline();
   const ok = h && h.gate2?.pass !== false;
   const hpr = pRange("sweep.hhPerResource");
-  const g = e6Evidence();
+  const g = e6Evidence(), e7 = e7Evidence();
   return (
     <section data-testid="closing-card" aria-label="끝 카드" className="rounded-xl border border-line bg-paper p-5">
       {h && ok ? (
@@ -62,8 +62,13 @@ export function ClosingCard() {
           {g.worse.length ? <>, 대신 {g.worse.length}개 기기({g.worse.map((k) => WORSE_KO[k] ?? k).join("·")})는 늘어나는 맞바꿈입니다.</> : <>.</>}
         </p>
       ) : null}
+      {e7 && e7.compares.noOverlap?.rel != null && e7.hhGap.VENT_1H?.battery != null && e7.hhGap.VENT_1H?.matched != null ? (
+        <p className="mt-3 text-[16px] leading-6" data-testid="closing-e7">
+          정전 전 기기에 맞춰 대비하면(봉인 S10, AI가 아닌 평시 보급 정책): 산소 기기 가구에는 예비 산소통, 배터리는 인공호흡기 가구에 먼저. 같은 산소통·배터리 개수에서 공백 가구·시간이 {pct(e7.compares.noOverlap.rel)} 더 줄고(그 감소의 약 {Math.round(e7.cylShare.strat.rel! * 100)}%가 산소통 몫), 1시간급 인공호흡기 공백 비율은 {pct(e7.hhGap.VENT_1H.battery)} → {pct(e7.hhGap.VENT_1H.matched)}입니다. 기기 등급을 고르게 뽑은 등록부(인공호흡기 과대표집)·보급률·고장률은 가정이며, 고르게 뽑지 않으면 {pct(e7.compares.uNoOverlap.rel!)}입니다(모의정전).
+        </p>
+      ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">
-        1시간급 인공호흡기 가구에는 정전 뒤 배정이 닿지 않았습니다(모의). 남은 일은 등록 기록으로 사전 배치 대상을 정전 전에 고르는 것입니다.
+        1시간급 인공호흡기 가구에는 정전 뒤 배정이 닿지 않았습니다(모의). 남은 일은 등록 기록으로 정전 전에 기기별 대비(산소통·배터리)를 놓을 집을 고르는 것입니다.
       </p>
       <p className="mt-3 text-[12px] text-muted">AI 기반 운용 · 시연용 합성 데이터</p>
     </section>
