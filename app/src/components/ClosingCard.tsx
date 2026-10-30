@@ -64,7 +64,7 @@ export function ClosingCard() {
       ) : null}
       {e7 ? (
         <p className="mt-3 text-[16px] leading-6" data-testid="closing-e7">
-          정전 전에 기기에 맞춰 대비하면 공백이 더 줄었습니다: 산소 기기 집에는 예비 산소통, 배터리는 인공호흡기 집에 먼저(모의, AI가 아닌 평시 정책 · 가정과 수치는 <a className="underline" href="/lab#premortem">랩 ⑩</a>).
+          정전 전에 산소 기기 집에 예비 산소통을 더하고 배터리는 인공호흡기 집에 먼저 주면 공백이 더 줄었습니다(모의, AI가 아닌 평시 정책 · 가정과 수치는 <a className="underline" href="/lab#premortem">랩 ⑩</a>).
         </p>
       ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">

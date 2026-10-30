@@ -435,6 +435,26 @@ if (n1) {
   }
 }
 
+// ---- C1 라벨 상태별 자동 확정(봉인 S3 원자료 재집계, 장부의 수동검토 부담 문단용 — 시험셋 구성비에 기대지 않게, 브랜치 레드팀 10/30) ----
+{
+  const byLabel = (f: string) => {
+    const p = path.join(__dirname, "..", "..", "out", "sealed", f, "summary.json");
+    if (!existsSync(p)) return null;
+    const d = JSON.parse(readFileSync(p, "utf-8")) as { items: { strength: string; truthSpecId: string | null; match: { status: string; specId?: string } }[] };
+    const g: Record<string, { k: number; n: number }> = {};
+    for (const it of d.items) {
+      if (it.truthSpecId == null) continue;
+      const key = it.strength === "none" ? "clean" : "degraded";
+      g[key] ??= { k: 0, n: 0 };
+      g[key].n++;
+      if (it.match.status !== "MANUAL_REVIEW" && it.match.specId === it.truthSpecId) g[key].k++;
+    }
+    return g;
+  };
+  const s = byLabel("c1"), t = byLabel("c1-tesseract");
+  if (s && t) out.c1ByLabel = { sonnet: s, tesseract: t };
+}
+
 // ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts → scripts/e7-evidence.ts) ----
 {
   const e7v = e7Evidence(take("out/e7_sealed.json") as E7Out | null);

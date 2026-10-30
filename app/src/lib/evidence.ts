@@ -210,3 +210,9 @@ export interface N1Fresh {
 export function n1Fresh(): N1Fresh | null {
   return (doc as unknown as { n1Fresh?: N1Fresh }).n1Fresh ?? null;
 }
+
+/** C1 라벨 상태별 DB 기종 자동 확정(봉인 S3 재집계). clean = 깨끗한 렌더, degraded = 흐림·가림 렌더 */
+export interface C1ByLabel { sonnet: Record<"clean" | "degraded", { k: number; n: number }>; tesseract: Record<"clean" | "degraded", { k: number; n: number }> }
+export function c1ByLabel(): C1ByLabel | null {
+  return (doc as unknown as { c1ByLabel?: C1ByLabel }).c1ByLabel ?? null;
+}

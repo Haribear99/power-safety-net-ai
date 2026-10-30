@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BEFORE_MEASURE, c1Evidence, diffSummary, n1Evidence, n1Fresh, type C1Rate } from "@/lib/evidence";
+import { BEFORE_MEASURE, c1ByLabel, c1Evidence, diffSummary, n1Evidence, n1Fresh, type C1Rate } from "@/lib/evidence";
 
 const r = (x: C1Rate | { k: number; n: number }) => `${x.k}/${x.n}`;
 const ci = (x: C1Rate) => `95% CI ${(x.ciLo * 100).toFixed(1)}~${(x.ciHi * 100).toFixed(1)}%`;
@@ -48,11 +48,16 @@ export default function LedgerPage() {
             {c1.sonnet.costPerImage != null ? ` 장당 비용 $${c1.sonnet.costPerImage.toFixed(4)}, 지연 중앙값 ${((c1.sonnet.latencyP50 ?? 0) / 1000).toFixed(1)}초.` : ""}
             {c1.devRunConsistency ? ` 같은 프롬프트 두 번 실행 시 모델명 판독이 같았던 비율 ${c1.devRunConsistency.modelSame}/${c1.devRunConsistency.n}(개발셋 기준).` : ""}
           </p>
-          {c1.tesseract ? (
-            <p className="mt-2 rounded border border-line p-2 text-[14px]" data-testid="c1-workload">
-              <strong>AI의 몫(수동검토 부담)</strong>: 봉인 시험셋의 자동 확정 비율로 환산하면, DB에 있는 기종을 쓰는 등록 가구 1,000곳마다 담당자가 기종을 직접 확인할 가구는 AI 판독 {Math.round(1000 * (1 - c1.sonnet.dbMatchRate.k / c1.sonnet.dbMatchRate.n))}곳, OCR {Math.round(1000 * (1 - c1.tesseract.dbMatchRate.k / c1.tesseract.dbMatchRate.n))}곳, 판독 없음 1,000곳입니다. 정전 모의에서 판독 정확도가 공백을 바꾼다는 근거는 없었고(랩 ⑧), 검토 1건당 시간과 실제 업무량은 재지 않았습니다.
-            </p>
-          ) : null}
+          {(() => {
+            const b = c1ByLabel();
+            if (!b) return null;
+            const rv = (x: { k: number; n: number }) => `${x.n - x.k}/${x.n}`;
+            return (
+              <p className="mt-2 rounded border border-line p-2 text-[14px]" data-testid="c1-workload">
+                <strong>AI의 몫(수동검토 부담)</strong>: 봉인 렌더 라벨에서 담당자가 기종을 직접 확인해야 하는 라벨은 깨끗한 라벨 AI {rv(b.sonnet.clean)}·OCR {rv(b.tesseract.clean)}, 흐림·가림 라벨 AI {rv(b.sonnet.degraded)}·OCR {rv(b.tesseract.degraded)}입니다. 실제 가구의 라벨 상태 분포는 모르고, 보호자가 모델명을 직접 적는 경로와는 비교하지 않았습니다. 정전 모의에서 판독 정확도가 공백을 바꾼다는 근거는 없었고(랩 ⑧), 검토 1건당 시간은 재지 않았습니다.
+              </p>
+            );
+          })()}
           <p className="mt-1 text-[13px] text-muted">AI가 정한 기종도 담당자가 「기종 확인」을 하기 전까지는 비슷한 이름 기종 중 가장 짧은 배터리 시간으로 계산합니다. 원시 응답(요청 ID 포함)은 저장소 out/sealed/c1에 있습니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></p>
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
