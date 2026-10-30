@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { project119 } from "@/lib/alloc/project119";
 import { sToH } from "@/lib/engine/quantize";
-import { lEndH, purge119, visible119Ids } from "@/lib/ops/session";
+import { DB, lEndH, purge119, visible119Ids } from "@/lib/ops/session";
 import { useOps } from "@/components/ops/OpsProvider";
 
 export default function Page119() {
@@ -12,7 +12,7 @@ export default function Page119() {
   const rows = session
     ? project119(Object.values(session.decisions).filter((d) => shown.has(d.householdId)).map((d) => ({
       householdId: d.householdId, lane: d.lane, status: d.status, lEndH: lEndH(session.households.find((h) => h.id === d.householdId)!),
-    })), session.households, session.preset.meta.baseIso)
+    })), session.households, session.preset.meta.baseIso, DB)
     : [];
   const now = session ? sToH(session.nowS) : 0;
   const base = session ? session.preset.meta.baseIso : "";

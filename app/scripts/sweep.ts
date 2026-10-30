@@ -6,6 +6,7 @@
 //   npx tsx scripts/sweep.ts E4 --tag dev --seedLo 9001 --draws 200 --master E4-dev   (실측 분포 APT_EMP, S6)
 //   npx tsx scripts/sweep.ts E5 --tag dev --seedLo 9501 --draws 200 --master E5-dev   (AI 판독 기여·표적 사전 배치, S7)
 //   npx tsx scripts/sweep.ts E6 --tag dev --seedLo 9801 --draws 200 --master E6-dev   (평시 정보 표적 사전 배치, S8)
+//   npx tsx scripts/sweep.ts E7 --tag dev --seedLo 9600001 --draws 200 --master E7-dev   (평시 산소통 보급, S10)
 // 봉인 실행(S4 뒤)은 --tag sealed와 prereg/sweep.json의 시드 범위·추첨 수를 쓴다. 출력: out/sweeps/<exp>_<tag>.json
 // 출력 행마다 seed 키가 있다(scripts/check-seal-order.mjs가 S4 이전 출력에서 E1·E2 전용 시드를 찾는다).
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -18,6 +19,7 @@ import { e1Thetas, E1_FALSIFY_DRAWS, e2Cells, E2_SEEDS_PER_CELL, E3_VARIANTS, E4
 import type { Job } from "./sweep-worker";
 import { E5_ARMS, E5_CAUSE, e5Thetas, E5_VARIANTS } from "../src/lib/sim/e5";
 import { e6Thetas, E6_VARIANTS } from "../src/lib/sim/e6";
+import { E7_ARMS, E7_CYL_H, e7Thetas, E7_VARIANTS } from "../src/lib/sim/e7";
 
 const repo = path.resolve(__dirname, "..", "..");
 const argv = process.argv.slice(2);
@@ -148,7 +150,19 @@ async function main() {
     write(`E6_${tag}.json`, { format: "pl26-sweep-e6/1", tag, seedLo, draws, master, cause: E5_CAUSE, arms: { AI: E5_ARMS.AI }, variants: E6_VARIANTS, rows });
     return;
   }
-  throw new Error("실험은 E1, E2, E3, E4, E5, E6");
+  if (exp === "E7") {
+    const draws = Number(arg("draws"));
+    const master = arg("master")!;
+    if (!(draws > 0) || !master) throw new Error("--draws, --master 필요");
+    const thetas = e7Thetas(draws, master);
+    const jobs: Job[] = [];
+    for (let d = 0; d < draws; d++) jobs.push({ exp: "E7", d, theta: thetas[d], seedLo });
+    console.log(`E7 작업 ${jobs.length}건`);
+    const rows = await runPool<E3Row>(jobs, 20);
+    write(`E7_${tag}.json`, { format: "pl26-sweep-e7/1", tag, seedLo, draws, master, cause: E5_CAUSE, arms: E7_ARMS, cylH: E7_CYL_H, variants: E7_VARIANTS, rows });
+    return;
+  }
+  throw new Error("실험은 E1, E2, E3, E4, E5, E6, E7");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

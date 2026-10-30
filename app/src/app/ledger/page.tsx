@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BEFORE_MEASURE, c1Evidence, diffSummary, n1Evidence, type C1Rate } from "@/lib/evidence";
+import { BEFORE_MEASURE, c1ByLabel, c1Evidence, diffSummary, n1Evidence, n1Fresh, type C1Rate } from "@/lib/evidence";
 
 const r = (x: C1Rate | { k: number; n: number }) => `${x.k}/${x.n}`;
 const ci = (x: C1Rate) => `95% CI ${(x.ciLo * 100).toFixed(1)}~${(x.ciHi * 100).toFixed(1)}%`;
@@ -48,6 +48,16 @@ export default function LedgerPage() {
             {c1.sonnet.costPerImage != null ? ` 장당 비용 $${c1.sonnet.costPerImage.toFixed(4)}, 지연 중앙값 ${((c1.sonnet.latencyP50 ?? 0) / 1000).toFixed(1)}초.` : ""}
             {c1.devRunConsistency ? ` 같은 프롬프트 두 번 실행 시 모델명 판독이 같았던 비율 ${c1.devRunConsistency.modelSame}/${c1.devRunConsistency.n}(개발셋 기준).` : ""}
           </p>
+          {(() => {
+            const b = c1ByLabel();
+            if (!b) return null;
+            const rv = (x: { k: number; n: number }) => `${x.n - x.k}/${x.n}`;
+            return (
+              <p className="mt-2 rounded border border-line p-2 text-[14px]" data-testid="c1-workload">
+                <strong>AI의 몫(수동검토 부담)</strong>: 봉인 렌더 라벨에서 담당자가 기종을 직접 확인해야 하는 라벨은 깨끗한 라벨 AI {rv(b.sonnet.clean)}·OCR {rv(b.tesseract.clean)}, 흐림·가림 라벨 AI {rv(b.sonnet.degraded)}·OCR {rv(b.tesseract.degraded)}입니다. DB 밖 기종을 엉뚱한 기종으로 표시 없이 확정한 라벨은 AI {c1.sonnet.unflaggedMismatch.k}장·OCR {c1.tesseract?.unflaggedMismatch.k ?? "—"}장입니다. 실제 가구의 라벨 상태 분포는 모르고, 보호자가 모델명을 직접 적는 경로와는 비교하지 않았습니다. 정전 모의에서 판독 정확도가 공백을 바꾼다는 근거는 없었고(랩 ⑧), 검토 1건당 시간은 재지 않았습니다.
+              </p>
+            );
+          })()}
           <p className="mt-1 text-[13px] text-muted">AI가 정한 기종도 담당자가 「기종 확인」을 하기 전까지는 비슷한 이름 기종 중 가장 짧은 배터리 시간으로 계산합니다. 원시 응답(요청 ID 포함)은 저장소 out/sealed/c1에 있습니다. <Link className="underline" href="/household">라벨 판독 해 보기</Link></p>
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
@@ -65,7 +75,7 @@ export default function LedgerPage() {
 
 /** AI가 하는 일 ②: 보호자 알림(봉인 S9, evidence.n1) */
 function NoticeLedger() {
-  const n = n1Evidence();
+  const n = n1Evidence(), f = n1Fresh();
   const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${((x.lo ?? 0) * 100).toFixed(1)}~${((x.hi ?? 0) * 100).toFixed(1)}%)`;
   return (
     <>
@@ -79,7 +89,7 @@ function NoticeLedger() {
             <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
             <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행, 검사 v6·프롬프트 캐시 적중 기준. 검사 n1-check-v23·프롬프트 n1-v17의 dev 회귀 40건은 평균 $0.0173·최대 $0.0543(최대는 2차 지시문을 바꾼 뒤 첫 건의 캐시 쓰기. 생성+2차 검사, 저장소 밖 원시 응답 out/n1/v24-r1 집계. 공개 요약 seal/outputs/n1_regression/v24-r1.summary.json의 costUsd는 고정 문안 검사까지 더한 값), 캐시가 식은 단발 호출은 더 비쌀 수 있음). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
           </ul>
-          <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. <Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
+          <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. {f ? `지금 쓰는 검사(${f.versions.check})를 10/30 처음 새 사례로 쟀습니다(사후·탐색 측정): 틀린 글 통과 ${ci(f.badMissed)}, 맞는 글 잘못 막음 ${ci(f.goodFalseReject)}(2차 검사만 ${ci(f.goodRejectGate2)}). 사례를 쓴 에이전트도 Claude 계열이라 맹점이 겹칠 수 있습니다. ` : "지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. "}<Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
     </>

@@ -1,6 +1,6 @@
 // 끝 카드 (spec.md 12.3절, 라운드 5 '끝 카드'). evidence.json만 읽는다. 측정 전이면 「측정 전」으로 표시하고 숫자를 하드코딩하지 않는다.
 // 관문 2를 통과하지 못했으면 비교 문장을 싣지 않는다(대체안의 C1·C2 실측은 아직 없으므로 「측정 전」).
-import { BEFORE_MEASURE, e6Evidence, labHeadline } from "@/lib/evidence";
+import { BEFORE_MEASURE, e6Evidence, e7Evidence, labHeadline } from "@/lib/evidence";
 import { CLASS_KO, CLASS_ORDER } from "@/lib/lab";
 import { pRange } from "@/lib/engine/params";
 import type { GenClass } from "@/lib/sim/labels";
@@ -19,7 +19,7 @@ export function ClosingCard() {
   const h = labHeadline();
   const ok = h && h.gate2?.pass !== false;
   const hpr = pRange("sweep.hhPerResource");
-  const g = e6Evidence();
+  const g = e6Evidence(), e7 = e7Evidence();
   return (
     <section data-testid="closing-card" aria-label="끝 카드" className="rounded-xl border border-line bg-paper p-5">
       {h && ok ? (
@@ -62,8 +62,13 @@ export function ClosingCard() {
           {g.worse.length ? <>, 대신 {g.worse.length}개 기기({g.worse.map((k) => WORSE_KO[k] ?? k).join("·")})는 늘어나는 맞바꿈입니다.</> : <>.</>}
         </p>
       ) : null}
+      {e7 ? (
+        <p className="mt-3 text-[16px] leading-6" data-testid="closing-e7">
+          정전 전에 산소 기기 집에 예비 산소통을 더하고 배터리는 인공호흡기 집에 먼저 주면 공백이 더 줄었습니다(모의, AI가 아닌 평시 정책 · 가정과 수치는 <a className="underline" href="/lab#premortem">랩 ⑩</a>).
+        </p>
+      ) : null}
       <p className="mt-4 text-[20px] font-bold leading-8">
-        1시간급 인공호흡기 가구에는 정전 뒤 배정이 닿지 않았습니다(모의). 남은 일은 등록 기록으로 사전 배치 대상을 정전 전에 고르는 것입니다.
+        1시간급 인공호흡기 가구에는 정전 뒤 배정이 닿지 않았습니다(모의). 남은 일은 등록 기록으로 정전 전에 기기별 대비(산소통·배터리)를 놓을 집을 고르는 것입니다.
       </p>
       <p className="mt-3 text-[12px] text-muted">AI 기반 운용 · 시연용 합성 데이터</p>
     </section>

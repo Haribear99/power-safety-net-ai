@@ -34,6 +34,7 @@ export const FLAG_KO: Record<LowerBoundFlag, string> = {
   EXT_CHARGE_UNKNOWN: "외장 충전 미확인(c_ext ½)",
   USER_AGE_IGNORED: "이용자 입력 연식 무시",
   MODEL_AI_UNCONFIRMED: "AI 판독 기종 미확인(이웃 기종 최소값)",
+  LOAD_WORST_CASE: "제조사 최악 조건 기준(정격 ½)",
 };
 
 export const KIND_KO: Record<ResourceKind, string> = {

@@ -1,0 +1,150 @@
+{
+ "format": "pl26-e2-lb-v2-posthoc/1",
+ "note": "사후 집계(사전등록 밖, 실패 가정 점검 10/30). 봉인 E2 시드, 진실은 그대로. v2 = lb.load.worstOverBest ½(설정표 없는 기기·외장). 진실 kSetTrue 하한이 0.5라 설정 소모 과대예측은 구성상 0 — 남는 과대예측은 노후·외장 고장·충전 입력",
+ "seedLo": 3000001,
+ "rows": {
+  "v1:RULE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 141132,
+   "highRisk": 153131,
+   "M1Rate": 0.922,
+   "gapHPerRun": 71.684,
+   "shown": 162000,
+   "overCount": 24141,
+   "overRate": 0.149,
+   "cause": {
+    "other": 17763,
+    "extFailed": 3442,
+    "charge100": 2936
+   },
+   "overH": {
+    "p50": 0.274,
+    "p90": 1.43,
+    "max": 8.641
+   }
+  },
+  "v1:B2_NEAREST": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 140237,
+   "highRisk": 153131,
+   "M1Rate": 0.916,
+   "gapHPerRun": 71.259,
+   "shown": 162000,
+   "overCount": 24141,
+   "overRate": 0.149,
+   "cause": {
+    "other": 17763,
+    "extFailed": 3442,
+    "charge100": 2936
+   },
+   "overH": {
+    "p50": 0.274,
+    "p90": 1.43,
+    "max": 8.641
+   }
+  },
+  "v1:KR_BASELINE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 149649,
+   "highRisk": 153131,
+   "M1Rate": 0.977,
+   "gapHPerRun": 84.321,
+   "shown": 137792,
+   "overCount": 20577,
+   "overRate": 0.149,
+   "cause": {
+    "other": 15081,
+    "charge100": 2548,
+    "extFailed": 2948
+   },
+   "overH": {
+    "p50": 0.274,
+    "p90": 1.43,
+    "max": 8.641
+   }
+  },
+  "v2:RULE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 141305,
+   "highRisk": 153131,
+   "M1Rate": 0.923,
+   "gapHPerRun": 71.622,
+   "shown": 162000,
+   "overCount": 5722,
+   "overRate": 0.035,
+   "cause": {
+    "other": 1745,
+    "extFailed": 2119,
+    "charge100": 1858
+   },
+   "overH": {
+    "p50": 0.223,
+    "p90": 0.95,
+    "max": 3.119
+   }
+  },
+  "v2:B2_NEAREST": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 140277,
+   "highRisk": 153131,
+   "M1Rate": 0.916,
+   "gapHPerRun": 71.213,
+   "shown": 162000,
+   "overCount": 5722,
+   "overRate": 0.035,
+   "cause": {
+    "other": 1745,
+    "extFailed": 2119,
+    "charge100": 1858
+   },
+   "overH": {
+    "p50": 0.223,
+    "p90": 0.95,
+    "max": 3.119
+   }
+  },
+  "v2:KR_BASELINE": {
+   "runs": 5400,
+   "mismatch": 0,
+   "M1": 149649,
+   "highRisk": 153131,
+   "M1Rate": 0.977,
+   "gapHPerRun": 84.321,
+   "shown": 137792,
+   "overCount": 4878,
+   "overRate": 0.035,
+   "cause": {
+    "other": 1455,
+    "charge100": 1609,
+    "extFailed": 1814
+   },
+   "overH": {
+    "p50": 0.223,
+    "p90": 0.952,
+    "max": 3.119
+   }
+  }
+ },
+ "paired": {
+  "RULE": {
+   "meanDiffHPerRun": -0.062,
+   "se": 0.042,
+   "relToV1": -0.001
+  },
+  "B2_NEAREST": {
+   "meanDiffHPerRun": -0.047,
+   "se": 0.026,
+   "relToV1": -0.001
+  },
+  "KR_BASELINE": {
+   "meanDiffHPerRun": 0,
+   "se": 0,
+   "relToV1": 0
+  }
+ }
+}

@@ -24,6 +24,7 @@ e2, e1, e3 = lab["e2"], lab["e1"], lab["e3"]
 s, t = c1["sonnet"], c1["tesseract"]
 rate = lambda r: f"{r['k']}/{r['n']}"
 
+# E1 빈틈 지도·E3 보완안·E4 추첨 수는 10/30 개편에서 1부 줄을 뺐다(2장 한도). 자세한 값은 /lab ②④⑦
 expected = {
     "E2 시나리오 수": f"{e2['n']:,}",
     "E2 합산 감소율": pct(e2["pooledRel"]),
@@ -32,12 +33,6 @@ expected = {
     "E2 칸 수·우세": f"{e2['nCells']}개 조건 모두 우세" if e2["superiorVsKr"] == e2["nCells"] else f"{e2['superiorVsKr']}개",
     "E2 단순 규칙 차이 없음": f"{e2['P0']}개 조건에서 차이 없음",
     "E2 단순 규칙이 나음": f"{e2['P2']}개는 단순 규칙이 나음",
-    "E1 시나리오 수": f"{e1['scenarios']:,}회",
-    "E1 ROBUST 현행": f"현행 {len(e1['robustKr'])}곳",
-    "E1 ROBUST 도구": f"도구 {len(e1['robustRule'])}곳",
-    "E3 시나리오 수": f"{e3['n']:,}회",
-    "E3 실효 보급 범위": f"{pc(e3['effLo'])}~{pct(e3['effHi'])}",
-    "E3 빈틈 해소": f"{e3['robustBefore']}곳 중 {e3['closed']}곳",
     "C1 헤드라인": rate(s["degradedModelConfidentWrong"]),
     "C1 모델명 정확": rate(s["modelExact"]),
     "C1 DB 자동 확정": rate(s["dbMatchRate"]),
@@ -51,18 +46,14 @@ expected = {
     "오라클 차등": f"{ev['diff']['total']['pass']}/{ev['diff']['total']['scenarios']}",
     "정부 집계 건수": f"{ev['calib']['apt']['n']}건",
     "정부 집계 12h 초과": f"{ev['calib']['apt']['gt12h']}건",
-    "E4 시나리오 수": f"{ev['e4']['n']:,}회",
     "E4 도구 감소율": pct(ev["e4"]["ruleVsKr"]["rel"]),
     "E4 1시간급 도구": pct(ev["e4"]["hhGap"]["VENT_1H"]["RULE"]),
     "E5 AI 대 판독 없음": f"AI +{pct(ev['e5']['aiVsNo']['rel'])}",
     "E5 완전 판독 대 판독 없음": f"완전 판독 −{pct(-ev['e5']['perfVsNo']['rel'])}" if ev['e5']['perfVsNo']['rel'] < 0 else "완전 판독 +",
-    "E6 평시 표적 대 무작위": f"무작위보다 공백 {pct(ev['e6']['preVsRand']['rel'])} 추가 감소",
-    "E6 1시간급": f"1시간급 {pct(ev['e6']['hhGap']['VENT_1H']['rand'])}→{pct(ev['e6']['hhGap']['VENT_1H']['pre'])}",
-    "E6 끝 훅": f"무작위로 두면 {pct(ev['e6']['hhGap']['VENT_1H']['rand'])}, 평시 기록상 짧은 집부터 두면 {pct(ev['e6']['hhGap']['VENT_1H']['pre'])}",
+    # E6(표적 배치)는 10/30 개편에서 1부 줄을 빼고 E7 문장의 비교 기준(E6식 배터리)으로만 남긴다. 자세한 값은 /lab ⑧
     "E5 OCR 자동 확정": f"OCR {rate(t['dbMatchRate'])}, 판독 없음 0/{t['dbMatchRate']['n']}",
     "E5 도구 감소율": f"도구 {pct(ev['e5']['aiVsKr']['rel'])} 감소",
     "E5 미확정률": f"미확정 {c1['sonnet']['dbMatchRate']['n'] - c1['sonnet']['dbMatchRate']['k']}/{c1['sonnet']['dbMatchRate']['n']}",
-    "정부 집계 N건 중 1건": f"{round(ev['calib']['apt']['n'] / ev['calib']['apt']['gt12h'])}건 중 1건",
     "N1 AI 통과": f"AI 글 통과 {ev['n1']['aiSent']['k']}/{ev['n1']['aiSent']['n']}(95% {ev['n1']['aiSent']['lo'] * 100:.0f}~{ev['n1']['aiSent']['hi'] * 100:.0f}%)",
     "N1 놓침": f"{ev['n1']['badMissed']['n']}건 중 {ev['n1']['badMissed']['k']}건 통과({ev['n1']['badMissed']['k'] / ev['n1']['badMissed']['n'] * 100:.1f}%, 95% {ev['n1']['badMissed']['lo'] * 100:.1f}~{ev['n1']['badMissed']['hi'] * 100:.1f}%",
     "N1 오거부": f"맞는 글 잘못 막음 {ev['n1']['goodFalseReject']['k']}/{ev['n1']['goodFalseReject']['n']}(95% {ev['n1']['goodFalseReject']['lo'] * 100:.1f}~{ev['n1']['goodFalseReject']['hi'] * 100:.1f}%)",
@@ -72,6 +63,21 @@ expected = {
     "N1 쌍 비교 유의성": "AI 우세 근거 없음(p≈" + format(ev['n1']['judgeSplit']['signP'], '.1f'),
     "N1 측정 버전 표기": "봉인 당시 검사 기준",
     "N1 사용 규칙(9.1 틀림 시 표기)": "시연용·담당자 확인 뒤 발송",
+    # 실패 가정 점검(10/30): E7(S10)·사후 집계. 사용 규칙(prereg/predictions_e7.md 2절)의 표지도 함께 본다
+    "기술요약 AI 실측": f"AI 판독 모델명 {rate(s['modelExact'])}(OCR {rate(t['modelExact'])})·자동 확정 {rate(s['dbMatchRate'])}(렌더 라벨 봉인 시험)",
+    "E7 10.5 본문": f"먼저 주면 {pct(ev['e7']['compares']['noOverlap']['rel'])} 더 감소(층화 없음 {pct(ev['e7']['compares']['uNoOverlap']['rel'])}, 그 감소의 약 {round(ev['e7']['cylShare']['strat']['rel'] * 100)}%가 산소통 몫)",
+    "E7 10.1": f"산소통(10시간)만 두면 공백 {pct(ev['e7']['compares']['cylVsNone']['rel'])} 감소(층화 없음 {pct(ev['e7']['compares']['uCylVsNone']['rel'])})",
+    "E7 10.1 규모 표지": f"60가구 중 약 {round(ev['e7']['usedMean']['RULE+CYL10S'][0])}개, 자기신고 완전 정확 가정",
+    "E7 비AI·층화·가정 표지": "비AI 정책, 등급 층화 등록부·보급률·고장률 가정",
+    "E7 1시간급 짝": f"E7 1시간급 인공호흡기 공백 가구 {pct(ev['e7']['hhGap']['VENT_1H']['none'])}(대비 없음)→{pct(ev['e7']['hhGap']['VENT_1H']['battery'])}(E6식 배터리)→{pct(ev['e7']['hhGap']['VENT_1H']['matched'])}",
+    "E7 끝 훅": f"정전 뒤 배정만 {pct(ev['e7']['hhGap']['VENT_1H']['none'])}, 평시 산소통·배터리를 더하면 {pct(ev['e7']['hhGap']['VENT_1H']['matched'])}(층화 모의·비AI)",
+    "E7 사전등록": f"E7 {ev['e7']['prereg']['hit']}/{ev['e7']['prereg']['total']} 별도",
+    "E7 AI 몫(10.7)": f"AI 판독만보다 {pct(ev['e7']['compares']['selfVsAi']['rel'])} 낫다",
+    "119 실측 중앙값": f"중앙값 {ev['e119']['p50Min']:.1f}분",
+    "119 실측 도구 대 현행": f"{pct(ev['e119']['empirical']['toolVsKr'])} 감소(사후)",
+    "공백 분해 산소": f"남는 공백의 {pct(ev['gapDecomp']['byClassShare']['O2_STAT'])}가 배터리 없는 산소발생기",
+    "하한 v2": f"{pct(ev['lbV2']['v2']['k'] / ev['lbV2']['v2']['n'])}(운영 화면 적용, 모의 실제와 같은 계수라 대부분 구성상 감소)",
+    "알림 새 사례": f"틀린 글 통과 {ev['n1Fresh']['badMissed']['k']}/{ev['n1Fresh']['badMissed']['n']}, 오거부 {ev['n1Fresh']['goodFalseReject']['k']}/{ev['n1Fresh']['goodFalseReject']['n']}",
 }
 # 건보 요양비 CSV(datasets/external, cp949): 인공호흡기 최신 연도 지급건수 → 'N.N만 건'
 with zipfile.ZipFile(REPO / "datasets" / "external" / "nhis_yoyangbi_payments_20251231.zip") as z:

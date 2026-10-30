@@ -7,6 +7,7 @@ import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
 import { wilson } from "../src/lib/sim/analyze";
 import { buildFacts, type NoticeInputT } from "../src/lib/notice/facts";
+import { e7Evidence, type E7Out } from "./e7-evidence";
 
 const repo = path.resolve(__dirname, "..", "..");
 const out: Record<string, unknown> = { format: "pl26-evidence/1" };
@@ -382,6 +383,82 @@ if (n1) {
       baseline: { k: k.M4, n: k.shown },
     };
   }
+}
+
+// ---- 실패 가정 점검(10/30) 사후 집계: 남는 공백 분해(scripts/posthoc-decomp.ts), 하한 v2(scripts/posthoc-lb-v2.ts) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_decomp.json");
+  if (existsSync(f)) {
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { policies: Record<string, { runs: number; mismatch: number; sumMismatch: number; gapHPerRun: number; byClassShare: Record<string, number>; byClassHPerRun: Record<string, number>; byServedHPerRun: Record<string, number>; householdsPerRun: Record<string, number> }> };
+    const p = d.policies.RULE;
+    out.gapDecomp = {
+      posthoc: true, runs: p.runs, mismatch: Object.values(d.policies).reduce((s, x) => s + x.mismatch + x.sumMismatch, 0),
+      ruleGapHPerRun: p.gapHPerRun, byClassShare: p.byClassShare, byClassHPerRun: p.byClassHPerRun, byServedHPerRun: p.byServedHPerRun, householdsPerRun: p.householdsPerRun,
+      gapHPerRun: Object.fromEntries(Object.entries(d.policies).map(([k, x]) => [k, x.gapHPerRun])),
+    };
+  }
+  const g = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_lb_v2.json");
+  if (existsSync(g)) {
+    const d = JSON.parse(readFileSync(g, "utf-8")) as { rows: Record<string, { mismatch: number; overCount: number; shown: number; overRate: number; gapHPerRun: number; overH: { p50: number; p90: number; max: number } | null }>; paired: Record<string, { meanDiffHPerRun: number; se: number }> };
+    const v1 = d.rows["v1:RULE"], v2 = d.rows["v2:RULE"];
+    out.lbV2 = {
+      posthoc: true, mismatch: Object.values(d.rows).reduce((s, x) => s + x.mismatch, 0),
+      v1: { k: v1.overCount, n: v1.shown, overH: v1.overH, gapHPerRun: v1.gapHPerRun },
+      v2: { k: v2.overCount, n: v2.shown, overH: v2.overH, gapHPerRun: v2.gapHPerRun },
+      gapDiffHPerRun: d.paired.RULE.meanDiffHPerRun, gapDiffSe: d.paired.RULE.se,
+    };
+  }
+}
+
+// ---- 실패 가정 점검(10/30) 사후 민감도: 119 도착을 소방청 실측(평시)으로(scripts/posthoc-119.ts) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_119_empirical.json");
+  if (existsSync(f)) {
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { source: { year: string; n: number; p50Min: number; p90Min: number }; runs: number; rows: Record<string, { gapHPerRun: number; mismatch: number; byServedHPerRun: Record<string, number> }>; compare: Record<"assumed" | "empirical", { toolVsKr: number; toolVsNearest: number }> };
+    out.e119 = {
+      posthoc: true, year: d.source.year, n: d.source.n, p50Min: d.source.p50Min, p90Min: d.source.p90Min, runs: d.runs,
+      mismatch: Object.values(d.rows).reduce((s, x) => s + x.mismatch, 0),
+      assumed: { ruleGapHPerRun: d.rows["assumed:RULE"].gapHPerRun, rule119H: d.rows["assumed:RULE"].byServedHPerRun.LANE_119 ?? 0, ...d.compare.assumed },
+      empirical: { ruleGapHPerRun: d.rows["empirical:RULE"].gapHPerRun, rule119H: d.rows["empirical:RULE"].byServedHPerRun.LANE_119 ?? 0, ...d.compare.empirical },
+    };
+  }
+}
+
+// ---- 실패 가정 점검(10/30) 사후·탐색: 운영 알림 검사(v23)를 처음으로 새 사례에서(scripts/n1-run.ts --corpus) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "n1_fresh_1030.json");
+  if (existsSync(f)) {
+    type W = { k: number; n: number; wilson95: [number, number] };
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { versions: { rules: string; check: string }; corpus: { sha256: string }; badMissed: W; goodFalseReject: W; goodRejectGate2: W; missed: { id: string; category: string }[]; costUsd: number };
+    const w = (x: W) => ({ k: x.k, n: x.n, lo: x.wilson95[0], hi: x.wilson95[1] });
+    out.n1Fresh = { posthoc: true, versions: d.versions, sha256: d.corpus.sha256, badMissed: w(d.badMissed), goodFalseReject: w(d.goodFalseReject), goodRejectGate2: w(d.goodRejectGate2), missedCategories: d.missed.map((x) => x.category), costUsd: d.costUsd };
+  }
+}
+
+// ---- C1 라벨 상태별 자동 확정(봉인 S3 원자료 재집계, 장부의 수동검토 부담 문단용 — 시험셋 구성비에 기대지 않게, 브랜치 레드팀 10/30) ----
+{
+  const byLabel = (f: string) => {
+    const p = path.join(__dirname, "..", "..", "out", "sealed", f, "summary.json");
+    if (!existsSync(p)) return null;
+    const d = JSON.parse(readFileSync(p, "utf-8")) as { items: { strength: string; truthSpecId: string | null; match: { status: string; specId?: string } }[] };
+    const g: Record<string, { k: number; n: number }> = {};
+    for (const it of d.items) {
+      if (it.truthSpecId == null) continue;
+      const key = it.strength === "none" ? "clean" : "degraded";
+      g[key] ??= { k: 0, n: 0 };
+      g[key].n++;
+      if (it.match.status !== "MANUAL_REVIEW" && it.match.specId === it.truthSpecId) g[key].k++;
+    }
+    return g;
+  };
+  const s = byLabel("c1"), t = byLabel("c1-tesseract");
+  if (s && t) out.c1ByLabel = { sonnet: s, tesseract: t };
+}
+
+// ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts → scripts/e7-evidence.ts) ----
+{
+  const e7v = e7Evidence(take("out/e7_sealed.json") as E7Out | null);
+  if (e7v) out.e7 = e7v;
 }
 
 // ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----

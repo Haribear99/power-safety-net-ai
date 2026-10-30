@@ -2,7 +2,7 @@
 // 첫 화면에는 배너 밖에서 'AI'·'시뮬레이션'·'예측'·'생명'·'안전'을 쓰지 않는다(1.1절).
 import Link from "next/link";
 import type { Cause, HouseholdView } from "@/lib/domain/types";
-import { computeLowerBound, DEFAULT_DB } from "@/lib/engine/lowerBound";
+import { APP_DB, computeLowerBound } from "@/lib/engine/lowerBound";
 import { computeRestoration } from "@/lib/engine/restoration";
 import { TwoClocks } from "@/components/TwoClocks";
 import { GapWidget, type WidgetCause, type WidgetDevice } from "@/components/GapWidget";
@@ -24,18 +24,18 @@ const CAUSE_CHIPS: { cause: Cause; label: string; source: string }[] = [
 
 function widgetDevices(): WidgetDevice[] {
   return DEVICE_CHIPS.map(({ specId, label, source }) => {
-    const spec = DEFAULT_DB.devices.get(specId);
+    const spec = APP_DB.devices.get(specId);
     if (!spec) throw new Error(`device_db에 ${specId} 없음`);
     const hh: HouseholdView = {
       id: "W", pseudonym: "W", cell: { x: 0, y: 0 }, floor: 1, mobilityNeed: false, caregiver: true, tReport: 0, lEndPrev: null,
       device: { specId, specBy: "db_exact", batteryAgeY: null, charge: { value: 100, source: "device_screen" } }, ext: [],
     };
-    const lb = computeLowerBound(hh, DEFAULT_DB);
+    const lb = computeLowerBound(hh, APP_DB);
     return {
       key: specId, label, specH: spec.internalH.value, lowerH: lb.hours ?? 0, source,
       formula: spec.internalH.value === 0
         ? "사양상 0시간(정전과 동시에 전원 필요)"
-        : `사양 ${spec.internalH.value}시간 × 연식 미확인 0.7 × 기기 화면 완충 표시 0.9`,
+        : `사양 ${spec.internalH.value}시간 × 연식 미확인 0.7 × 기기 화면 완충 표시 0.9 × 제조사 최악 조건 ½`,
     };
   });
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLowerBound, computeLowerBoundDetail, DEFAULT_DB, editDistance, neighborSpecs, normalizeKey, reportLEndS } from "./lowerBound";
+import { APP_DB, computeLowerBound, computeLowerBoundDetail, DEFAULT_DB, editDistance, neighborSpecs, normalizeKey, reportLEndS } from "./lowerBound";
 import { qT } from "./quantize";
 import { makeHH } from "./test-fixtures";
 
@@ -152,5 +152,32 @@ describe("L_end와 재신고 (3.9절)", () => {
     expect(reportLEndS(5000, 4000, 3000, false)).toBe(5000);
     expect(reportLEndS(5000, 4000, 3000, true)).toBe(7000);
     expect(reportLEndS(null, 4000, 3000, false)).toBe(7000);
+  });
+});
+
+describe("하한 v2 — 제조사 최악 조건 계수(10/30 실패 가정 점검, 운영 화면용 APP_DB)", () => {
+  it("설정표 없는 기기: v2 = v1 × ½ (정수 초 floor), 표지 LOAD_WORST_CASE", () => {
+    const hh = makeHH({ device: { charge: { value: 90, source: "device_screen" } } });
+    const v1 = computeLowerBoundDetail(hh);
+    const v2 = computeLowerBoundDetail(hh, APP_DB);
+    expect(v1.lb.flags).not.toContain("LOAD_WORST_CASE");
+    expect(v2.lb.flags).toContain("LOAD_WORST_CASE");
+    expect(v2.Ls).toBe(Math.floor((qT(3) * 7 * 90 * 9 * 1) / (10 * 100 * 10 * 2)));
+    expect(v2.capS).toBe(v1.capS); // 상한(I2)은 그대로
+  });
+  it("설정표 기기(휴대형 산소)는 v2에서도 같다", () => {
+    const hh = makeHH({ device: { specId: "INOGEN_G5", setting: 1, settingSource: "user" } });
+    expect(computeLowerBoundDetail(hh, APP_DB).Ls).toBe(computeLowerBoundDetail(hh).Ls);
+  });
+  it("확인 외장도 v2에서 ½", () => {
+    const hh = makeHH({ device: { specId: "ASTRAL150" }, ext: [verifiedExt("ASTRAL_EXT", 1, 1, "device_screen", 0.5)] });
+    const t1 = computeLowerBoundDetail(hh).lb.terms.find((t) => t.label.startsWith("확인 외장"))!;
+    const t2 = computeLowerBoundDetail(hh, APP_DB).lb.terms.find((t) => t.label.startsWith("확인 외장"))!;
+    expect(t2.hours).toBeLessThan(t1.hours);
+    expect(t2.label).toContain("부하 1/2");
+  });
+  it("DEFAULT_DB는 v1(봉인 재현)", () => {
+    expect(DEFAULT_DB.lbVersion ?? "v1").toBe("v1");
+    expect(APP_DB.lbVersion).toBe("v2");
   });
 });

@@ -1,0 +1,24 @@
+{
+ "rule": "tools/s10-seed.mjs 머리말",
+ "calendar": "https://alice.btc.calendar.opentimestamps.org",
+ "block": {
+  "height": 973771,
+  "hash": "000000000000000000015b8c8ed12ff23dc354a12ce579bc2b3dd7f1b52466e4",
+  "nTime": 1793334693,
+  "merkleOk": true
+ },
+ "commitT": 1793332721,
+ "drand": {
+  "chain": "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971",
+  "round": 33510444,
+  "roundTime": 1793334696,
+  "randomness": "39a484d20b7fa24747f2349c3f0dbcfbbfdf9537254cdb358cd3618cb2187706",
+  "signature": "ad416f95c106da57a8722a9a15c081c0b0ae5e094152354166d02ee9a451d3ff31e44f3c4dbd93c237a50ca1502914d0",
+  "sources": [
+   "https://api.drand.sh",
+   "https://drand.cloudflare.com"
+  ]
+ },
+ "seedLo": 8483219,
+ "seedHi": 8485218
+}

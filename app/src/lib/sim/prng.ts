@@ -1,10 +1,10 @@
 // 시드 난수 (spec.md 5.1절). 비AI, 결정적. Math.random·Date 금지(3장).
 // - PRNG는 xoshiro128** 하나. 시드 = splitmix32(hash(master, scenarioId, stream)), 균등값 = (x>>>8)/2^24.
-// - 스트림 분리: HH=1, RES=2, TRUTH_R=3, EST=4, ARRIVAL=5, BEHAVIOR=6, LANE=7, LHS=8, PATCH=9, BOOT=10(랩 부트스트랩, 라운드 5).
+// - 스트림 분리: HH=1, RES=2, TRUTH_R=3, EST=4, ARRIVAL=5, BEHAVIOR=6, LANE=7, LHS=8, PATCH=9, BOOT=10(랩 부트스트랩, 라운드 5), CYL=11(E7 산소통 고장, 10/30).
 //   모든 정책이 같은 materialize 결과를 읽으므로 공통 난수(짝 비교)가 성립한다.
 // - 정규 난수는 materialize 단계에서만 Box–Muller(Math.log·cos·sqrt)로 만든다. 결과는 호출자가 qT·qE 정수로 저장한다(3절).
 
-export const STREAMS = { HH: 1, RES: 2, TRUTH_R: 3, EST: 4, ARRIVAL: 5, BEHAVIOR: 6, LANE: 7, LHS: 8, PATCH: 9, BOOT: 10 } as const;
+export const STREAMS = { HH: 1, RES: 2, TRUTH_R: 3, EST: 4, ARRIVAL: 5, BEHAVIOR: 6, LANE: 7, LHS: 8, PATCH: 9, BOOT: 10, CYL: 11 } as const;
 export type StreamName = keyof typeof STREAMS;
 
 const TWO_POW_24 = 16777216;
