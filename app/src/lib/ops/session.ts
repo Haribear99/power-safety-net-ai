@@ -4,7 +4,7 @@
 // APPROVED 상태는 ApproveDrawer의 승인 핸들러 한 곳에서만 만든다(I6, 관문 1 '승인 우회 0'). 이 모듈은 결정을 받아 저장만 한다.
 import type { AuditEntry, DeviceClass, HouseholdView, Lane, PlannerView } from "../domain/types";
 import { auditEntryRuleSchema, verifyAgePayloadSchema, verifyCylPayloadSchema, verifyExtPayloadSchema, type VerifyContext } from "../domain/audit";
-import { computeLowerBoundDetail, DEFAULT_DB } from "../engine/lowerBound";
+import { APP_DB, computeLowerBoundDetail } from "../engine/lowerBound";
 import { computeRestoration, type RestorationDetail } from "../engine/restoration";
 import { pNum } from "../engine/params";
 import { qT, sToH } from "../engine/quantize";
@@ -65,7 +65,7 @@ export interface Session {
   sessionId: string;
 }
 
-export const DB = DEFAULT_DB;
+export const DB = APP_DB;
 
 export function newSession(preset: UiPreset): Session {
   const reviewHints: Session["reviewHints"] = {};

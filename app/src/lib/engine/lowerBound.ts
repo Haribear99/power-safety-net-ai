@@ -39,6 +39,8 @@ const ExtSchema = z.object({ extSpecId: z.string(), forSpecIds: z.array(z.string
 export interface EngineDb {
   devices: ReadonlyMap<string, DeviceSpec>;
   ext: ReadonlyMap<string, ExtSpec>;
+  /** 하한 판. 없거나 v1이면 봉인 E1~E6 계산 그대로, v2는 설정표 없는 기기·외장 정격에 부하 계수(lb.load.worstOverBest)를 곱한다 */
+  lbVersion?: "v1" | "v2";
 }
 
 export function buildDb(devices: DeviceSpec[], ext: ExtSpec[]): EngineDb {
@@ -61,6 +63,9 @@ export const DEFAULT_DB: EngineDb = buildDb(
   parsedDevices.devices as DeviceSpec[],
   z.object({ ext: z.array(ExtSchema) }).parse(extRaw).ext as ExtSpec[],
 );
+
+/** 운영 화면용(10/30 실패 가정 점검: 과대예측 14.9% 대응). 시뮬레이션·봉인 재현은 DEFAULT_DB(v1)를 쓴다 */
+export const APP_DB: EngineDb = { ...DEFAULT_DB, lbVersion: "v2" };
 
 // ---------- 정규화·이웃 기종 ----------
 /** 정규화(대문자, 공백·하이픈 제거) — 3장 DeviceSpec.matchKeys */
@@ -217,11 +222,16 @@ export function computeLowerBoundDetail(hh: HouseholdView, db: EngineDb = DEFAUL
     addFlag("USER_INPUT_DISCOUNTED");
     cLabel = `${pct}%×${un}/${ud}`;
   }
-  let devS = mulDivFloor(tS, [fa[0], cNum], [fa[1], cDen]);
+  // v2: 설정표가 없는 기기는 정격이 최상 조건 값이라 제조사 최악 조건 비율을 곱한다(설정표 기기는 설정별 가동시간이 이미 들어 있음)
+  const v2 = db.lbVersion === "v2";
+  const load = pRatio("lb.load.worstOverBest");
+  const devLoad = v2 && !dev.settingTable;
+  if (devLoad) addFlag("LOAD_WORST_CASE");
+  let devS = devLoad ? mulDivFloor(tS, [fa[0], cNum, load[0]], [fa[1], cDen, load[1]]) : mulDivFloor(tS, [fa[0], cNum], [fa[1], cDen]);
   const devProv: Prov = aiLabel
     ? { type: "inferred", sourceIds: candidates.flatMap((c) => c.internalH.prov.sourceIds), note: "AI 판독 기종 미확인 · 이웃 기종 최소값" }
     : dev.internalH.prov;
-  terms.push({ label: `기기 ${sToH(tS)}h × 노후 ${fa[0]}/${fa[1]} × 충전 ${cLabel}`, hours: sToH(devS), prov: devProv });
+  terms.push({ label: `기기 ${sToH(tS)}h × 노후 ${fa[0]}/${fa[1]} × 충전 ${cLabel}${devLoad ? ` × 부하 ${load[0]}/${load[1]}` : ""}`, hours: sToH(devS), prov: devProv });
 
   const scr = hh.device.screenRemainingH;
   if (scr != null && Number.isFinite(scr)) {
@@ -252,11 +262,11 @@ export function computeLowerBoundDetail(hh: HouseholdView, db: EngineDb = DEFAUL
     if (v.chargeConfirmed !== "device_screen") addFlag("EXT_CHARGE_UNKNOWN");
     const faExt = v.extAgeY != null ? ageFactor(v.extAgeY) : pRatio("lb.ext.ageUnknown");
     const rS = qT(spec.runtimeH);
-    const termS = mulDivFloor(v.count * rS, [faExt[0], cExt[0]], [faExt[1], cExt[1]]);
+    const termS = v2 ? mulDivFloor(v.count * rS, [faExt[0], cExt[0], load[0]], [faExt[1], cExt[1], load[1]]) : mulDivFloor(v.count * rS, [faExt[0], cExt[0]], [faExt[1], cExt[1]]);
     extS += termS;
     extCapS += mulDivFloor(v.count * rS, [capN, cExt[0]], [capD, cExt[1]]);
     terms.push({
-      label: `확인 외장 ${spec.runtimeH}h × ${v.count}개 × 노후 ${faExt[0]}/${faExt[1]} × 충전 ${cExt[0]}/${cExt[1]}`,
+      label: `확인 외장 ${spec.runtimeH}h × ${v.count}개 × 노후 ${faExt[0]}/${faExt[1]} × 충전 ${cExt[0]}/${cExt[1]}${v2 ? ` × 부하 ${load[0]}/${load[1]}` : ""}`,
       hours: sToH(termS), prov: { ...spec.prov, note: `운영자 확인 ${v.auditId}` },
     });
     if (v.count < e.declaredCount) {

@@ -7,7 +7,7 @@ import samplesRaw from "@/data/samples.json";
 import { AiTag } from "@/components/AiTag";
 import { FLAG_KO } from "@/components/ops/labels";
 import type { HouseholdView } from "@/lib/domain/types";
-import { computeLowerBoundDetail, DEFAULT_DB } from "@/lib/engine/lowerBound";
+import { APP_DB, computeLowerBoundDetail, DEFAULT_DB } from "@/lib/engine/lowerBound";
 import { prepInput } from "@/lib/notice/facts";
 import { NoticePanel } from "@/components/NoticePanel";
 import { LABEL_FIELDS, matchLabel, type LabelField, type LabelOutT, type MatchResult } from "@/lib/vision/label";
@@ -159,7 +159,7 @@ function LowerBoundForm({ specId }: { specId: string }) {
       device: { specId, specBy: "ai_label_user_confirmed", batteryAgeY: null, charge: { value: src === "unknown" ? null : pct, source: src } },
       ext: ext > 0 ? [{ extSpecId: null, declaredCount: ext, opVerified: null }] : [],
     };
-    return { d: computeLowerBoundDetail(hh, DEFAULT_DB), prep: prepInput(hh, DEFAULT_DB) };
+    return { d: computeLowerBoundDetail(hh, APP_DB), prep: prepInput(hh, APP_DB) };
   }, [specId, src, pct, ext, cg]);
   const lb = d.lb;
   return (

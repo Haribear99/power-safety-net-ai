@@ -91,7 +91,8 @@ export interface WorldTruth {
 
 // ---- 출력 ----
 export type LowerBoundFlag = "CHARGE_UNKNOWN" | "AGE_UNKNOWN" | "EXT_UNVERIFIED_ZERO" | "SCREEN_CAPPED" | "USER_INPUT_DISCOUNTED"
-  | "SETTING_USER_MIN" | "OPERATOR_LOWER" | "EXT_CHARGE_UNKNOWN" | "USER_AGE_IGNORED" | "MODEL_AI_UNCONFIRMED";
+  | "SETTING_USER_MIN" | "OPERATOR_LOWER" | "EXT_CHARGE_UNKNOWN" | "USER_AGE_IGNORED" | "MODEL_AI_UNCONFIRMED"
+  | "LOAD_WORST_CASE";
 export interface LowerBound {
   hours: number | null; endT: number | null;   // endT = L_end = tReport + hours (3.9절)
   status: "AUTO" | "MANUAL_REVIEW"; capH: number | null;
