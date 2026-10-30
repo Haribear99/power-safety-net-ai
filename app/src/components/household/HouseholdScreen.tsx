@@ -66,9 +66,9 @@ export function HouseholdScreen() {
         <div>
           <h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[36px] lg:leading-[1.2]">보호자 등록: 기기 라벨 읽기</h1>
           <p className="mt-2 text-[16px]">AI는 라벨의 글자를 옮겨 적기만 합니다. 어떤 기종인지 정하고 배터리 하한을 계산하는 것은 코드이고, 기종 확인은 담당자가 합니다.</p>
-          <ol className="mt-4 grid grid-cols-2 gap-2 text-[14px] sm:grid-cols-4" aria-label="등록 단계">
+          <ol className="mt-4 grid grid-cols-2 gap-2 text-[14px]" aria-label="등록 단계">
             {["라벨 사진", "글자 옮기기(AI)", "기종 확인(사람)", "배터리 하한(규칙)"].map((t, i) => (
-              <li key={t} className="rounded-xl border border-brand-line bg-white px-3 py-2 font-semibold text-brand"><span className="mr-1 text-muted">{i + 1}</span>{t}</li>
+              <li key={t} className="rounded-xl border border-brand-line bg-white px-3 py-2 font-semibold whitespace-nowrap text-brand"><span className="mr-1 text-muted">{i + 1}</span>{t}</li>
             ))}
           </ol>
         </div>

@@ -120,13 +120,19 @@ function BeforeOutage() {
   const s = session!;
   const pl = s.preset.planner;
   return (
-    <section className="card mt-6 max-w-2xl p-6 text-[16px] leading-7">
+    <div className="mt-6 grid items-center gap-6 lg:grid-cols-[minmax(0,42rem)_1fr]">
+    <section className="card p-6 text-[16px] leading-7">
       <h2 className="text-[20px] font-extrabold text-brand-strong">{s.preset.meta.name}</h2>
       <p className="mt-1">{s.preset.meta.description}</p>
       <p className="mt-2">등록 가구 {pl.households.length}곳, 비상전원 자원 {pl.resources.length}개(모의 값), 119 시간당 {pl.lanes.k119PerH}건, 쉼터 {pl.lanes.shelter.seats}석. 가구·자원은 모두 합성 데이터입니다.</p>
       <p className="mt-2">「모의 정전 발생」을 누르면 신고가 들어온 가구마다 배터리 하한을 계산하고 처리 순서와 추천을 냅니다. 확정은 담당자 승인으로만 됩니다.</p>
       <p className="mt-2 text-[14px] text-muted">봉인 sha256 {s.preset.meta.scenarioSha256.slice(0, 16)}… · 시드 {s.preset.meta.seed}</p>
     </section>
+    <figure className="hidden lg:block">
+      <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고, 사람이 버튼을 눌러 승인하면 구급차로 이어지는 흐름" className="illust aspect-[3/1] w-full bg-white bg-contain bg-[url('/illustrations/approve-flow.webp')]" />
+      <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 119 연계. 일러스트: AI 생성</figcaption>
+    </figure>
+    </div>
   );
 }
 
