@@ -424,6 +424,17 @@ if (n1) {
   }
 }
 
+// ---- 실패 가정 점검(10/30) 사후·탐색: 운영 알림 검사(v23)를 처음으로 새 사례에서(scripts/n1-run.ts --corpus) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "n1_fresh_1030.json");
+  if (existsSync(f)) {
+    type W = { k: number; n: number; wilson95: [number, number] };
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { versions: { rules: string; check: string }; corpus: { sha256: string }; badMissed: W; goodFalseReject: W; goodRejectGate2: W; missed: { id: string; category: string }[]; costUsd: number };
+    const w = (x: W) => ({ k: x.k, n: x.n, lo: x.wilson95[0], hi: x.wilson95[1] });
+    out.n1Fresh = { posthoc: true, versions: d.versions, sha256: d.corpus.sha256, badMissed: w(d.badMissed), goodFalseReject: w(d.goodFalseReject), goodRejectGate2: w(d.goodRejectGate2), missedCategories: d.missed.map((x) => x.category), costUsd: d.costUsd };
+  }
+}
+
 // ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts → scripts/e7-evidence.ts) ----
 {
   const e7v = e7Evidence(take("out/e7_sealed.json") as E7Out | null);

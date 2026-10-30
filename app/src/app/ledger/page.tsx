@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BEFORE_MEASURE, c1Evidence, diffSummary, n1Evidence, type C1Rate } from "@/lib/evidence";
+import { BEFORE_MEASURE, c1Evidence, diffSummary, n1Evidence, n1Fresh, type C1Rate } from "@/lib/evidence";
 
 const r = (x: C1Rate | { k: number; n: number }) => `${x.k}/${x.n}`;
 const ci = (x: C1Rate) => `95% CI ${(x.ciLo * 100).toFixed(1)}~${(x.ciHi * 100).toFixed(1)}%`;
@@ -65,7 +65,7 @@ export default function LedgerPage() {
 
 /** AI가 하는 일 ②: 보호자 알림(봉인 S9, evidence.n1) */
 function NoticeLedger() {
-  const n = n1Evidence();
+  const n = n1Evidence(), f = n1Fresh();
   const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${((x.lo ?? 0) * 100).toFixed(1)}~${((x.hi ?? 0) * 100).toFixed(1)}%)`;
   return (
     <>
@@ -79,7 +79,7 @@ function NoticeLedger() {
             <li>개발 세션이 띄운 Claude Opus 레드팀 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 &lsquo;5% 이하&rsquo; 틀림), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}</li>
             <li>지연 중앙값 {n.latencyP50 != null ? `${(n.latencyP50 / 1000).toFixed(1)}초` : "—"}(생성+검사), 건당 비용 평균 {n.costPerNotice ? `$${n.costPerNotice.mean.toFixed(4)}(최대 $${n.costPerNotice.max.toFixed(4)})` : "—"}(봉인 실행, 검사 v6·프롬프트 캐시 적중 기준. 검사 n1-check-v23·프롬프트 n1-v17의 dev 회귀 40건은 평균 $0.0173·최대 $0.0543(최대는 2차 지시문을 바꾼 뒤 첫 건의 캐시 쓰기. 생성+2차 검사, 저장소 밖 원시 응답 out/n1/v24-r1 집계. 공개 요약 seal/outputs/n1_regression/v24-r1.summary.json의 costUsd는 고정 문안 검사까지 더한 값), 캐시가 식은 단발 호출은 더 비쌀 수 있음). 국외 전송: 사실표와 그 글만(이름·주소 없음)</li>
           </ul>
-          <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. <Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
+          <p className="mt-1 text-[13px] text-muted">수치는 봉인 당시 검사(n1-check-v6) 결과입니다. {f ? `지금 쓰는 검사(${f.versions.check})를 10/30 처음 새 사례로 쟀습니다(사후·탐색): 틀린 글 통과 ${ci(f.badMissed)}, 맞는 글 잘못 막음 ${ci(f.goodFalseReject)}(2차 검사만 ${ci(f.goodRejectGate2)}). 사례를 쓴 에이전트도 Claude 계열이라 맹점이 겹칠 수 있습니다. ` : "지금 쓰는 검사는 봉인 뒤 고친 버전이며 새 사례로 측정하지 않았습니다. "}<Link className="underline" href="/lab#notice">리허설 랩 ⑨</Link></p>
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
     </>

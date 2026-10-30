@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE, c1Evidence, e119, e4Evidence, e5Evidence, e6Evidence, e7Evidence, gapDecomp, kpiOverPredict, lbV2, n1Evidence } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, c1Evidence, e119, e4Evidence, e5Evidence, e6Evidence, e7Evidence, gapDecomp, kpiOverPredict, lbV2, n1Evidence, n1Fresh } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 import { pRange } from "@/lib/engine/params";
@@ -447,7 +447,7 @@ function NoticeCheck() {
       <p className="mt-1 text-[13px] text-muted">
         검사가 보는 범위: 시각 표기·날짜, 수단과 이름, 먼저 떨어질 수 있다는 경고, 늦음, 할 일(정해진 것만), 안심 약속·의료·기기 조작·위험 행동. 문장의 모든 뜻을 보장하지는 않습니다(2차 검사도 AI).
         예측(S9, dev를 보고 정한 문턱이라 &lsquo;확인&rsquo;으로 셈) {n.prereg.hit}/{n.prereg.total} 맞힘({n.prereg.structural.map((x) => x.id).join(", ")}는 사전등록 때 &lsquo;구조상 보장 확인 항목&rsquo;으로 표시한 것이라 집계에서 뺌, 넣으면 {n.prereg.hit + 1}/{n.prereg.total + 1}).{n.prereg.missed.length ? " " + n.prereg.missed.map((m) => `틀림 ${m.id}: ${m.text}(봉인 원문) → 실제 ${m.value}`).join(" · ") : ""}
-        {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전이며, 새 사례로 측정하지 않았습니다.
+        {" "}위 수치는 봉인 당시 검사(n1-check-v6) 결과입니다. 지금 화면에서 쓰는 검사는 봉인 뒤 놓친 4건 등을 반영해 고친 버전입니다.{(() => { const f = n1Fresh(); return f ? ` 이 검사(${f.versions.check})를 10/30 처음 새 사례로 쟀습니다(사후·탐색, 독립 에이전트가 쓴 모음 100건): 틀린 글 통과 ${f.badMissed.k}/${f.badMissed.n}(95% ${(100 * (f.badMissed.lo ?? 0)).toFixed(1)}~${(100 * (f.badMissed.hi ?? 0)).toFixed(1)}%), 맞는 글 잘못 막음 ${f.goodFalseReject.k}/${f.goodFalseReject.n}. 같은 Claude 계열이 쓴 사례라 맹점이 겹칠 수 있습니다.` : " 새 사례로 측정하지 않았습니다."; })()}
       </p>
     </div>
   );

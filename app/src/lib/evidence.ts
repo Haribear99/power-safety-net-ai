@@ -201,3 +201,12 @@ export interface E7Evidence {
 export function e7Evidence(): E7Evidence | null {
   return (doc as unknown as { e7?: E7Evidence }).e7 ?? null;
 }
+
+/** 운영 알림 검사를 처음 새 사례로 잰 값(사후·탐색, 10/30). lo·hi = Wilson 95% */
+export interface N1Fresh {
+  posthoc: true; versions: { rules: string; check: string }; sha256: string;
+  badMissed: RateCI; goodFalseReject: RateCI; goodRejectGate2: RateCI; missedCategories: string[]; costUsd: number;
+}
+export function n1Fresh(): N1Fresh | null {
+  return (doc as unknown as { n1Fresh?: N1Fresh }).n1Fresh ?? null;
+}

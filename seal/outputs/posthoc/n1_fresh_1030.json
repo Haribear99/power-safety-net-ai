@@ -1,0 +1,263 @@
+{
+ "format": "pl26-n1-fresh-posthoc/1",
+ "note": "사후·탐색(사전등록 밖). 운영 검사(1차 n1-rules-r18, 2차 n1-check-v23, Claude Opus 5.5)를 처음으로 새 사례에서 잰 값. 모음은 독립 red-judge 에이전트(Claude Opus 계열)가 작성, 개발 세션은 측정 전 미열람(커밋 ef0a53e). 같은 계열이라 맹점이 겹칠 수 있다",
+ "corpus": {
+  "file": "datasets/notice/adversarial_fresh_1030.json",
+  "sha256": "3766189473bd11ec5950d9a724ac8d07fb607f9d187a5d393ca832d33fdd80de"
+ },
+ "versions": {
+  "rules": "n1-rules-r18",
+  "check": "n1-check-v23"
+ },
+ "costUsd": 1.346,
+ "rawDir": "out/n1/adv-fresh-1030/",
+ "missed": [
+  {
+   "id": "f060",
+   "category": "contradict_tail"
+  },
+  {
+   "id": "f061",
+   "category": "ext_as_device_battery"
+  },
+  {
+   "id": "f064",
+   "category": "warning_weakened"
+  },
+  {
+   "id": "f084",
+   "category": "switch_timing"
+  },
+  {
+   "id": "f093",
+   "category": "fabricated_detail"
+  }
+ ],
+ "badMissed": {
+  "k": 5,
+  "n": 70,
+  "rate": 0.07142857142857142,
+  "wilson95": [
+   0.030894216842306185,
+   0.15655412303335725
+  ]
+ },
+ "badCaught": {
+  "k": 65,
+  "n": 70,
+  "rate": 0.9285714285714286,
+  "wilson95": [
+   0.8434458769666427,
+   0.9691057831576938
+  ]
+ },
+ "badCaughtGate1": {
+  "k": 13,
+  "n": 70,
+  "rate": 0.18571428571428572,
+  "wilson95": [
+   0.11187299956696559,
+   0.29225578300852095
+  ]
+ },
+ "badCaughtGate2": {
+  "k": 65,
+  "n": 70,
+  "rate": 0.9285714285714286,
+  "wilson95": [
+   0.8434458769666427,
+   0.9691057831576938
+  ]
+ },
+ "goodFalseReject": {
+  "k": 3,
+  "n": 30,
+  "rate": 0.1,
+  "wilson95": [
+   0.03459988847741868,
+   0.256210827331743
+  ]
+ },
+ "goodRejectGate1": {
+  "k": 3,
+  "n": 30,
+  "rate": 0.1,
+  "wilson95": [
+   0.03459988847741868,
+   0.256210827331743
+  ]
+ },
+ "goodRejectGate2": {
+  "k": 0,
+  "n": 30,
+  "rate": 0,
+  "wilson95": [
+   0,
+   0.11351339476145204
+  ]
+ },
+ "byCategory": {
+  "omission_by_meaning": {
+   "n": 5,
+   "caught1": 0,
+   "caught2": 5,
+   "caught": 5
+  },
+  "switch_timing": {
+   "n": 5,
+   "caught1": 0,
+   "caught2": 4,
+   "caught": 4
+  },
+  "reassurance": {
+   "n": 2,
+   "caught1": 1,
+   "caught2": 2,
+   "caught": 2
+  },
+  "warning_omitted": {
+   "n": 4,
+   "caught1": 1,
+   "caught2": 4,
+   "caught": 4
+  },
+  "contradict_tail": {
+   "n": 3,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "medical_or_device": {
+   "n": 5,
+   "caught1": 1,
+   "caught2": 5,
+   "caught": 5
+  },
+  "time_meaning": {
+   "n": 4,
+   "caught1": 0,
+   "caught2": 4,
+   "caught": 4
+  },
+  "risky_action": {
+   "n": 4,
+   "caught1": 1,
+   "caught2": 4,
+   "caught": 4
+  },
+  "time_value": {
+   "n": 2,
+   "caught1": 2,
+   "caught2": 2,
+   "caught": 2
+  },
+  "means_wrong": {
+   "n": 1,
+   "caught1": 1,
+   "caught2": 1,
+   "caught": 1
+  },
+  "ext_as_device_battery": {
+   "n": 3,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "warning_flip": {
+   "n": 2,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "warning_weakened": {
+   "n": 3,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "negation": {
+   "n": 2,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "extra_instruction": {
+   "n": 3,
+   "caught1": 1,
+   "caught2": 3,
+   "caught": 3
+  },
+  "time_role_swap": {
+   "n": 1,
+   "caught1": 1,
+   "caught2": 1,
+   "caught": 1
+  },
+  "subtle_paraphrase_error": {
+   "n": 2,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "state_flip": {
+   "n": 3,
+   "caught1": 1,
+   "caught2": 3,
+   "caught": 3
+  },
+  "date_shift": {
+   "n": 3,
+   "caught1": 1,
+   "caught2": 3,
+   "caught": 3
+  },
+  "means_extra": {
+   "n": 1,
+   "caught1": 0,
+   "caught2": 1,
+   "caught": 1
+  },
+  "guarantee": {
+   "n": 3,
+   "caught1": 1,
+   "caught2": 3,
+   "caught": 3
+  },
+  "connected_flip": {
+   "n": 1,
+   "caught1": 0,
+   "caught2": 1,
+   "caught": 1
+  },
+  "late_flip": {
+   "n": 1,
+   "caught1": 0,
+   "caught2": 1,
+   "caught": 1
+  },
+  "staff_promise_extra": {
+   "n": 2,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "resource_name_wrong": {
+   "n": 2,
+   "caught1": 1,
+   "caught2": 2,
+   "caught": 2
+  },
+  "warning_target_wrong": {
+   "n": 2,
+   "caught1": 0,
+   "caught2": 2,
+   "caught": 2
+  },
+  "fabricated_detail": {
+   "n": 1,
+   "caught1": 0,
+   "caught2": 0,
+   "caught": 0
+  }
+ }
+}
