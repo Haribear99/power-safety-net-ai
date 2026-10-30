@@ -1,10 +1,19 @@
-@import "./pretendard.css";
 @import "tailwindcss";
+
+/* 제목·로고용 Pretendard 하위집합(tools/build_heading_font.py, 303자 41KB, SIL OFL — public/fonts/OFL-Pretendard.txt).
+   본문은 시스템 글꼴: 본문까지 웹폰트를 쓰면 랜딩이 글꼴 조각 20여 개를 받아 로컬 lhci LCP가 5초대가 됐다(10/30 측정) */
+@font-face {
+  font-family: "Pretendard Display";
+  src: url("/fonts/pretendard-display.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: optional;
+}
 
 /* 10/30 디자인 개편: 공공 서비스 신뢰형. 강조 색은 남색 하나(brand), 의미 색(gap/restore/batt/warn)은 이름 유지.
    모서리 규칙: 카드 16px(rounded-2xl), 버튼·입력 12px(rounded-xl), 칩·배지 full. 그림자는 남색 기운 2단계만. 라이트 테마만 */
 @theme {
-  --font-sans: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
   --color-ink: #16202a;
   --color-muted: #4b5866;
   --color-line: #d5dbe1;
@@ -41,7 +50,7 @@ body {
 }
 
 /* 한글 제목은 어절 단위로 줄바꿈(본문·표는 기존대로: 긴 토큰의 가로 넘침 방지) */
-h1, h2, h3 { word-break: keep-all; text-wrap: balance; }
+h1, h2, h3, .font-display { word-break: keep-all; text-wrap: balance; font-family: "Pretendard Display", var(--font-sans); }
 
 /* 키보드 초점: 모든 화면 같은 링 */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {

@@ -14,14 +14,14 @@ export function SiteNav() {
   return (
     <nav aria-label="사이트" className="border-b border-line bg-white">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5">
-        <Link href="/" className="press flex shrink-0 items-center gap-2 rounded-xl py-1 pr-2 text-[16px] font-extrabold tracking-tight text-brand">
+        <Link href="/" prefetch={false} className="press font-display flex shrink-0 items-center gap-2 rounded-xl py-1 pr-2 text-[16px] font-extrabold tracking-tight text-brand">
           <span aria-hidden="true" className="inline-block h-7 w-7 rounded-lg bg-[url('/logo.svg')] bg-cover" />
           전력안심망
         </Link>
         <ul className="-mr-4 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto pr-4 text-[15px] font-semibold text-muted [scrollbar-width:none] md:justify-end">
           {ITEMS.map((it) => (
             <li key={it.href} className="shrink-0">
-              <Link href={it.href} className="press block whitespace-nowrap rounded-full px-3 py-1.5 hover:bg-brand-soft hover:text-brand">
+              <Link href={it.href} prefetch={false} className="press block whitespace-nowrap rounded-full px-3 py-1.5 hover:bg-brand-soft hover:text-brand">
                 {it.label}
               </Link>
             </li>

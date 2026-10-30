@@ -11,10 +11,10 @@ export function SiteFooter() {
           <p className="mt-1">시연용 합성 데이터 · 의료 판단 도구가 아닙니다 · 배정은 담당자가 결정합니다</p>
         </div>
         <nav aria-label="심사 자료" className="grid grid-cols-2 gap-x-6 gap-y-1">
-          <Link className="underline-offset-4 hover:underline" href="/ledger#judge">심사위원 경로</Link>
-          <Link className="underline-offset-4 hover:underline" href="/ledger">AI 사용 장부</Link>
-          <Link className="underline-offset-4 hover:underline" href="/lab">리허설 랩</Link>
-          <Link className="underline-offset-4 hover:underline" href="/about">법·윤리</Link>
+          <Link prefetch={false} className="underline-offset-4 hover:underline" href="/ledger#judge">심사위원 경로</Link>
+          <Link prefetch={false} className="underline-offset-4 hover:underline" href="/ledger">AI 사용 장부</Link>
+          <Link prefetch={false} className="underline-offset-4 hover:underline" href="/lab">리허설 랩</Link>
+          <Link prefetch={false} className="underline-offset-4 hover:underline" href="/about">법·윤리</Link>
           <a className="underline-offset-4 hover:underline" href="https://github.com/Haribear99/power-safety-net-ai">GitHub 저장소</a>
         </nav>
       </div>
