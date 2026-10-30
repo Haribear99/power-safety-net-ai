@@ -11,6 +11,7 @@
 // 산소통 보급 범위: 기본 = 식별된 산소 기기 가구 전원, C = 보급률을 P7과 같게(0.6 × covMult, u_cov), K = P7과 같은 개수 k를 평시 하한 순으로.
 // 배터리(P7과 같은 양 k = round(0.6 × covMult × N), 고장은 PATCH u_fail): P7P = E6 그대로(산소통을 모르고 순위),
 // P7V = 자기신고상 산소 기기 가구는 빼고 인공호흡기 가구에만(남으면 버림), P7E = 인공호흡기 가구 먼저, 남는 개수는 산소 기기 가구에 순위대로(개수 = k).
+// P7E는 산소통 없이도 돌린다(RULE+P7E): 배터리 1개가 인공호흡기(소비전력 낮음)에서 더 오래 가는 몫과 산소통과 겹치지 않는 몫을 나누려고(레드팀 2라운드 중대 1).
 // 'U:' 변형은 등급 층화 없는 등록부(stratPerClass 0) 민감도다. 기본 등록부는 7등급 × 5가구 층화라 인공호흡기가 과대표집된다(레드팀 중대 3).
 // 정전 길이·시드 규칙·정전 중 화면(AI 갈래)은 E5·E6와 같다.
 import { DEFAULT_DB } from "../engine/lowerBound";
@@ -36,11 +37,11 @@ export const E7_ARMS = { AI: 0.266667, OCR: 0.822222, PERF: 0 } as const;
 /** 변형 = [U:]정책 + 보급. 순서가 행의 m1·m2S·cls·used 열 순서다 */
 export const E7_VARIANTS: readonly string[] = [
   "KR_BASELINE", "KR_BASELINE+P7P", "KR_BASELINE+CYL10S",
-  "RULE", "RULE+P7P", "RULE+CYL10S", "RULE+CYL10A", "RULE+CYL10O",
+  "RULE", "RULE+P7P", "RULE+P7E", "RULE+CYL10S", "RULE+CYL10A", "RULE+CYL10O",
   "RULE+CYL3S", "RULE+CYL5S", "RULE+CYL10SC", "RULE+CYL10SK",
   "RULE+CYL10S+P7P", "RULE+CYL10S+P7V", "RULE+CYL10S+P7E",
   "RULE+CYL10SR+P7P", "RULE+CYL10SR+P7E",
-  "U:RULE", "U:RULE+P7P", "U:RULE+CYL10S", "U:RULE+CYL10S+P7P", "U:RULE+CYL10S+P7E",
+  "U:RULE", "U:RULE+P7P", "U:RULE+P7E", "U:RULE+CYL10S", "U:RULE+CYL10S+P7P", "U:RULE+CYL10S+P7E",
 ];
 
 export function e7Thetas(draws: number, master: string = E7_LHS_MASTER): Theta[] {
@@ -144,7 +145,8 @@ export function runE7(d: number, theta: Theta, seedLo: number): E7Row {
   const m1: number[] = [], m2S: number[] = [], used: [number, number][] = [];
   E7_VARIANTS.forEach((v, j) => {
     const unstrat = v.startsWith("U:");
-    const S = unstrat ? { AI: us.AI, OCR: us.AI, PERF: us.PERF } : ms; // U:는 S 식별만 쓴다
+    const S = unstrat ? { AI: us.AI, OCR: us.AI, PERF: us.PERF } : ms;
+    if (unstrat && /CYL\d+[AO]/.test(v)) throw new Error(`U: 변형은 자기신고(S) 식별만 ${v}`); // U:에는 OCR 등록부를 만들지 않는다
     const [pol, ...patches] = (unstrat ? v.slice(2) : v).split("+") as [SimPolicy, ...string[]];
     let m = S.AI, nCyl = 0, nBat = 0;
     for (const p of patches) {

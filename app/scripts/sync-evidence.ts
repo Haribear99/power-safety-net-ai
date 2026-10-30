@@ -7,6 +7,7 @@ import path from "node:path";
 import { canonicalJson, sha256Hex } from "../src/lib/sim/materialize";
 import { wilson } from "../src/lib/sim/analyze";
 import { buildFacts, type NoticeInputT } from "../src/lib/notice/facts";
+import { e7Evidence, type E7Out } from "./e7-evidence";
 
 const repo = path.resolve(__dirname, "..", "..");
 const out: Record<string, unknown> = { format: "pl26-evidence/1" };
@@ -409,26 +410,10 @@ if (n1) {
   }
 }
 
-// ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts) ----
-const e7 = take("out/e7_sealed.json") as {
-  source: { n: number };
-  gapHPerRun: Record<string, number>;
-  usedMean: Record<string, [number, number]>;
-  compares: Record<string, Cmp5>;
-  hhRates: Record<string, Record<string, HhRate>>;
-  prereg: { hit: number; total: number; items: { id: string; text: string; hit: boolean | null; value: string }[] };
-} | null;
-if (e7) {
-  const c = (x: Cmp5) => ({ rel: x.rel, lo: x.lo, hi: x.hi });
-  const bat = "RULE+P7P", match = "RULE+CYL10S+P7E";
-  out.e7 = {
-    n: e7.source.n,
-    compares: Object.fromEntries(Object.entries(e7.compares).map(([k, x]) => [k, c(x)])),
-    hhGap: Object.fromEntries(Object.entries(e7.hhRates).map(([cls, r]) => [cls, { none: r.RULE?.rate ?? null, battery: r[bat]?.rate ?? null, matched: r[match]?.rate ?? null }])),
-    // E7(10.x)은 다른 봉인과 합산하지 않고 따로 센다. 문턱은 예비 실행을 보고 정했고, 구조상 보장 항목(10.S*)은 집계 밖(레드팀 경미 6)
-    prereg: { hit: e7.prereg.hit, total: e7.prereg.total, afterPilot: true, missed: e7.prereg.items.filter((x) => x.hit === false).map((x) => ({ id: x.id, text: x.text, value: x.value })) },
-    usedMean: e7.usedMean,
-  };
+// ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts → scripts/e7-evidence.ts) ----
+{
+  const e7v = e7Evidence(take("out/e7_sealed.json") as E7Out | null);
+  if (e7v) out.e7 = e7v;
 }
 
 // ---- 사전등록 나눔(레드팀 10/18): 실행 전 예측(1.x·H*·4.x·6.x)과 예비 실행·사전 분석 뒤 확인(2.x·3.x·5.x·7.x)을 따로 센다 ----

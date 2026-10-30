@@ -1,48 +1,54 @@
-// S10(E7) 봉인 실행 시드 계산 (prereg/predictions_e7.md 0절, 봉인 전 레드팀 경미 8). 실행: node tools/s10-seed.mjs
+// S10(E7) 봉인 실행 시드 계산 (prereg/predictions_e7.md 0절, 봉인 전 레드팀 1·2라운드). 실행: node tools/s10-seed.mjs
 // 규칙(봉인 대상, 결과를 보기 전에 고정):
-//   B  = seal/S10.txt.ots의 비트코인 블록 증명 중 가장 낮은 높이의 블록(`ots info` 출력의 BitcoinBlockHeaderAttestation)
-//   t  = max(B의 블록 헤더 시각 nTime, S10 태그 커밋 시각)  (초, UTC)
-//   R  = t보다 엄격히 뒤의 첫 drand quicknet 라운드. 라운드 r의 시각 = 1692803367 + (r − 1) × 3 → R = floor((t − 1692803367) / 3) + 2
-//   seedLo = 8,000,001 + (R 난수 앞 8자리 16진수 정수 mod 900,000)
-// nTime은 blockstream.info와 mempool.space 두 곳, drand 난수는 api.drand.sh와 drand.cloudflare.com 두 곳에서 받아 같아야 한다.
-// 라운드가 아직 안 나왔거나 블록 증명이 없으면 멈춘다(비트코인 확정 전 봉인 실행 금지). 결과는 seal/S10_beacon.json.
+//   스탬프는 alice·bob 캘린더 두 곳으로만 만든다:
+//     python -I tools/ots.py stamp -c https://alice.btc.calendar.opentimestamps.org -c https://bob.btc.calendar.opentimestamps.org -m 1 seal/S10.txt
+//   B  = alice 캘린더 경로의 비트코인 블록 증명(높이 하나로 정해진다 — 업그레이드 시점을 골라 B를 바꿀 수 없다).
+//        alice가 스탬프 뒤 12시간 안에 증명을 주지 않으면 bob의 것을 쓴다(이 대체도 봉인 대상 규칙).
+//   증명 확인: tools/ots_check.py — S10.txt sha256 = .ots 다이제스트, 증명 메시지 = 그 블록 머클 루트(blockstream.info·mempool.space 두 곳 일치).
+//   S10 태그 커밋 시각이 B의 헤더 시각 nTime보다 늦으면 멈춘다(커밋 시각을 미래로 적어 라운드를 고르는 길을 막는다).
+//   R  = nTime보다 엄격히 뒤의 첫 drand quicknet 라운드. 라운드 r의 시각 = 1692803367 + (r − 1) × 3 → R = floor((nTime − 1692803367) / 3) + 2
+//   seedLo = 8,000,001 + (R 난수 앞 8자리 16진수 정수 mod 900,000). 난수는 api.drand.sh와 drand.cloudflare.com 두 곳이 같아야 한다.
+// 결과는 seal/S10_beacon.json.
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const QUICKNET = "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971";
 const GENESIS = 1692803367, PERIOD = 3;
+const ALICE = "https://alice.btc.calendar.opentimestamps.org", BOB = "https://bob.btc.calendar.opentimestamps.org";
+const stop = (msg, code = 2) => { console.error(msg); process.exit(code); };
 
-const info = execFileSync("ots", ["info", path.join(repo, "seal", "S10.txt.ots")], { encoding: "utf-8" });
-const heights = [...info.matchAll(/BitcoinBlockHeaderAttestation\((\d+)\)/g)].map((m) => Number(m[1]));
-if (!heights.length) { console.error("비트코인 블록 증명 없음 — `ots upgrade seal/S10.txt.ots` 뒤 다시 실행(확정 전 봉인 실행 금지)"); process.exit(2); }
-const height = Math.min(...heights);
+const chk = JSON.parse(execFileSync("python", ["-I", path.join(repo, "tools", "ots_check.py"), path.join(repo, "seal", "S10.txt"), path.join(repo, "seal", "S10.txt.ots")], { encoding: "utf-8" }));
+if (!chk.digestMatch) stop("S10.txt sha256이 .ots 다이제스트와 다르다");
+const cals = Object.keys(chk.byCalendar);
+if (cals.some((c) => c !== ALICE && c !== BOB)) stop(`alice·bob 밖 캘린더가 있다: ${cals.join(", ")}`);
+const stampedS = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "--", "seal/S10.txt.ots"], { encoding: "utf-8" }).trim() || statSync(path.join(repo, "seal", "S10.txt.ots")).mtimeMs / 1000);
+let cal = ALICE;
+if (!(chk.byCalendar[ALICE] ?? []).length) {
+  if (Date.now() / 1000 < stampedS + 12 * 3600) stop("alice 증명 없음 — `python -I tools/ots.py upgrade seal/S10.txt.ots` 뒤 다시(스탬프 뒤 12시간까지는 alice만 기다린다)");
+  if (!(chk.byCalendar[BOB] ?? []).length) stop("alice·bob 모두 증명 없음");
+  cal = BOB;
+}
+const height = Math.min(...chk.byCalendar[cal]);
+const b = chk.bitcoin.find((x) => x.height === height);
+if (!b?.merkleOk) stop(`블록 ${height} 머클 루트 불일치`);
+const nTime = b.nTime;
+const commitT = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "S10"], { encoding: "utf-8" }).trim());
+if (commitT > nTime) stop(`S10 커밋 시각(${commitT})이 블록 시각(${nTime})보다 늦다 — 규칙 위반, 봉인 실행 중지`);
+const R = Math.floor((nTime - GENESIS) / PERIOD) + 2;
+const roundT = GENESIS + (R - 1) * PERIOD;
+if (roundT <= nTime) throw new Error("라운드 산식 오류");
+if (roundT > Date.now() / 1000) stop(`라운드 ${R}(시각 ${new Date(roundT * 1000).toISOString()})가 아직 안 나왔다. 그 뒤 다시`, 3);
 
 const getJson = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u} ${r.status}`); return r.json(); };
-const getText = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(`${u} ${r.status}`); return (await r.text()).trim(); };
-const nTimes = [];
-for (const base of ["https://blockstream.info/api", "https://mempool.space/api"]) {
-  const hash = await getText(`${base}/block-height/${height}`);
-  const b = await getJson(`${base}/block/${hash}`);
-  nTimes.push({ base, hash, timestamp: b.timestamp });
-}
-if (nTimes[0].hash !== nTimes[1].hash || nTimes[0].timestamp !== nTimes[1].timestamp) throw new Error(`블록 정보 불일치 ${JSON.stringify(nTimes)}`);
-const nTime = nTimes[0].timestamp;
-const commitT = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "S10"], { encoding: "utf-8" }).trim());
-const t = Math.max(nTime, commitT);
-const R = Math.floor((t - GENESIS) / PERIOD) + 2;
-const roundT = GENESIS + (R - 1) * PERIOD;
-if (roundT <= t) throw new Error("라운드 산식 오류");
-if (roundT > Date.now() / 1000) { console.error(`라운드 ${R}(시각 ${new Date(roundT * 1000).toISOString()})가 아직 안 나왔다. 그 뒤 다시 실행`); process.exit(3); }
-
 const beacons = [];
 for (const base of ["https://api.drand.sh", "https://drand.cloudflare.com"]) beacons.push({ base, ...(await getJson(`${base}/${QUICKNET}/public/${R}`)) });
 if (beacons[0].randomness !== beacons[1].randomness || beacons[0].round !== R) throw new Error(`drand 불일치 ${JSON.stringify(beacons)}`);
 const seedLo = 8_000_001 + (parseInt(beacons[0].randomness.slice(0, 8), 16) % 900_000);
 const out = {
-  rule: "tools/s10-seed.mjs 머리말", block: { height, hash: nTimes[0].hash, nTime, sources: nTimes.map((x) => x.base) }, commitT, t,
+  rule: "tools/s10-seed.mjs 머리말", calendar: cal, block: { height, hash: b.hash, nTime, merkleOk: b.merkleOk }, commitT,
   drand: { chain: QUICKNET, round: R, roundTime: roundT, randomness: beacons[0].randomness, signature: beacons[0].signature, sources: beacons.map((x) => x.base) },
   seedLo, seedHi: seedLo + 1999,
 };
