@@ -1,0 +1,88 @@
+{
+ "format": "pl26-e2-119-empirical-posthoc/1",
+ "note": "사후 민감도(사전등록 밖). 봉인 E2 시드, 119 도착만 소방청 실측(평시, 배수 1)으로 바꿈. 공통 난수(같은 u). 처리 용량·이송은 그대로. 실측은 대규모 정전의 수요 폭증을 담지 않는다",
+ "source": {
+  "file": "spec/arrival_119_empirical.json",
+  "year": "2025",
+  "group": "ALL",
+  "rawSha256": "1b20dac7d9f72f8e2901a0f67d340832d57f3c42a4ebde2756207818d775ac58",
+  "n": 2857756,
+  "p50Min": 8.7,
+  "p90Min": 16.2
+ },
+ "runs": 5400,
+ "rows": {
+  "assumed:RULE": {
+   "gapHPerRun": 71.684,
+   "M1Rate": 0.922,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 38.826,
+    "RESTORE": 16.18,
+    "RESOURCE": 14.726,
+    "SHELTER": 1.953
+   }
+  },
+  "assumed:B2_NEAREST": {
+   "gapHPerRun": 71.259,
+   "M1Rate": 0.916,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 41.446,
+    "RESTORE": 16.318,
+    "SHELTER": 2.112,
+    "RESOURCE": 11.383
+   }
+  },
+  "assumed:KR_BASELINE": {
+   "gapHPerRun": 84.321,
+   "M1Rate": 0.977,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 67.247,
+    "RESTORE": 17.074
+   }
+  },
+  "empirical:RULE": {
+   "gapHPerRun": 62.924,
+   "M1Rate": 0.908,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 32.647,
+    "RESOURCE": 13.589,
+    "RESTORE": 14.742,
+    "SHELTER": 1.946
+   }
+  },
+  "empirical:B2_NEAREST": {
+   "gapHPerRun": 61.997,
+   "M1Rate": 0.906,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 34.558,
+    "RESTORE": 14.672,
+    "SHELTER": 2.112,
+    "RESOURCE": 10.654
+   }
+  },
+  "empirical:KR_BASELINE": {
+   "gapHPerRun": 72.961,
+   "M1Rate": 0.973,
+   "mismatch": 0,
+   "byServedHPerRun": {
+    "LANE_119": 59.053,
+    "RESTORE": 13.909
+   }
+  }
+ },
+ "compare": {
+  "assumed": {
+   "toolVsKr": 0.15,
+   "toolVsNearest": -0.006
+  },
+  "empirical": {
+   "toolVsKr": 0.138,
+   "toolVsNearest": -0.015
+  }
+ }
+}
