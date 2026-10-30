@@ -17,8 +17,12 @@ const year = process.argv[2] ?? "2025", group = process.argv[3] ?? "ALL";
 const emp = JSON.parse(readFileSync(path.join(repo, "spec", "arrival_119_empirical.json"), "utf-8")) as { years: Record<string, { sha256: string; groups: Record<string, { callToScene: { n: number; grid1pct: number[] } }> }> };
 const grid = emp.years[year].groups[group].callToScene.grid1pct;
 if (grid.length !== 101) throw new Error("grid1pct 101칸 필요(tools/build_119_arrival.py 다시 실행)");
-/** 실측 분위(분): u ∈ [0,1], 1% 격자 선형 보간 */
-const Q = (u: number) => { const x = Math.min(100, Math.max(0, u * 100)), i = Math.min(99, Math.floor(x)); return grid[i] + (grid[i + 1] - grid[i]) * (x - i); };
+// 꼬리: grid[100]은 최댓값(24시간 상한 근처)이라 p99와 선형으로 이으면 가구 약 1%에 수 시간 도착이 들어간다(레드팀 10/30 경미).
+// 실측 60분 초과는 0.36%뿐이므로 끝점을 60분으로 자른다(보수적이지 않은 쪽이지만 평시 실측과 더 가깝다).
+const TAIL_CAP_MIN = 60;
+const G = grid.map((x, i) => (i === 100 ? Math.min(x, Math.max(TAIL_CAP_MIN, grid[99])) : x));
+/** 실측 분위(분): u ∈ [0,1], 1% 격자 선형 보간(끝점 60분) */
+const Q = (u: number) => { const x = Math.min(100, Math.max(0, u * 100)), i = Math.min(99, Math.floor(x)); return G[i] + (G[i + 1] - G[i]) * (x - i); };
 
 const sealed = JSON.parse(readFileSync(path.join(repo, "out", "sweeps", "E2_sealed.json"), "utf-8")) as { seedLo: number; rows: E2Row[] };
 const bySeed = new Map(sealed.rows.map((r) => [r.seed, r]));
@@ -69,7 +73,7 @@ const rel = (b: string, v: string) => r3(1 - acc[v].M2S / acc[b].M2S);
 const out = {
   format: "pl26-e2-119-empirical-posthoc/1",
   note: "사후 민감도(사전등록 밖). 봉인 E2 시드, 119 도착만 소방청 실측(평시, 배수 1)으로 바꿈. 공통 난수(같은 u). 처리 용량·이송은 그대로. 실측은 대규모 정전의 수요 폭증을 담지 않는다",
-  source: { file: "spec/arrival_119_empirical.json", year, group, rawSha256: emp.years[year].sha256, n: emp.years[year].groups[group].callToScene.n, p50Min: Q(0.5), p90Min: Q(0.9) },
+  source: { file: "spec/arrival_119_empirical.json", year, group, tailCapMin: TAIL_CAP_MIN, rawSha256: emp.years[year].sha256, n: emp.years[year].groups[group].callToScene.n, p50Min: Q(0.5), p90Min: Q(0.9) },
   runs,
   rows: Object.fromEntries(Object.entries(acc).map(([k, a]) => [k, { gapHPerRun: H(a.M2S), M1Rate: r3(a.M1 / a.hr), mismatch: a.mismatch, byServedHPerRun: Object.fromEntries(Object.entries(a.served).map(([s, x]) => [s, H(x)])) }])),
   compare: {

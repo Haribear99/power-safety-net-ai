@@ -464,7 +464,7 @@ function Premortem() {
       <h3 className="mt-3 text-[16px] font-bold">남는 공백은 어디서 나오는가(사후 집계)</h3>
       {g ? (
         <p className="mt-1 text-[14px]">
-          봉인 E2 시드 {g.runs.toLocaleString("ko-KR")}회를 다시 돌려(봉인 값과 {g.mismatch === 0 ? "모두 일치" : `${g.mismatch}건 불일치`}) 도구를 써도 남는 공백 가구·시간 {h(g.ruleGapHPerRun)}/실행을 나눴습니다. 배터리 없는 거치형 산소발생기 가구가 {pct1(g.byClassShare.O2_STAT)}, 미등록 가구가 {pct1(g.byClassShare.UNREG)}입니다(모의). 정전과 동시에 공백이 시작되는 가구라 정전 뒤 처리 순서로는 줄일 수 없습니다. 같은 기기에 산소통이 있는 가구는 실행당 {h(g.byClassHPerRun.O2_STAT_CYL ?? 0)}만 남았습니다(가구 수가 달라 인과 추정은 아님).
+          봉인 E2 시드 {g.runs.toLocaleString("ko-KR")}회를 다시 돌려(봉인 값과 {g.mismatch === 0 ? "모두 일치" : `${g.mismatch}건 불일치`}) 도구를 써도 남는 공백 가구·시간 {h(g.ruleGapHPerRun)}/실행을 나눴습니다. 배터리 없는 거치형 산소발생기 가구가 {pct1(g.byClassShare.O2_STAT)}, 미등록 가구가 {pct1(g.byClassShare.UNREG)}입니다(모의). 정전과 동시에 공백이 시작되는 가구라, 정전 뒤 처리 순서를 바꾸는 탐색(개발 시드)에서는 줄이기 어려웠습니다. 같은 기기에 산소통이 있는 가구는 실행당 {h(g.byClassHPerRun.O2_STAT_CYL ?? 0)}만 남았습니다(가구 수가 달라 인과 추정은 아님).
         </p>
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
       <h3 className="mt-3 text-[16px] font-bold">평시 산소통과 &lsquo;배터리는 인공호흡기 먼저&rsquo;(E7, 봉인 S10)</h3>
@@ -483,11 +483,11 @@ function Premortem() {
       ) : <p className="mt-1 text-[14px]" data-testid="e7">E7 봉인 실행: <strong>{BEFORE_MEASURE}</strong></p>}
       <h3 className="mt-3 text-[16px] font-bold">배터리 하한 v2(운영 화면, 사후 집계)</h3>
       {v ? (
-        <p className="mt-1 text-[14px]">제조사 설명서의 최악 조건(최상 8시간 대비 4시간 이상)을 반영해 설정표 없는 기기의 정격에 ½을 곱했습니다. 봉인 E2 시드에서 표시 하한이 모의 실제보다 긴 경우 {pct1(v.v1.k / v.v1.n)} → {pct1(v.v2.k / v.v2.n)}, 가장 크게 넘친 폭 {v.v1.overH ? h(v.v1.overH.max) : "—"} → {v.v2.overH ? h(v.v2.overH.max) : "—"}, 공백 변화 {v.gapDiffHPerRun.toFixed(2)}시간/실행(차이 없음). 모의 실제의 설정 계수 하한도 ½이라 설정 때문에 넘치는 경우가 없어지는 것은 구성상 결과이고, 남은 경우는 노후·외장 고장·충전 입력입니다. 시뮬레이션 실험(E1~E7)은 봉인 당시 하한(v1)으로 돌립니다.</p>
+        <p className="mt-1 text-[14px]">제조사 설명서의 최악 조건(최상 8시간 대비 4시간 이상)을 반영해 설정표 없는 기기의 정격에 ½을 곱했습니다. 봉인 E2 시드에서 표시 하한이 모의 실제보다 긴 경우 {pct1(v.v1.k / v.v1.n)} → {pct1(v.v2.k / v.v2.n)}, 가장 크게 넘친 폭 {v.v1.overH ? h(v.v1.overH.max) : "—"} → {v.v2.overH ? h(v.v2.overH.max) : "—"}, 공백 변화 {v.gapDiffHPerRun.toFixed(2)}시간/실행(차이 없음). 모의 실제의 설정 계수 하한도 ½이라 설정 때문에 넘치는 경우가 없어지는 것은 구성상 결과이고(감소의 대부분), 남은 경우는 노후·외장 고장·충전 입력입니다. ½의 근거는 한 기종 설명서라 다른 기종에는 가정입니다. 시뮬레이션 실험(E1~E7)은 봉인 당시 하한(v1)으로 돌립니다.</p>
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
       <h3 className="mt-3 text-[16px] font-bold">119 도착 실측으로 다시(사후 집계)</h3>
       {a ? (
-        <p className="mt-1 text-[14px]">소방청 전국 구급 현황 {a.year}년 {a.n.toLocaleString("ko-KR")}건의 신고→현장 도착은 중앙값 {a.p50Min.toFixed(1)}분, 90% {a.p90Min.toFixed(1)}분으로, 모의 가정(10~30분 × 지연 배수 1~4)보다 짧습니다. 이 실측(평시)으로 바꿔도 도구의 남는 공백은 {h(a.assumed.ruleGapHPerRun)} → {h(a.empirical.ruleGapHPerRun)}/실행, 그중 119 경로 {h(a.assumed.rule119H)} → {h(a.empirical.rule119H)}에 그칩니다. 남는 공백은 도착 시간보다 119 처리 용량(대기열)에서 나오며, 용량은 실측 자료에 없습니다. 모의에서 도구 대 현행 {pct1(a.empirical.toolVsKr)} 감소, 가까운 순과는 차이 없음({pct1(a.empirical.toolVsNearest)})으로 결론은 같습니다. 실측은 평시 값이라 대규모 정전의 수요 폭증을 담지 않습니다.</p>
+        <p className="mt-1 text-[14px]">소방청 전국 구급 현황 {a.year}년 {a.n.toLocaleString("ko-KR")}건의 신고→현장 도착은 중앙값 {a.p50Min.toFixed(1)}분, 90% {a.p90Min.toFixed(1)}분으로, 모의 가정(10~30분 × 지연 배수 1~4)보다 짧습니다. 이 실측(평시)으로 바꿔도 도구의 남는 공백은 {h(a.assumed.ruleGapHPerRun)} → {h(a.empirical.ruleGapHPerRun)}/실행, 그중 119 경로 {h(a.assumed.rule119H)} → {h(a.empirical.rule119H)}에 그칩니다. 남는 공백은 도착 시간보다 다른 경로(119 처리 용량 가정 등)에서 나오는 것으로 보이나, 용량은 실측 자료가 없어 확인하지 못했습니다. 꼬리는 60분에서 잘랐습니다(실측에서 60분을 넘는 출동은 1,000건 중 4건꼴). 모의에서 도구 대 현행 {pct1(a.empirical.toolVsKr)} 감소, 가까운 순과는 차이 없음({pct1(a.empirical.toolVsNearest)})으로 결론은 같습니다. 실측은 평시 값이라 대규모 정전의 수요 폭증을 담지 않습니다.</p>
       ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
     </div>
   );

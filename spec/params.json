@@ -19,7 +19,7 @@
     { "key": "lb.ext.chargeUnknown", "value": 0.5, "ratio": [1, 2], "unit": "factor", "type": "assumed", "sourceIds": [], "note": "외장 충전 미확인 c_ext (3.2절, EXT_CHARGE_UNKNOWN)" },
     { "key": "lb.ext.ageUnknown", "value": 0.7, "ratio": [7, 10], "unit": "factor", "type": "assumed", "sourceIds": [], "note": "외장 연식 미확인 f_age_ext. 본체 연식을 빌려 쓰지 않는다 (3.2절)" },
     { "key": "lb.cyl.hoursLoPerUnitH", "value": 10, "unit": "h", "type": "spec", "sourceIds": ["nhs-highland-contingency-planning-for-power-outages-home-oxygen-2022"], "note": "CYL_LARGE 하한 10h(범위 10~20h). VERIFY_CYL hoursLo ≤ 10h × count (3.2·3.3절)" },
-    { "key": "lb.load.worstOverBest", "value": 0.5, "ratio": [1, 2], "unit": "factor", "type": "spec", "sourceIds": ["resmed-astral-user-guide-battery-operating-hours-best-worst"], "note": "하한 v2(10/30 실패 가정 점검): 설정표 없는 기기와 외장의 정격 가동시간에 곱하는 부하·누설 계수. 제조사 최악 조건 > 4h ÷ 최상 8h. v1(봉인 E1~E6)에서는 쓰지 않는다" },
+    { "key": "lb.load.worstOverBest", "value": 0.5, "ratio": [1, 2], "unit": "factor", "type": "assumed", "sourceIds": ["resmed-astral-user-guide-battery-operating-hours-best-worst"], "note": "하한 v2(10/30 실패 가정 점검): 설정표 없는 기기와 외장의 정격 가동시간에 곱하는 부하·누설 계수. 근거는 ResMed Astral 설명서 한 기종(최악 조건 > 4h ÷ 최상 8h)이고 다른 기종에는 같은 비율을 가정한다. v1(봉인 E1~E7)에서는 쓰지 않는다" },
     { "key": "lb.neighbor.maxEditDistance", "value": 2, "unit": "chars", "type": "assumed", "sourceIds": [], "note": "ai_label_user_confirmed 이웃 기종 편집거리 상한 (3.2절)" },
 
     { "key": "alloc.arrivalFactor", "value": 0.8, "ratio": [4, 5], "unit": "factor", "type": "assumed", "sourceIds": [], "note": "도착 필터 A ≤ 0.8L, slack = 0.8·L_rem − A (4.1절, 팀 구현 규칙)" },

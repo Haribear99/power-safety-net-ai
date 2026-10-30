@@ -5,6 +5,7 @@
   "file": "spec/arrival_119_empirical.json",
   "year": "2025",
   "group": "ALL",
+  "tailCapMin": 60,
   "rawSha256": "1b20dac7d9f72f8e2901a0f67d340832d57f3c42a4ebde2756207818d775ac58",
   "n": 2857756,
   "p50Min": 8.7,
@@ -44,34 +45,34 @@
    }
   },
   "empirical:RULE": {
-   "gapHPerRun": 62.924,
-   "M1Rate": 0.908,
+   "gapHPerRun": 62.012,
+   "M1Rate": 0.907,
    "mismatch": 0,
    "byServedHPerRun": {
-    "LANE_119": 32.647,
-    "RESOURCE": 13.589,
-    "RESTORE": 14.742,
+    "LANE_119": 32.391,
+    "RESOURCE": 13.537,
+    "RESTORE": 14.137,
     "SHELTER": 1.946
    }
   },
   "empirical:B2_NEAREST": {
-   "gapHPerRun": 61.997,
-   "M1Rate": 0.906,
+   "gapHPerRun": 61.069,
+   "M1Rate": 0.905,
    "mismatch": 0,
    "byServedHPerRun": {
-    "LANE_119": 34.558,
-    "RESTORE": 14.672,
+    "LANE_119": 34.334,
+    "RESTORE": 14.04,
     "SHELTER": 2.112,
-    "RESOURCE": 10.654
+    "RESOURCE": 10.583
    }
   },
   "empirical:KR_BASELINE": {
-   "gapHPerRun": 72.961,
+   "gapHPerRun": 71.874,
    "M1Rate": 0.973,
    "mismatch": 0,
    "byServedHPerRun": {
-    "LANE_119": 59.053,
-    "RESTORE": 13.909
+    "LANE_119": 58.873,
+    "RESTORE": 13.002
    }
   }
  },
@@ -81,7 +82,7 @@
    "toolVsNearest": -0.006
   },
   "empirical": {
-   "toolVsKr": 0.138,
+   "toolVsKr": 0.137,
    "toolVsNearest": -0.015
   }
  }
