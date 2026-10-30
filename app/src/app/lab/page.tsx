@@ -1,7 +1,7 @@
 // /lab 리허설 랩 (spec.md 5.8절, 라운드 5). 정적 서버 컴포넌트. 숫자는 전부 src/data/lab.json(봉인 실행 집계)에서 나온다.
 // 탭 ① 손익분기 ② 빈틈 지도 ③ 도구 대 현행 ④ 보완안 ⑦ 실측 정전시간 ⑥ 사전등록 대조. ⑤ 반증 슬라이더는 만들지 않음(레드팀 10/18: 미완 표시 제거).
 import Link from "next/link";
-import { aptCalib, BEFORE_MEASURE, c1Evidence, e4Evidence, e5Evidence, e6Evidence, kpiOverPredict, n1Evidence } from "@/lib/evidence";
+import { aptCalib, BEFORE_MEASURE, c1Evidence, e119, e4Evidence, e5Evidence, e6Evidence, e7Evidence, gapDecomp, kpiOverPredict, lbV2, n1Evidence } from "@/lib/evidence";
 import { CAUSE_ORDER, causeLabel, cellParts, CLASS_KO, CLASS_ORDER, lab, pct1, type LabCmp, type LabDoc, type LabE1Cell } from "@/lib/lab";
 import { PATCHES, type PatchId } from "@/lib/sim/patches";
 import { pRange } from "@/lib/engine/params";
@@ -453,6 +453,46 @@ function NoticeCheck() {
   );
 }
 
+/** 실패 가정 점검(10/30): 남는 공백 분해(사후) → 평시 산소통·인공호흡기 먼저(E7, 봉인 S10) → 하한 v2·119 실측(사후) */
+function Premortem() {
+  const g = gapDecomp(), e = e7Evidence(), v = lbV2(), a = e119();
+  const ci = (x: { rel: number | null; lo: number | null; hi: number | null }) => `${pct1(x.rel)}(95% CI ${pct1(x.lo)}~${pct1(x.hi)})`;
+  const h = (x: number) => `${x.toFixed(1)}시간`;
+  return (
+    <div data-testid="premortem">
+      <p className="mt-1 text-[14px]">&lsquo;이 작품이 실패했다면 왜일까&rsquo;를 먼저 가정하고 다시 잰 결과입니다. 모두 합성 가구 위 모의이며, 봉인(S10) 실험과 사후 집계(사전등록 밖)를 나눠 표시합니다.</p>
+      <h3 className="mt-3 text-[16px] font-bold">남는 공백은 어디서 나오는가(사후 집계)</h3>
+      {g ? (
+        <p className="mt-1 text-[14px]">
+          봉인 E2 시드 {g.runs.toLocaleString("ko-KR")}회를 다시 돌려(봉인 값과 {g.mismatch === 0 ? "모두 일치" : `${g.mismatch}건 불일치`}) 도구를 써도 남는 공백 가구·시간 {h(g.ruleGapHPerRun)}/실행을 나눴습니다. 배터리 없는 거치형 산소발생기 가구가 {pct1(g.byClassShare.O2_STAT)}, 미등록 가구가 {pct1(g.byClassShare.UNREG)}입니다. 정전과 동시에 공백이 시작되는 가구라 정전 뒤 처리 순서로는 줄일 수 없습니다. 같은 기기에 산소통이 있는 가구는 실행당 {h(g.byClassHPerRun.O2_STAT_CYL ?? 0)}만 남았습니다(가구 수가 달라 인과 추정은 아님).
+        </p>
+      ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
+      <h3 className="mt-3 text-[16px] font-bold">평시 산소통과 &lsquo;배터리는 인공호흡기 먼저&rsquo;(E7, 봉인 S10)</h3>
+      {e ? (
+        <>
+          <p className="mt-1 text-[14px]">영국 NHS 가정산소처럼 산소 기기 가구에 예비 산소통(10시간)을 두고, 배터리는 같은 개수를 인공호흡기 가구에 먼저 줍니다. <strong>AI가 아닌 평시 보급 정책의 효과</strong>입니다. 등록부는 기기 등급을 고르게 뽑아 인공호흡기가 실제 비율보다 많고, 보급률·고장률은 가정입니다.</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px]">
+            <li>같은 산소통·같은 배터리 개수에서 배터리를 인공호흡기 가구에 먼저 주면: 공백 {ci(e.compares.noOverlap)} 감소. 이 감소 시간 중 산소통 때문에 생기는 몫 {ci(e.cylShare.strat)}(나머지는 배터리가 인공호흡기에서 더 오래 가서). 등급을 고르게 뽑지 않은 등록부에서는 {ci(e.compares.uNoOverlap)}.</li>
+            <li>산소 기기 가구 전원(60가구 중 평균 {(e.usedMean["RULE+CYL10S"]?.[0] ?? 0).toFixed(0)}개)에 산소통만 두면: 도구의 공백 {ci(e.compares.cylVsNone)} 감소(보호자 자기신고가 늘 맞다고 가정). 등급을 고르게 뽑지 않은 등록부 {ci(e.compares.uCylVsNone)}, 보급률을 배터리와 같게 제한하면 {ci(e.compares.cylCovVsNone)}.</li>
+            <li>E6 표적 배터리 대비 맞춤 조합(산소통이 더해진 비교): {ci(e.compares.matchedVsBattery)}. 같은 개수끼리는 표적 산소통이 배터리보다 {ci(e.compares.cylKVsBattery)}.</li>
+            <li>AI의 몫: 등록부가 라벨로만 기종을 안다면 AI 판독이 OCR보다 {ci(e.compares.aiVsOcr)} 낫지만, 보호자가 기기 종류만 체크해도 AI 판독만보다 {ci(e.compares.selfVsAi)} 낫습니다. 산소통 보급에는 AI 판독이 필요 없습니다.</li>
+            <li>공백 가구 비율(E6 배터리 → 맞춤 조합): 배터리 없는 산소발생기 {pct1(e.hhGap.O2_STAT?.battery)} → {pct1(e.hhGap.O2_STAT?.matched)}, 1시간급 인공호흡기 {pct1(e.hhGap.VENT_1H?.battery)} → {pct1(e.hhGap.VENT_1H?.matched)}.</li>
+          </ul>
+          <p className="mt-1 text-[13px] text-muted">E7 사전등록 {e.prereg.hit}/{e.prereg.total}(예비 실행을 보고 문턱을 정한 확인 항목이라 다른 사전등록과 따로 셉니다){e.prereg.missed.length ? ` · 틀림: ${e.prereg.missed.map((x) => x.id).join(", ")}` : ""}{e.prereg.structuralMissed.length ? ` · 구조 확인 틀림: ${e.prereg.structuralMissed.map((x) => x.id).join(", ")}` : ""}. 봉인 전 레드팀 4라운드(prereg/predictions_e7.md).</p>
+        </>
+      ) : <p className="mt-1 text-[14px]" data-testid="e7">E7 봉인 실행: <strong>{BEFORE_MEASURE}</strong></p>}
+      <h3 className="mt-3 text-[16px] font-bold">배터리 하한 v2(운영 화면, 사후 집계)</h3>
+      {v ? (
+        <p className="mt-1 text-[14px]">제조사 설명서의 최악 조건(최상 8시간 대비 4시간 이상)을 반영해 설정표 없는 기기의 정격에 ½을 곱했습니다. 봉인 E2 시드에서 표시 하한이 모의 실제보다 긴 경우 {pct1(v.v1.k / v.v1.n)} → {pct1(v.v2.k / v.v2.n)}, 가장 크게 넘친 폭 {v.v1.overH ? h(v.v1.overH.max) : "—"} → {v.v2.overH ? h(v.v2.overH.max) : "—"}, 공백 변화 {v.gapDiffHPerRun.toFixed(2)}시간/실행(차이 없음). 모의 실제의 설정 계수 하한도 ½이라 설정 때문에 넘치는 경우가 없어지는 것은 구성상 결과이고, 남은 경우는 노후·외장 고장·충전 입력입니다. 시뮬레이션 실험(E1~E7)은 봉인 당시 하한(v1)으로 돌립니다.</p>
+      ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
+      <h3 className="mt-3 text-[16px] font-bold">119 도착 실측으로 다시(사후 집계)</h3>
+      {a ? (
+        <p className="mt-1 text-[14px]">소방청 전국 구급 현황 {a.year}년 {a.n.toLocaleString("ko-KR")}건의 신고→현장 도착은 중앙값 {a.p50Min.toFixed(1)}분, 90% {a.p90Min.toFixed(1)}분으로, 모의 가정(10~30분 × 지연 배수 1~4)보다 짧습니다. 이 실측(평시)으로 바꿔도 도구의 남는 공백은 {h(a.assumed.ruleGapHPerRun)} → {h(a.empirical.ruleGapHPerRun)}/실행, 그중 119 경로 {h(a.assumed.rule119H)} → {h(a.empirical.rule119H)}에 그칩니다. 남는 공백은 도착 시간보다 119 처리 용량(대기열)에서 나오며, 용량은 실측 자료에 없습니다. 도구 대 현행 {pct1(a.empirical.toolVsKr)} 감소, 가까운 순과는 차이 없음({pct1(a.empirical.toolVsNearest)})으로 결론은 같습니다. 실측은 평시 값이라 대규모 정전의 수요 폭증을 담지 않습니다.</p>
+      ) : <p className="mt-1 text-[14px]">{BEFORE_MEASURE}</p>}
+    </div>
+  );
+}
+
 /** 원안 KPI '과대예측 0건'(사후 집계, 통합 레드팀 8라운드) */
 function KpiOver() {
   const k = kpiOverPredict();
@@ -461,7 +501,7 @@ function KpiOver() {
   const c = k.rule.cause;
   return (
     <p className="mb-2 rounded border border-line p-2 text-[14px]">
-      원안 KPI &lsquo;과대예측 0건&rsquo;(사후 집계, 사전등록 밖): 봉인 E2 시드 {k.runs.toLocaleString()}회를 다시 돌리면(공백 지표는 봉인 값과 {k.mismatch === 0 ? "모두 일치" : `${k.mismatch}회 불일치`}) 표시 배터리 하한이 모의 실제보다 긴 경우가 도구 {k.rule.k.toLocaleString()}/{k.rule.n.toLocaleString()} 가구·회({p(k.rule.k, k.rule.n)}), 현행 {p(k.baseline.k, k.baseline.n)}입니다(현행 수치는 같은 엔진 하한을 현행 절차 가구에 적용해 본 값이며 현행 화면에는 하한 표시가 없음, 분모는 하한이 계산된 가구). 목표 0건에 못 미칩니다. 넘는 폭은 중앙값 {Math.round(k.rule.overH.p50 * 60)}분, 상위 10% {k.rule.overH.p90.toFixed(1)}시간 이상, 최대 {k.rule.overH.max.toFixed(1)}시간입니다. 원인(겹치면 앞의 것): 확인 외장 고장 {c.extFailed.toLocaleString()}, 입력 충전량 100%(과대입력 주입 포함) {c.charge100.toLocaleString()}, 그 밖(모의 실제의 노후·설정 계수가 엔진 가정보다 낮음 등) {c.other.toLocaleString()}. 모의는 이런 오차를 일부러 넣었고, 하한이 &lsquo;틀릴 수 없는 값&rsquo;은 아닙니다.
+      원안 KPI &lsquo;과대예측 0건&rsquo;(사후 집계, 사전등록 밖): 봉인 E2 시드 {k.runs.toLocaleString()}회를 다시 돌리면(공백 지표는 봉인 값과 {k.mismatch === 0 ? "모두 일치" : `${k.mismatch}회 불일치`}) 표시 배터리 하한이 모의 실제보다 긴 경우가 도구 {k.rule.k.toLocaleString()}/{k.rule.n.toLocaleString()} 가구·회({p(k.rule.k, k.rule.n)}), 현행 {p(k.baseline.k, k.baseline.n)}입니다(현행 수치는 같은 엔진 하한을 현행 절차 가구에 적용해 본 값이며 현행 화면에는 하한 표시가 없음, 분모는 하한이 계산된 가구). 목표 0건에 못 미칩니다. 넘는 폭은 중앙값 {Math.round(k.rule.overH.p50 * 60)}분, 상위 10% {k.rule.overH.p90.toFixed(1)}시간 이상, 최대 {k.rule.overH.max.toFixed(1)}시간입니다. 원인(겹치면 앞의 것): 확인 외장 고장 {c.extFailed.toLocaleString()}, 입력 충전량 100%(과대입력 주입 포함) {c.charge100.toLocaleString()}, 그 밖(모의 실제의 노후·설정 계수가 엔진 가정보다 낮음 등) {c.other.toLocaleString()}. 모의는 이런 오차를 일부러 넣었고, 하한이 &lsquo;틀릴 수 없는 값&rsquo;은 아닙니다. 이 값은 봉인 당시 하한(v1)이며, 운영 화면은 10/30부터 하한 v2를 씁니다(⑩).
     </p>
   );
 }
@@ -488,6 +528,7 @@ export default function LabPage() {
         <a className="rounded border border-line px-2 py-0.5" href="#empirical">⑦ 실측 분포</a>
         <a className="rounded border border-line px-2 py-0.5" href="#ai-target">⑧ AI 판독·표적 배치</a>
         <a className="rounded border border-line px-2 py-0.5" href="#notice">⑨ 보호자 알림</a>
+        <a className="rounded border border-line px-2 py-0.5" href="#premortem">⑩ 실패 가정 점검</a>
         <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
@@ -547,6 +588,9 @@ export default function LabPage() {
           </Section>
           <Section id="notice" n="⑨" title="보호자 알림: AI 문장과 두 단계 검사">
             <NoticeCheck />
+          </Section>
+          <Section id="premortem" n="⑩" title="실패 가정 점검: 남는 공백과 평시 대비">
+            <Premortem />
           </Section>
           <Section id="prereg" n="⑥" title="사전등록 대조: 맞힌 것과 틀린 것">
             <KpiOver />

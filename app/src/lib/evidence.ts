@@ -161,3 +161,43 @@ export function kpiOverPredict(): KpiOverPredict | null {
 export function n1Evidence(): N1Evidence | null {
   return (doc as unknown as { n1?: N1Evidence }).n1 ?? null;
 }
+
+/** 실패 가정 점검(10/30) 사후 집계: 봉인 E2 시드로 남는 공백 분해(사전등록 밖) */
+export interface GapDecomp {
+  posthoc: true; runs: number; mismatch: number; ruleGapHPerRun: number;
+  byClassShare: Record<string, number>; byClassHPerRun: Record<string, number>; byServedHPerRun: Record<string, number>; householdsPerRun: Record<string, number>;
+  gapHPerRun: Record<string, number>;
+}
+export function gapDecomp(): GapDecomp | null {
+  return (doc as unknown as { gapDecomp?: GapDecomp }).gapDecomp ?? null;
+}
+/** 배터리 하한 v2(운영 화면) 사후 집계: 과대예측과 공백 */
+export interface LbV2 {
+  posthoc: true; mismatch: number; gapDiffHPerRun: number; gapDiffSe: number;
+  v1: { k: number; n: number; overH: { p50: number; p90: number; max: number } | null; gapHPerRun: number };
+  v2: { k: number; n: number; overH: { p50: number; p90: number; max: number } | null; gapHPerRun: number };
+}
+export function lbV2(): LbV2 | null {
+  return (doc as unknown as { lbV2?: LbV2 }).lbV2 ?? null;
+}
+/** 119 도착 실측(소방청 전국 구급 현황) 사후 민감도 */
+export interface E119 {
+  posthoc: true; year: string; n: number; p50Min: number; p90Min: number; runs: number; mismatch: number;
+  assumed: { ruleGapHPerRun: number; rule119H: number; toolVsKr: number; toolVsNearest: number };
+  empirical: { ruleGapHPerRun: number; rule119H: number; toolVsKr: number; toolVsNearest: number };
+}
+export function e119(): E119 | null {
+  return (doc as unknown as { e119?: E119 }).e119 ?? null;
+}
+/** E7: 평시 산소통·인공호흡기 먼저(S10 봉인 실행). 비AI 평시 보급 효과 */
+export interface E7Evidence {
+  n: number;
+  compares: Record<string, Rel>;
+  cylShare: { strat: Rel; unstrat: Rel };
+  hhGap: Record<string, { none: number | null; battery: number | null; matched: number | null }>;
+  prereg: { hit: number; total: number; afterPilot: true; missed: { id: string; text: string; value: string }[]; structuralMissed: { id: string; text: string; value: string }[] };
+  usedMean: Record<string, [number, number]>;
+}
+export function e7Evidence(): E7Evidence | null {
+  return (doc as unknown as { e7?: E7Evidence }).e7 ?? null;
+}

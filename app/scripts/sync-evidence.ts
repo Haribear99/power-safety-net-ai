@@ -410,6 +410,20 @@ if (n1) {
   }
 }
 
+// ---- 실패 가정 점검(10/30) 사후 민감도: 119 도착을 소방청 실측(평시)으로(scripts/posthoc-119.ts) ----
+{
+  const f = path.join(__dirname, "..", "..", "seal", "outputs", "posthoc", "e2_119_empirical.json");
+  if (existsSync(f)) {
+    const d = JSON.parse(readFileSync(f, "utf-8")) as { source: { year: string; n: number; p50Min: number; p90Min: number }; runs: number; rows: Record<string, { gapHPerRun: number; mismatch: number; byServedHPerRun: Record<string, number> }>; compare: Record<"assumed" | "empirical", { toolVsKr: number; toolVsNearest: number }> };
+    out.e119 = {
+      posthoc: true, year: d.source.year, n: d.source.n, p50Min: d.source.p50Min, p90Min: d.source.p90Min, runs: d.runs,
+      mismatch: Object.values(d.rows).reduce((s, x) => s + x.mismatch, 0),
+      assumed: { ruleGapHPerRun: d.rows["assumed:RULE"].gapHPerRun, rule119H: d.rows["assumed:RULE"].byServedHPerRun.LANE_119 ?? 0, ...d.compare.assumed },
+      empirical: { ruleGapHPerRun: d.rows["empirical:RULE"].gapHPerRun, rule119H: d.rows["empirical:RULE"].byServedHPerRun.LANE_119 ?? 0, ...d.compare.empirical },
+    };
+  }
+}
+
 // ---- E7: 평시 산소통·기기 맞춤 사전 배치(S10 봉인 실행, scripts/e7-analyze.ts → scripts/e7-evidence.ts) ----
 {
   const e7v = e7Evidence(take("out/e7_sealed.json") as E7Out | null);
