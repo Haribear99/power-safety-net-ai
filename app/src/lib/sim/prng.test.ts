@@ -25,7 +25,7 @@ describe("PRNG (5.1절)", () => {
     expect(Array.from({ length: 50 }, () => b.u32())).toEqual(xa);
     expect(Array.from({ length: 50 }, () => c.u32())).not.toEqual(xa);
     expect(Array.from({ length: 50 }, () => d.u32())).not.toEqual(xa);
-    expect(new Set(Object.values(STREAMS)).size).toBe(10);
+    expect(new Set(Object.values(STREAMS)).size).toBe(11); // CYL(E7, 10/30) 추가
     expect(streamHash("7", "S", "HH")).not.toBe(streamHash("7", "S", "RES"));
   });
   it("균등값은 (x>>>8)/2^24 ∈ [0,1), 정규값은 평균 0·분산 1 근처", () => {
