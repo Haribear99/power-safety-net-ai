@@ -64,7 +64,7 @@ expected = {
     "N1 측정 버전 표기": "봉인 당시 검사 기준",
     "N1 사용 규칙(9.1 틀림 시 표기)": "시연용·담당자 확인 뒤 발송",
     # 실패 가정 점검(10/30): E7(S10)·사후 집계. 사용 규칙(prereg/predictions_e7.md 2절)의 표지도 함께 본다
-    "기술요약 AI 실측": f"AI 판독 모델명 {rate(s['modelExact'])}(OCR {rate(t['modelExact'])})·기종 자동 확정 {rate(s['dbMatchRate'])}(봉인 시험셋)",
+    "기술요약 AI 실측": f"AI 판독 모델명 {rate(s['modelExact'])}(OCR {rate(t['modelExact'])})·자동 확정 {rate(s['dbMatchRate'])}(렌더 라벨 봉인 시험)",
     "E7 10.5 본문": f"먼저 주면 {pct(ev['e7']['compares']['noOverlap']['rel'])} 더 감소(층화 없음 {pct(ev['e7']['compares']['uNoOverlap']['rel'])}, 그 감소의 약 {round(ev['e7']['cylShare']['strat']['rel'] * 100)}%가 산소통 몫)",
     "E7 10.1": f"산소통(10시간)만 두면 공백 {pct(ev['e7']['compares']['cylVsNone']['rel'])} 감소(층화 없음 {pct(ev['e7']['compares']['uCylVsNone']['rel'])})",
     "E7 10.1 규모 표지": f"60가구 중 약 {round(ev['e7']['usedMean']['RULE+CYL10S'][0])}개, 자기신고 완전 정확 가정",
