@@ -260,7 +260,8 @@ async function expectInked(loc: import("@playwright/test").Locator, what: string
     }
     for (const o of owners) o.setAttribute("data-xr", "");
     // 자간·낱말 간격을 보통으로 되돌렸을 때의 폭과 비교(겹쳐 써서 못 읽게 만드는 자간)
-    const widths = () => { let w = 0; const tw2 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); while (tw2.nextNode()) { const tn = tw2.currentNode as Text; if (!tn.textContent?.trim()) continue; range.selectNodeContents(tn); for (const r of range.getClientRects()) w += r.width; } return w; };
+    // 그려진 폭(total)과 같은 줄만 센다: 세로로 화면 밖인 줄까지 세면 화면보다 긴 문단이 자간 겹침으로 오판된다(PR #5 CI, 모바일 /lab ⑨)
+    const widths = () => { let w = 0; const tw2 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); while (tw2.nextNode()) { const tn = tw2.currentNode as Text; if (!tn.textContent?.trim()) continue; range.selectNodeContents(tn); for (const r of range.getClientRects()) { if (r.width <= 1 || r.height <= 1) continue; if (r.bottom <= 0 || r.top >= innerHeight) continue; w += r.width; } } return w; };
     const st = document.createElement("style");
     st.textContent = "[data-xr] { letter-spacing: normal !important; word-spacing: normal !important; }";
     document.head.appendChild(st);
