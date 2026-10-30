@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import suwon from "@/data/presets/suwon.json";
 import seosan from "@/data/presets/seosan.json";
 import rotating from "@/data/presets/rotating.json";
-import { newSession, recompute, start, type Session, type UiPreset } from "@/lib/ops/session";
+import { guardTransition, newSession, recompute, start, type Session, type UiPreset } from "@/lib/ops/session";
 
 export const PRESETS: UiPreset[] = [suwon, seosan, rotating] as unknown as UiPreset[];
 export const SPEEDS = [0, 1, 60, 600] as const;
@@ -44,7 +44,7 @@ export function OpsProvider({ children }: { children: ReactNode }) {
 
   const startOutage = useCallback(() => {
     t0.current = performance.now();
-    setSession((s) => (s ? start(s) : s));
+    setSession((s) => (s ? guardTransition(s, start(s)) : s));
   }, []);
 
   // 정전 → 순위 표시 지연: 클릭부터 결과가 그려진 다음 프레임까지(실측)
@@ -63,13 +63,14 @@ export function OpsProvider({ children }: { children: ReactNode }) {
         if (!s) return s;
         const n = s.nowS + Math.round((speed * TICK_MS) / 1000);
         const crossed = Math.floor(n / RECOMPUTE_EVERY_S) !== Math.floor(s.nowS / RECOMPUTE_EVERY_S);
-        return crossed ? recompute(s, n) : { ...s, nowS: n };
+        return guardTransition(s, crossed ? recompute(s, n) : { ...s, nowS: n });
       });
     }, TICK_MS);
     return () => clearInterval(id);
   }, [session?.started, speed]);
 
-  const update = useCallback((fn: (s: Session) => Session) => setSession((s) => (s ? fn(s) : s)), []);
+  // 모든 상태 갱신은 결정 감시를 거친다(결정은 commitDecision으로만 바뀜, lib/ops/session.ts)
+  const update = useCallback((fn: (s: Session) => Session) => setSession((s) => (s ? guardTransition(s, fn(s)) : s)), []);
   const value = useMemo(() => ({ session, presetId, speed, latencyMs, load, startOutage, setSpeed, update }),
     [session, presetId, speed, latencyMs, load, startOutage, update]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

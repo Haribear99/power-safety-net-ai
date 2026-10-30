@@ -74,7 +74,7 @@ test("위젯 조작은 네트워크 요청 0 @mobile", async ({ page }) => {
   await expect(w).toContainText("가정 시나리오 범위 · 한전 실시간 예측 아님");
 });
 
-test("공개 단서 문장과 숫자 = evidence.json", async ({ page }) => {
+test("공개 단서 문장과 숫자 = evidence.json @mobile", async ({ page }) => {
   await page.goto("/");
   const k = evidence.kpiOverPredict.rule;
   const overPct = ((k.k / k.n) * 100).toFixed(1);

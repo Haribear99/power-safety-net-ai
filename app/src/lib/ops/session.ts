@@ -14,6 +14,7 @@ import { arrivalS, buildCtx, physCandidates, type AllocOptions } from "../alloc/
 import { recheckApproved, rule, type AllocResult, type AllocRow, type AllocState, type ApprovedRow } from "../alloc/rule";
 import { mockIso } from "../alloc/project119";
 import type { Slot119 } from "../alloc/fallback";
+import { consumeApproval, newGateId, type ApprovalTicket } from "./approvalGate";
 
 export interface UiPreset {
   format: "pl26-ui-preset/1";
@@ -58,6 +59,10 @@ export interface Session {
   /** /ops/119에서 파기한 가구 id(재난안전법 제74조의3⑤). 파기 뒤 새로 승인한 119 건은 다시 보인다 */
   purged119Ids: string[];
   auditSeq: number;
+  /** 결정 관문에서 이미 적용한 표 id. 같은 표를 다시 쓰면 아무것도 바꾸지 않는다(감사 행 중복·이전 결정으로 되돌리기 방지) */
+  appliedTickets: string[];
+  /** 결정 관문의 세션 id(새 세션마다 무작위). 지난 세션의 표를 새 세션에 쓰지 못하게 한다 */
+  sessionId: string;
 }
 
 export const DB = DEFAULT_DB;
@@ -69,10 +74,12 @@ export function newSession(preset: UiPreset): Session {
     if (reentry) reviewHints[h.id] = reentry;
     return hv as HouseholdView;
   });
-  return {
-    preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: {},
-    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0,
+  const s: Session = {
+    preset, households, reviewHints, started: false, nowS: qT(preset.planner.now), notice: null, decisions: Object.freeze({}),
+    forceNeedIds: [], flagged: {}, alternatives: {}, result: null, restoration: null, audit: [], purged119Ids: [], auditSeq: 0, appliedTickets: [], sessionId: newGateId(),
   };
+  fresh.add(s);
+  return s;
 }
 
 export function allocOpts(s: Session): AllocOptions {
@@ -169,14 +176,44 @@ export function decisionFromRow(row: AllocRow): Omit<Decision, "status" | "decid
   return { householdId: r.householdId, lane: r.lane, resourceId: r.resourceId, etaH: r.etaH, slot119: row.slot119, late119: row.late119 };
 }
 
-/** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다 */
-export function commitDecision(s: Session, d: Decision, audit: AuditEntry): Session {
-  const s1 = pushAudit(s, [audit]);
+/** 결정 저장 + 감사 행(APPROVE·MODIFY). 상태 문자열은 호출자(ApproveDrawer)가 정한다.
+ *  ticket: 승인 서랍의 실제 조작으로 발급한 표(approvalGate). 조작 1번 = 결정 1건 */
+export function commitDecision(s: Session, d: Decision, audit: AuditEntry, ticket: ApprovalTicket): Session {
+  const ticketId = consumeApproval(ticket, s.sessionId, d, audit);
+  // 승인할 배정이 없는 레인은 승인 상태로 저장하지 않는다(버튼 비활성만으로는 부족: Claude 3라운드 — 수동검토 → 수동검토 APPROVE)
+  if (d.status === "APPROVED" && (d.lane === "MANUAL_REVIEW" || d.lane === "HOLD" || d.lane === "UNSERVED_VISIBLE")) throw new Error("결정 관문: 승인할 배정이 없는 레인입니다");
+  // 이미 적용한 표: React 재실행은 적용 전 상태로 다시 부르므로 같은 결과가 되고, 적용된 상태에 다시 부르면 그대로 둔다
+  if (s.appliedTickets.includes(ticketId)) return s;
+  const s1 = pushAudit({ ...s, appliedTickets: [...s.appliedTickets, ticketId] }, [audit]);
   const { [d.householdId]: _drop, ...alts } = s1.alternatives;
   void _drop;
   // 파기 뒤 같은 가구를 다시 결정하면 새 결정이므로 119 화면에 다시 보인다
   const purged119Ids = s1.purged119Ids.filter((id) => id !== d.householdId);
-  return recompute({ ...s1, decisions: { ...s1.decisions, [d.householdId]: d }, alternatives: alts, purged119Ids });
+  const out = recompute({ ...s1, decisions: Object.freeze({ ...s1.decisions, [d.householdId]: Object.freeze({ ...d }) }), alternatives: alts, purged119Ids });
+  committed.add(out);
+  return out;
+}
+
+// ---------- 결정 감시(실행 중): 결정은 commitDecision으로만 바뀐다 ----------
+// 화면의 상태 갱신(OpsProvider)은 모두 guardTransition을 거친다. 상태 갱신 함수로 decisions를 직접 덮어쓰거나(레드팀 10/30 R5A5),
+// 지난 상태로 되돌리거나, 세션 id를 바꿔 끼우는 길을 실행 중에 거부한다. 결정 객체는 동결해 제자리 수정도 막는다.
+const committed = new WeakSet<Session>();
+const fresh = new WeakSet<Session>();
+
+/** 이 상태 변화가 결정 규칙을 어기면 그 이유, 아니면 null */
+export function transitionViolation(prev: Session, next: Session): string | null {
+  if (next === prev || next.decisions === prev.decisions) return null;
+  if (next.sessionId !== prev.sessionId) return fresh.has(next) && Object.keys(next.decisions).length === 0 ? null : "세션을 바꿔 결정을 넣을 수 없습니다";
+  const oneMore = next.appliedTickets.length === prev.appliedTickets.length + 1 && prev.appliedTickets.every((t, i) => next.appliedTickets[i] === t);
+  return committed.has(next) && oneMore ? null : "결정은 승인 서랍의 commitDecision으로만 바뀝니다";
+}
+
+/** 규칙을 어긴 변화는 버리고 이전 상태를 그대로 둔다(던지면 상태 갱신 중이라 화면 전체가 멈춘다: 10/30 R5A5 변이 확인). 오류는 기록한다 */
+export function guardTransition(prev: Session, next: Session): Session {
+  const v = transitionViolation(prev, next);
+  if (v === null) return next;
+  console.error(`결정 관문: ${v}`);
+  return prev;
 }
 
 /** 운영자 숫자 입력 파싱: 0 이상 십진수만(빈 칸·공백·"abc"·"0x1"·"1e1"·음수는 null). 빈 칸이 0으로 바뀌어 하한이 오르는 것을 막는다 */

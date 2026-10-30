@@ -13,6 +13,7 @@ import {
   applyVerify, commitDecision, DB, decisionFromRow, parseOperatorNumber, deviceClass, etaForResource, modifyOptions, MODIFY_REASON_CODES, nowIso, reReport,
   type Decision, type VerifyInput,
 } from "@/lib/ops/session";
+import { issueApproval, type ApprovalTicket } from "@/lib/ops/approvalGate";
 import { useOps } from "./OpsProvider";
 import { h2, LANE_KO } from "./labels";
 
@@ -25,18 +26,21 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
   const alt = s.alternatives[householdId];
   const lbd = computeLowerBoundDetail(hh, DB);
   const now = sToH(s.nowS);
-  const ref = useRef<HTMLButtonElement>(null);
+  // 서랍을 열면 제목으로 포커스를 옮긴다(승인 버튼이 아님): 행 열기 Enter를 누르고 있으면 열기와 승인이 함께 일어나던 문제(Claude 3라운드)
+  const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => { ref.current?.focus(); }, [householdId]);
 
-  function onApprove() {
+  function onApprove(e: React.MouseEvent) {
     if (!row) return;
+    const t = issueApproval(e.nativeEvent, s.sessionId, householdId);
     const d: Decision = { ...decisionFromRow(row), status: "APPROVED", decidedAtS: s.nowS };
     const slot = { lane: row.rec.lane, ...(row.rec.resourceId ? { resourceId: row.rec.resourceId } : {}) };
     const a: AuditEntry = { at: nowIso(s), actor: "demo-operator", householdId, action: "APPROVE", from: slot, to: slot };
-    update((x) => commitDecision(x, d, a));
+    update((x) => commitDecision(x, d, a, t));
   }
-  function onApproveAlternative() {
+  function onApproveAlternative(e: React.MouseEvent) {
     if (!alt || !decided) return;
+    const t = issueApproval(e.nativeEvent, s.sessionId, householdId);
     const d: Decision = { ...decisionFromRow(alt), status: "MODIFIED", decidedAtS: s.nowS };
     const a: AuditEntry = {
       at: nowIso(s), actor: "demo-operator", householdId, action: "MODIFY",
@@ -44,13 +48,13 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
       to: { lane: alt.rec.lane, ...(alt.rec.resourceId ? { resourceId: alt.rec.resourceId } : {}) },
       reasonCode: "RECHECK_ALT", reasonText: "재검토 대안 승인",
     };
-    update((x) => commitDecision(x, d, a));
+    update((x) => commitDecision(x, d, a, t));
   }
 
   return (
-    <section role="dialog" aria-modal="false" aria-labelledby="drawer-title" className="rounded-lg border border-ink p-3" data-testid="approve-drawer">
+    <section role="dialog" aria-modal="false" aria-labelledby="drawer-title" className="rounded-lg border border-ink p-3" data-testid="approve-drawer" data-household={householdId}>
       <div className="flex items-start justify-between">
-        <h2 id="drawer-title" className="text-[18px] font-bold">{hh.pseudonym} · {DEVICE_CLASS_LABEL[deviceClass(hh)]}</h2>
+        <h2 id="drawer-title" ref={ref} tabIndex={-1} className="text-[18px] font-bold">{hh.pseudonym} · {DEVICE_CLASS_LABEL[deviceClass(hh)]}</h2>
         <button type="button" onClick={onClose} className="text-[14px] underline">닫기</button>
       </div>
       <p className="mt-1 text-[14px] text-muted">격자 ({hh.cell.x}, {hh.cell.y}) km · {hh.floor}층 · 보호자 {hh.caregiver ? "있음" : "없음"} · 이동지원 {hh.mobilityNeed ? "필요" : "불필요"}</p>
@@ -73,7 +77,7 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
             <div className="mt-2 rounded border border-gap bg-white p-2">
               <p>대안(제안): {LANE_KO[alt.rec.lane]}{alt.rec.resourceId ? ` · ${alt.rec.resourceId}` : ""}</p>
               <p className="text-[13px] text-muted">{safeReason(alt.rec.reason)}</p>
-              <button ref={ref} type="button" className="mt-1 rounded bg-ink px-3 py-1 text-white" onClick={onApproveAlternative} data-testid="approve-alt">대안 승인</button>
+              <button type="button" className="mt-1 rounded bg-ink px-3 py-1 text-white" onClick={onApproveAlternative} data-testid="approve-alt" data-gate="gate-approve-alt">대안 승인</button>
             </div>
           )}
         </div>
@@ -83,8 +87,8 @@ export function ApproveDrawer({ householdId, onClose }: { householdId: string; o
           <p className="text-[15px]"><strong>{LANE_KO[row.rec.lane]}</strong>{row.rec.resourceId ? ` · ${row.rec.resourceId}` : ""}</p>
           <p className="mt-1 text-[13px] leading-5 text-muted" data-testid="drawer-reason">{safeReason(row.rec.reason)}</p>
           <div className="mt-2 flex gap-2">
-            <button ref={ref} type="button" onClick={onApprove} disabled={row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE"}
-              className="rounded bg-ink px-4 py-1.5 text-[15px] font-bold text-white disabled:opacity-40" data-testid="approve">승인</button>
+            <button type="button" onClick={onApprove} disabled={row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE"}
+              className="rounded bg-ink px-4 py-1.5 text-[15px] font-bold text-white disabled:opacity-40" data-testid="approve" data-gate="gate-approve">승인</button>
           </div>
           {(row.rec.lane === "MANUAL_REVIEW" || row.rec.lane === "HOLD" || row.rec.lane === "UNSERVED_VISIBLE") && (
             <p className="mt-1 text-[12px] text-muted">이 레인은 승인할 배정이 없습니다. 「수정」으로 수단을 고르거나 확인 조작을 하세요.</p>
@@ -132,10 +136,21 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
   const [text, setText] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const o = opts[pick];
+  // 결정 관문은 제출 버튼의 클릭으로 판정한다: 스크립트의 requestSubmit()·button.click()도 브라우저가 낸 submit 이벤트는 isTrusted라서
+  // submit 이벤트로는 가를 수 없다. 클릭을 처리하는 중에 표를 받아 두고(같은 작업 안에서 submit보다 먼저 옴), 다음 작업에서 지운다
+  const ticketRef = useRef<ApprovalTicket | null>(null);
+  function onSubmitClick(e: React.MouseEvent) {
+    ticketRef.current = null;
+    try { ticketRef.current = issueApproval(e.nativeEvent, s.sessionId, householdId); } catch (ex) { setErr(String((ex as Error).message)); }
+    setTimeout(() => { ticketRef.current = null; }, 0);
+  }
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    const t = ticketRef.current;
+    ticketRef.current = null;
     if (!o) return;
     if (!code || text.trim().length < 5) { setErr("사유 코드와 자유문 5자 이상이 필요합니다"); return; }
+    if (!t) { setErr("결정 관문: 「수정 저장」 버튼을 직접 눌러 저장하세요"); return; }
     const etaH = o.resourceId ? etaForResource(s, householdId, o.resourceId) : undefined;
     const d: Decision = { householdId, lane: o.lane, resourceId: o.resourceId, etaH, status: "MODIFIED", decidedAtS: s.nowS };
     const a: AuditEntry = {
@@ -143,7 +158,7 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
       from: { lane: fromLane, ...(fromRes ? { resourceId: fromRes } : {}) }, to: { lane: o.lane, ...(o.resourceId ? { resourceId: o.resourceId } : {}) },
       reasonCode: code, reasonText: text.trim(),
     };
-    try { update((x) => commitDecision(x, d, a)); setErr(null); } catch (ex) { setErr(String((ex as Error).message)); }
+    try { update((x) => commitDecision(x, d, a, t)); setErr(null); } catch (ex) { setErr(String((ex as Error).message)); }
   }
   return (
     <details className="mt-3 rounded border border-line p-2">
@@ -164,7 +179,8 @@ function ModifyForm({ householdId, fromLane, fromRes }: { householdId: string; f
           <input className="rounded border border-line p-1" value={text} onChange={(e) => setText(e.target.value)} data-testid="modify-text" />
         </label>
         {err && <p className="text-gap" role="alert">{err}</p>}
-        <button type="submit" className="rounded border border-ink px-3 py-1 font-semibold" data-testid="modify-submit">수정 저장</button>
+        <button type="submit" className="rounded border border-ink px-3 py-1 font-semibold" data-testid="modify-submit" data-gate="gate-modify"
+          onClick={onSubmitClick}>수정 저장</button>
       </form>
     </details>
   );

@@ -44,6 +44,15 @@ const NO_DECISION_WRITES = [
   { selector: "AssignmentExpression[left.object.property.name='decisions'], AssignmentExpression[left.property.name='decisions']", message: "화면 코드에서 decisions에 직접 대입하지 않는다(commitDecision으로만)." },
 ];
 const NO_COMMIT_IMPORT = { group: ["**/ops/session", "@/lib/ops/session"], importNames: ["commitDecision"], message: "결정 저장(commitDecision)은 components/ops/ApproveDrawer.tsx에서만 쓴다(I6, 감사 행이 남는 유일한 길)." };
+// 결정 관문(10/30 런타임 승인 토큰): 표 발급(issueApproval)은 ApproveDrawer만, 표 소비(consumeApproval)는 session.ts만, 시험용 표는 *.test.ts만.
+// 시험 아닌 소스 전체에 걸고(hooks 등 새 폴더 포함), 상대 경로·확장자(.js·.ts) 경로도 잡는다(Codex 리뷰 10/30). 허용 목록은 lib/ops/approval-gate-eslint.test.ts가 확인
+const GATE_SRC = ["**/approvalGate", "**/approvalGate.*", "./approvalGate", "./approvalGate.*", "@/lib/ops/approvalGate", "@/lib/ops/approvalGate.*"];
+const gateRule = (names) => ({ group: GATE_SRC, importNames: names, message: "결정 관문: 표 발급(issueApproval)은 components/ops/ApproveDrawer.tsx, 표 소비(consumeApproval)는 lib/ops/session.ts, 시험용 표(ticketForTest)는 시험 파일에서만 쓴다." });
+const NO_GATE_ALL = gateRule(["issueApproval", "consumeApproval", "ticketForTest"]);
+// 동적 import("…approvalGate")는 import 규칙이 보지 않는다(Codex 2라운드): 시험·ApproveDrawer 밖에서 금지
+const NO_GATE_DYNAMIC = [
+  { selector: "ImportExpression[source.value=/approvalGate/], ImportExpression[source.quasis.0.value.raw=/approvalGate/]", message: "결정 관문 모듈을 동적 import로 가져오지 않는다(정적 import만, 허용 파일 규칙이 적용되도록)." },
+];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -51,18 +60,18 @@ const eslintConfig = defineConfig([
   {
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_GATE_DYNAMIC] },
   },
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_DECISION_WRITES] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_DECISION_WRITES, ...NO_GATE_DYNAMIC] },
   },
   {
     // restoration.ts: CONFIRMED 범위 exp(±zσ)는 Math.exp 직후 qT로 바꾸는 명세 예외(3절)라 초월함수 규칙에서 뺀다
     files: ["src/lib/alloc/**/*.ts", "src/lib/engine/**/*.ts"],
     ignores: ["src/**/*.test.ts", "src/lib/engine/restoration.ts"],
-    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_TRANSCENDENTAL] },
+    rules: { "no-restricted-syntax": ["error", ...NO_APPROVED, ...NO_TRANSCENDENTAL, ...NO_GATE_DYNAMIC] },
   },
   {
     // 승인 핸들러가 있는 유일한 파일
@@ -72,12 +81,39 @@ const eslintConfig = defineConfig([
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/lib/alloc/**/*.ts", "src/lib/sim/reentry.ts"],
     ignores: ["src/**/*.test.ts"],
-    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_COMMIT_IMPORT] }] },
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, NO_COMMIT_IMPORT, NO_GATE_ALL] }] },
   },
   {
-    // ApproveDrawer만 commitDecision을 가져올 수 있다(그 안의 사용 횟수·위치는 lib/ops/approve-drawer-ast.test.ts가 고정)
+    // ApproveDrawer만 commitDecision·issueApproval을 가져올 수 있다(그 안의 사용 횟수·위치는 lib/ops/approve-drawer-ast.test.ts가 고정)
     files: ["src/components/ops/ApproveDrawer.tsx"],
-    rules: { "@typescript-eslint/no-restricted-imports": ["error", NO_WORLD_TRUTH] },
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [...NO_WORLD_TRUTH.patterns, gateRule(["consumeApproval", "ticketForTest"])] }] },
+  },
+  {
+    // 위 두 묶음 밖의 시험 아닌 소스 전체(lib·hooks 등)
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/app/**", "src/components/**", "src/lib/alloc/**", "src/lib/sim/reentry.ts", "src/lib/ops/session.ts"],
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [NO_GATE_ALL] }] },
+  },
+  {
+    // 같은 페이지 안 변조 대비(Claude 3라운드 경미 5): 내장 객체 프로토타입 바꾸기, Proxy·Reflect는 소스에서 쓰지 않는다
+    files: ["src/**/*.{ts,tsx,js,jsx,mjs,cjs}"],
+    ignores: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    rules: {
+      "no-extend-native": "error",
+      "no-restricted-globals": ["error", { name: "Proxy", message: "Proxy는 쓰지 않는다(결정 관문 우회 대비)" }, { name: "Reflect", message: "Reflect는 쓰지 않는다(결정 관문 우회 대비)" }],
+    },
+  },
+  {
+    files: ["src/lib/ops/session.ts"],
+    rules: { "@typescript-eslint/no-restricted-imports": ["error", { patterns: [gateRule(["issueApproval", "ticketForTest"])] }] },
+  },
+  {
+    // JS 소스(allowJs)에서는 관문 함수를 아예 쓰지 않는다(Codex 2라운드: .js 파일이 규칙 밖이었음)
+    files: ["src/**/*.{js,jsx,mjs,cjs}"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [NO_GATE_ALL] }],
+      "no-restricted-syntax": ["error", ...NO_GATE_DYNAMIC],
+    },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

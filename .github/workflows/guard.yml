@@ -32,12 +32,15 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           OWNER_PR: ${{ github.event.pull_request.author_association == 'OWNER' }}
           LABELED: ${{ github.event.action != 'synchronize' && contains(github.event.pull_request.labels.*.name, 'test-change-approved') }}
         run: |
           git fetch --no-tags origin "pull/$PR/head:pr-head"
+          # 이벤트가 가리키는 커밋과 지금 받은 head가 다르면(그 사이 새 커밋) 판정하지 않는다. 새 커밋의 synchronize 실행이 다시 판정한다(레드팀 10/30 L1)
+          if [ "$(git rev-parse pr-head)" != "$HEAD_SHA" ]; then echo "::error::PR head가 이벤트 커밋($HEAD_SHA)과 다릅니다. 새 커밋의 실행 결과를 보세요."; exit 1; fi
           # --no-renames: 이름 바꾸기를 '원래 경로 삭제 + 새 경로 추가'로 보여 줘 원래 경로가 목록에 남는다
-          changed=$(git diff --name-only --no-renames "$BASE"...pr-head | grep -E '^(app/e2e/|app/scripts/|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package(-lock)?[.]json|app/tsconfig[.]json|app/next[.]config[.]ts|app/src/lib/|app/src/data/|app/src/app/api/|app/public/samples/|[.]test[.]tsx?$|[.]github/|tools/|spec/|prereg/|seal/|datasets/|out/)' || true)
+          changed=$(git diff --name-only --no-renames "$BASE"...pr-head | grep -E '^(app/e2e/|app/scripts/|app/eslint[.]config[.]mjs|app/playwright[.]config[.]ts|app/vitest[.]config[.]mts|app/lighthouserc|app/package(-lock)?[.]json|app/tsconfig[.]json|app/next[.]config[.]ts|app/src/lib/|app/src/data/|app/src/app/api/|app/public/samples/|app/src/components/ops/ApproveDrawer[.]tsx|app/src/components/ops/OpsProvider[.]tsx|[.]test[.]tsx?$|[.]github/|tools/|spec/|prereg/|seal/|datasets/|out/)' || true)
           if [ -z "$changed" ]; then echo "검사 체계·수정 금지 파일 변경 없음"; exit 0; fi
           echo "검사 체계·수정 금지 파일 변경:"; echo "$changed"
           if [ "$OWNER_PR" = "true" ] || [ "$LABELED" = "true" ]; then echo "의뢰인 확인됨(저장소 주인 PR 또는 승인 라벨)"; exit 0; fi

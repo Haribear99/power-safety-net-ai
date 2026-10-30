@@ -363,3 +363,83 @@ test("같은 가구에서 사실이 바뀌면 이전 AI 글을 버리고 고정 
   await expect(page.getByTestId("notice-text")).not.toContainText("시험용 AI 문장입니다");
   await expect(page.getByTestId("notice-panel")).toContainText("고정 문안");
 });
+
+test("스크립트가 만든 클릭·제출로는 결정이 저장되지 않는다(런타임 승인 관문), 실제 조작은 그대로 저장", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await startOutage(page);
+  const [id] = await rowIds(page, "FALLBACK_119");
+  await openRow(page, id);
+  const approveCount = () => page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count();
+  // 화면 코드가 버튼을 스스로 누르는 길(element.click, dispatchEvent): isTrusted=false라 거부
+  await page.getByTestId("approve").evaluate((b: HTMLButtonElement) => b.click());
+  await page.getByTestId("approve").evaluate((b) => b.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  await expect(page.getByTestId("approve-drawer")).not.toContainText("승인됨");
+  expect(await approveCount()).toBe(0);
+  expect(errors.filter((m) => m.includes("결정 관문")).length).toBe(2);
+  // 수정 양식을 스크립트로 제출(requestSubmit)하거나 제출 버튼을 스크립트로 눌러도 거부, 사유는 화면에 뜬다.
+  // (이 두 길의 submit 이벤트는 isTrusted라서, 관문은 제출 버튼의 실제 클릭으로 판정한다)
+  const [mr] = await rowIds(page, "MANUAL_REVIEW");
+  await openRow(page, mr);
+  const before = (await auditRows(page)).length;
+  await page.getByText("수정", { exact: true }).click();
+  await page.getByTestId("modify-code").selectOption({ index: 1 });
+  await page.getByTestId("modify-text").fill("현장 확인 결과 반영");
+  await page.getByTestId("modify-submit").evaluate((b: HTMLButtonElement) => b.form!.requestSubmit());
+  await expect(page.getByTestId("approve-drawer").getByRole("alert")).toContainText("결정 관문");
+  await page.getByTestId("modify-text").fill("현장 확인 결과 반영함");
+  await page.getByTestId("modify-submit").evaluate((b: HTMLButtonElement) => b.click());
+  await expect(page.getByTestId("approve-drawer").getByRole("alert")).toContainText("결정 관문");
+  expect((await auditRows(page)).length).toBe(before);
+  await expect(page.getByTestId("approve-drawer")).not.toContainText("수정됨");
+  // 담당자의 실제 조작은 그대로 저장된다: 사유 칸에서 Enter(암묵 제출)도 실제 조작이다. 감사 MODIFY는 정확히 1건 늘어난다
+  await page.getByTestId("modify-text").press("Enter");
+  await expect(page.getByTestId("approve-drawer")).toContainText("수정됨");
+  expect((await auditRows(page)).filter((t) => t.includes(mr) && t.includes("MODIFY")).length).toBe(1);
+  await openRow(page, id);
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("approve-drawer")).toContainText("승인됨");
+  expect(await approveCount()).toBe(1);
+});
+
+test("재검토 대안 승인도 실제 클릭만 저장(스크립트 클릭 거부), 실제 클릭 1번 = MODIFY 1건", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await startOutage(page);
+  await enterNotice(page, "1");
+  const [id] = await rowIds(page, "PROPOSE_ASSIGN");
+  await approve(page, id);
+  await page.getByText("가구 재신고(시연)").click();
+  await page.getByLabel("재신고 충전량 퍼센트").fill("0");
+  await page.getByTestId("rereport").click();
+  await expect(page.getByTestId(`recheck-${id}`)).toBeVisible();
+  const alt = page.getByTestId("approve-alt");
+  await expect(alt, "재검토 대안이 없어 이 시험의 전제가 깨짐").toBeVisible();
+  const modifies = async () => (await auditRows(page)).filter((t) => t.includes(id) && t.includes("MODIFY")).length;
+  await alt.evaluate((b: HTMLButtonElement) => b.click());
+  expect(await modifies()).toBe(0);
+  expect(errors.filter((m) => m.includes("결정 관문")).length).toBe(1);
+  await alt.click();
+  await expect(page.getByTestId("approve-drawer")).toContainText("수정됨");
+  expect(await modifies()).toBe(1);
+});
+
+test("행 열기 버튼에서 Enter를 누르고 있어도(자동 반복) 결정이 생기지 않고, 서랍은 제목에 포커스", async ({ page }) => {
+  await startOutage(page);
+  const [id] = await rowIds(page, "FALLBACK_119");
+  await page.getByTestId(`open-${id}`).focus();
+  await page.keyboard.down("Enter");
+  await expect(page.getByTestId("approve-drawer")).toBeVisible();
+  // 같은 키를 누른 채로 다시 down = 자동 반복(repeat) 키 이벤트
+  for (let i = 0; i < 3; i++) await page.keyboard.down("Enter");
+  await page.keyboard.up("Enter");
+  await page.waitForTimeout(200);
+  await expect(page.locator("#drawer-title")).toBeFocused();
+  expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count()).toBe(0);
+  await expect(page.getByTestId("approve-drawer")).not.toContainText("승인됨");
+  // 키보드로 승인 버튼에 가서 Enter 한 번은 정상 승인
+  await page.getByTestId("approve").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("approve-drawer")).toContainText("승인됨");
+  expect(await page.locator('[data-testid="audit-table"] [data-action="APPROVE"]').count()).toBe(1);
+});
