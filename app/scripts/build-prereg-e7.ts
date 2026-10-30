@@ -37,7 +37,10 @@ const doc = {
   },
   codeSha256: code,
   commands: [
-    "cd app && npx tsx scripts/sweep.ts E7 --tag sealed --seedLo <drand로 정한 값> --draws 2000 --master E7",
+    "python -I tools/ots.py stamp -c https://alice.btc.calendar.opentimestamps.org -c https://bob.btc.calendar.opentimestamps.org -m 1 seal/S10.txt",
+    "python -I tools/ots.py upgrade seal/S10.txt.ots  (alice 증명이 붙을 때까지)",
+    "node tools/s10-seed.mjs   → seal/S10_beacon.json(seedLo)",
+    "cd app && npx tsx scripts/sweep.ts E7 --tag sealed --seedLo <S10_beacon.json seedLo> --draws 2000 --master E7",
     "cd app && npx tsx scripts/e7-analyze.ts --tag sealed",
     "node tools/check-seal-order.mjs",
   ],

@@ -2,15 +2,17 @@
 // 규칙(봉인 대상, 결과를 보기 전에 고정):
 //   스탬프는 alice·bob 캘린더 두 곳으로만 만든다:
 //     python -I tools/ots.py stamp -c https://alice.btc.calendar.opentimestamps.org -c https://bob.btc.calendar.opentimestamps.org -m 1 seal/S10.txt
+//   .ots에는 alice·bob 두 캘린더 경로만 있어야 한다(대기 증명 URI는 업그레이드 뒤에도 남으므로 지금 파일로 확인한다).
 //   B  = alice 캘린더 경로의 비트코인 블록 증명(높이 하나로 정해진다 — 업그레이드 시점을 골라 B를 바꿀 수 없다).
-//        alice가 스탬프 뒤 12시간 안에 증명을 주지 않으면 bob의 것을 쓴다(이 대체도 봉인 대상 규칙).
+//        S10 태그 커밋 시각 + 24시간이 지나도록 alice 증명이 없을 때만 bob의 것을 쓴다(기준 시각은 커밋이라 다시 커밋해도 밀리지 않는다).
 //   증명 확인: tools/ots_check.py — S10.txt sha256 = .ots 다이제스트, 증명 메시지 = 그 블록 머클 루트(blockstream.info·mempool.space 두 곳 일치).
 //   S10 태그 커밋 시각이 B의 헤더 시각 nTime보다 늦으면 멈춘다(커밋 시각을 미래로 적어 라운드를 고르는 길을 막는다).
+//   멈추면 이 S10은 무효로 CHANGELOG에 공개하고, 내용을 바꾸지 않은 새 태그 S10b로 다시 커밋·스탬프한다.
 //   R  = nTime보다 엄격히 뒤의 첫 drand quicknet 라운드. 라운드 r의 시각 = 1692803367 + (r − 1) × 3 → R = floor((nTime − 1692803367) / 3) + 2
 //   seedLo = 8,000,001 + (R 난수 앞 8자리 16진수 정수 mod 900,000). 난수는 api.drand.sh와 drand.cloudflare.com 두 곳이 같아야 한다.
 // 결과는 seal/S10_beacon.json.
 import { execFileSync } from "node:child_process";
-import { statSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,12 +24,12 @@ const stop = (msg, code = 2) => { console.error(msg); process.exit(code); };
 
 const chk = JSON.parse(execFileSync("python", ["-I", path.join(repo, "tools", "ots_check.py"), path.join(repo, "seal", "S10.txt"), path.join(repo, "seal", "S10.txt.ots")], { encoding: "utf-8" }));
 if (!chk.digestMatch) stop("S10.txt sha256이 .ots 다이제스트와 다르다");
-const cals = Object.keys(chk.byCalendar);
-if (cals.some((c) => c !== ALICE && c !== BOB)) stop(`alice·bob 밖 캘린더가 있다: ${cals.join(", ")}`);
-const stampedS = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "--", "seal/S10.txt.ots"], { encoding: "utf-8" }).trim() || statSync(path.join(repo, "seal", "S10.txt.ots")).mtimeMs / 1000);
+const cals = Object.keys(chk.byCalendar).sort();
+if (cals.join() !== [ALICE, BOB].sort().join()) stop(`캘린더가 alice·bob 두 곳이 아니다: ${cals.join(", ")}`);
+const commitT = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "S10"], { encoding: "utf-8" }).trim());
 let cal = ALICE;
 if (!(chk.byCalendar[ALICE] ?? []).length) {
-  if (Date.now() / 1000 < stampedS + 12 * 3600) stop("alice 증명 없음 — `python -I tools/ots.py upgrade seal/S10.txt.ots` 뒤 다시(스탬프 뒤 12시간까지는 alice만 기다린다)");
+  if (Date.now() / 1000 < commitT + 24 * 3600) stop("alice 증명 없음 — `python -I tools/ots.py upgrade seal/S10.txt.ots` 뒤 다시(S10 커밋 뒤 24시간까지는 alice만 기다린다)");
   if (!(chk.byCalendar[BOB] ?? []).length) stop("alice·bob 모두 증명 없음");
   cal = BOB;
 }
@@ -35,7 +37,6 @@ const height = Math.min(...chk.byCalendar[cal]);
 const b = chk.bitcoin.find((x) => x.height === height);
 if (!b?.merkleOk) stop(`블록 ${height} 머클 루트 불일치`);
 const nTime = b.nTime;
-const commitT = Number(execFileSync("git", ["-C", repo, "log", "-1", "--format=%ct", "S10"], { encoding: "utf-8" }).trim());
 if (commitT > nTime) stop(`S10 커밋 시각(${commitT})이 블록 시각(${nTime})보다 늦다 — 규칙 위반, 봉인 실행 중지`);
 const R = Math.floor((nTime - GENESIS) / PERIOD) + 2;
 const roundT = GENESIS + (R - 1) * PERIOD;

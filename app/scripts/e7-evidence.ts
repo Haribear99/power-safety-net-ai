@@ -24,6 +24,7 @@ export function e7Evidence(e7: E7Out | null) {
     prereg: {
       hit: e7.prereg.hit, total: e7.prereg.total, afterPilot: true,
       missed: e7.prereg.items.filter((x) => x.hit === false && !x.structural).map((x) => ({ id: x.id, text: x.text, value: x.value })),
+      structuralMissed: e7.prereg.items.filter((x) => x.hit === false && x.structural).map((x) => ({ id: x.id, text: x.text, value: x.value })),
     },
     usedMean: e7.usedMean,
   };

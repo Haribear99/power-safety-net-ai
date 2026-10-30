@@ -75,13 +75,15 @@ const compares = {
   uNoOverlap: pairRel("U:RULE+CYL10S+P7P", "U:RULE+CYL10S+P7E"),
   uBatteryVsNone: pairRel("U:RULE", "U:RULE+P7P"),
 };
-/** 산소통 때문에 생기는 몫 = (CYL+P7P→CYL+P7E 감소율) − (P7P→P7E 감소율), 같은 재표본으로 부트스트랩 95% CI(보고만) */
+/** 10.5에서 줄어든 공백 시간 중 산소통 때문에 생기는 몫(비율) = [(CYL+P7P − CYL+P7E) − (P7P − P7E)] ÷ (CYL+P7P − CYL+P7E), 공백 시간 기준.
+ *  같은 재표본으로 부트스트랩 95% CI(보고만). 감소율끼리 빼면 분모가 달라 산소통 몫이 부풀었다(레드팀 3라운드 중대 1) */
 function interaction(prefix: string) {
   const ix = (v: string) => { const i = V.indexOf(prefix + v); if (i < 0) throw new Error(`변형 없음 ${prefix}${v}`); return i; };
   const [a0, a1, b0, b1] = [ix("RULE+CYL10S+P7P"), ix("RULE+CYL10S+P7E"), ix("RULE+P7P"), ix("RULE+P7E")];
   const val = (rs: typeof rows) => {
     const s = (i: number) => rs.reduce((x, r) => x + r.m2S[i], 0);
-    return (1 - s(a1) / s(a0)) - (1 - s(b1) / s(b0));
+    const total = s(a0) - s(a1);
+    return total > 0 ? (total - (s(b0) - s(b1))) / total : NaN;
   };
   const rng = rngFor("E7-BOOT", `interaction|${prefix}`, "BOOT");
   const xs: number[] = [];
