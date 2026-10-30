@@ -27,6 +27,12 @@ for f in SRC.rglob("*.tsx"):
     for m in re.finditer(r'title="([^"]+)"', t):
         chars |= set(re.findall(r"[\uac00-\ud7a3]", m.group(1)))
 chars |= set("전력안심망")
+# 제목에 동적으로 들어가는 글자(10/30 레드팀 2R): 운영 화면 시나리오 이름 h2, 서랍 제목 h2의 기기 이름
+import json
+for f in (SRC / "data" / "presets").glob("*.json"):
+    chars |= set(re.findall(r"[가-힣]", json.loads(f.read_text(encoding="utf-8"))["meta"]["name"]))
+_lab = re.search(r"DEVICE_CLASS_LABEL[^{]*\{(.*?)\};", (SRC / "lib" / "alloc" / "project119.ts").read_text(encoding="utf-8"), re.S)
+chars |= set(re.findall(r"[가-힣]", _lab.group(1)))
 # 랜딩(/)에서 이 글꼴로 그려지는 글자: 랜딩 파일들의 h1~h3 + 로고
 LANDING = [SRC / "app" / "page.tsx", *(SRC / "components" / n for n in ("TwoClocks.tsx", "GapWidget.tsx", "ClosingCard.tsx"))]
 landing = set("전력안심망") | set(" ,.?!·()~%-0123456789")

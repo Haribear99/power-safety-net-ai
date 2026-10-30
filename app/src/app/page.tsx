@@ -53,8 +53,8 @@ export default function Home() {
   return (
     <main className="pb-4">
       {/* 첫 화면(390×844: 배너·H1·두 시계·CTA). 데스크톱은 왼쪽 글·오른쪽 두 시계, 모바일은 H1 → 시계 → 문장 → CTA 순서 그대로.
-          md 이상은 히어로가 첫 화면을 채워 다음 절(「AI 생성」 표기 포함)이 첫 화면에 들어오지 않게 한다(첫 화면 금지어, 57px = 내비 한 줄) */}
-      <section className="border-b border-line bg-white md:flex md:min-h-[calc(100svh-var(--banner-h,29px)-57px)] md:items-center" aria-labelledby="h1">
+          히어로가 첫 화면을 채워 다음 절(「AI 생성」 표기 포함)이 첫 화면에 들어오지 않게 한다(첫 화면 금지어, 57px = md 이상 내비 한 줄, 좁은 화면은 내비가 더 높아 여유) */}
+      <section className="border-b border-line bg-white min-h-[calc(100svh-var(--banner-h,29px)-57px)] md:flex md:items-center" aria-labelledby="h1">
         <div className="mx-auto grid max-w-6xl gap-x-12 md:w-full px-4 pb-8 pt-4 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pb-14 lg:pt-12 lg:[grid-template-areas:'h_c'_'a_c'_'b_c']">
           <h1 id="h1" className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[44px] lg:leading-[1.15] lg:[grid-area:h]">배터리가 먼저 끝날까, 전기가 먼저 올까</h1>
           <div className="mt-3 lg:mt-0 lg:[grid-area:c]"><TwoClocks /></div>
