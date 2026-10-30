@@ -10,3 +10,4 @@ seal/S8.txt -text
 seal/S9.txt -text
 spec/** -text
 datasets/notice/adversarial_fresh_1030.json -text
+seal/S10.txt -text
