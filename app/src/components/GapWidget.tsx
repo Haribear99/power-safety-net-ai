@@ -17,14 +17,14 @@ export function GapWidget({ devices, causes }: { devices: WidgetDevice[]; causes
   const surely = Math.max(0, c.p10 - d.lowerH);
   const possibly = Math.max(0, c.p90 - d.lowerH);
   return (
-    <section aria-labelledby="gw-title" className="rounded-xl border border-line p-4" data-testid="gap-widget">
-      <h2 id="gw-title" className="text-[18px] font-bold">30초 비교: 우리 집 기기와 정전 유형</h2>
+    <section aria-labelledby="gw-title" className="card p-5" data-testid="gap-widget">
+      <h2 id="gw-title" className="text-[20px] font-extrabold text-brand-strong">30초 비교: 우리 집 기기와 정전 유형</h2>
       <fieldset className="mt-3">
         <legend className="text-[14px] text-muted">기기</legend>
         <div className="mt-1 flex flex-wrap gap-2">
           {devices.map((x, i) => (
             <button key={x.key} type="button" aria-pressed={i === di} onClick={() => setDi(i)}
-              className={`rounded-full border px-3 py-1.5 text-[15px] ${i === di ? "border-ink bg-ink text-white" : "border-line"}`}>
+              className={`rounded-full border px-3 py-1.5 text-[15px] ${i === di ? "border-brand bg-brand text-white" : "border-line bg-white"}`}>
               {x.label}
             </button>
           ))}
@@ -35,7 +35,7 @@ export function GapWidget({ devices, causes }: { devices: WidgetDevice[]; causes
         <div className="mt-1 flex flex-wrap gap-2">
           {causes.map((x, i) => (
             <button key={x.key} type="button" aria-pressed={i === ci} onClick={() => setCi(i)}
-              className={`rounded-full border px-3 py-1.5 text-[15px] ${i === ci ? "border-ink bg-ink text-white" : "border-line"}`}>
+              className={`rounded-full border px-3 py-1.5 text-[15px] ${i === ci ? "border-brand bg-brand text-white" : "border-line bg-white"}`}>
               {x.label}
             </button>
           ))}

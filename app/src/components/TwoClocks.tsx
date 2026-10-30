@@ -9,7 +9,7 @@ export function TwoClocks() {
   const battH = TARGET_H - gapH;
   return (
     <div className="grid gap-3" data-testid="two-clocks">
-      <div className="rounded-xl border border-line p-3">
+      <div className="card p-4">
         <div className="text-[15px] text-muted">인공호흡기 내장배터리</div>
         <div className="mt-1 text-[34px] font-bold leading-10 text-batt">
           <span className="sr-only">3시간</span>
@@ -20,7 +20,7 @@ export function TwoClocks() {
         </div>
         <div aria-hidden className="empty-reveal mt-1 text-[13px] font-semibold text-gap">배터리 끝</div>
       </div>
-      <div className="rounded-xl border border-line p-3">
+      <div className="card p-4">
         <div className="text-[15px] text-muted">최악의 단지 설비 고장 · 정부 임시전력 목표</div>
         <div className="mt-1 text-[34px] font-bold leading-10 text-restore" style={{ fontVariantNumeric: "tabular-nums" }}>
           24:00:00 <span className="text-[18px] font-semibold">이내</span>

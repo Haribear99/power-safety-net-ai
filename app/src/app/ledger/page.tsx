@@ -11,18 +11,19 @@ export default function LedgerPage() {
   const d = diffSummary();
   const c1 = c1Evidence();
   return (
-    <main className="mx-auto max-w-2xl px-4 py-6 text-[16px] leading-7">
-      <h1 className="text-[22px] font-extrabold">AI 사용 장부</h1>
-      <h2 className="mt-4 text-[18px] font-bold">AI가 아닌 부분의 검증</h2>
+    <main className="mx-auto max-w-3xl px-4 py-6 text-[16px] leading-7 lg:py-10">
+      <h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[36px] lg:leading-[1.2]">AI 사용 장부</h1>
+      <p className="mt-2 text-muted">AI가 맡은 두 가지(라벨 판독·보호자 알림)의 봉인 측정과, AI가 아닌 부분의 검증을 기록합니다.</p>
+      <h2 className="mt-10 border-t border-line pt-6 text-[22px] font-extrabold text-brand-strong">AI가 아닌 부분의 검증</h2>
       <p className="mt-1">
         배터리 하한·배정 규칙·시뮬레이션은 AI가 아닌 결정적 코드입니다. 같은 입력을 독립 Python 구현과 비교한 차등 시험:{" "}
         {d ? <strong data-testid="diff-pass">{d.total.pass}/{d.total.scenarios} 시나리오 일치(가구 {d.total.households.toLocaleString("ko-KR")})</strong> : "측정 전"}
       </p>
-      <h2 className="mt-6 text-[18px] font-bold">AI가 하는 일 ①: 기기 라벨 판독(Claude Sonnet)</h2>
+      <h2 className="mt-10 border-t border-line pt-6 text-[22px] font-extrabold text-brand-strong">AI가 하는 일 ①: 기기 라벨 판독(Claude Sonnet)</h2>
       {c1 ? (
         <div data-testid="c1-ledger">
           <p className="mt-1">프롬프트를 만들기 전에 봉인한 합성 라벨 시험셋 {c1.sonnet.n}장(열화 60, 깨끗 30, 혼동 미끼·DB 밖 기종 30)을 <strong>한 번만</strong> 돌린 결과입니다. 렌더 라벨 성능이며 실제 기기 사진 성능이 아닙니다.</p>
-          <div className="mt-2 overflow-x-auto rounded-lg border border-line">
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white shadow-[var(--shadow-card)]">
             <table className="w-full min-w-[560px] text-[14px]">
               <thead className="bg-paper text-left text-muted"><tr><th className="px-2 py-1">지표</th><th className="px-2 py-1">Claude Sonnet</th><th className="px-2 py-1">기준선 Tesseract OCR</th></tr></thead>
               <tbody>
@@ -62,7 +63,7 @@ export default function LedgerPage() {
         </div>
       ) : <p className="mt-1">{BEFORE_MEASURE}</p>}
       <NoticeLedger />
-      <h2 id="judge" className="mt-6 text-[18px] font-bold">심사위원 3분 경로</h2>
+      <h2 id="judge" className="mt-10 scroll-mt-28 border-t border-line pt-6 text-[22px] font-extrabold text-brand-strong">심사위원 3분 경로</h2>
       <ol className="mt-1 list-decimal pl-5">
         <li><Link className="underline" href="/">첫 화면</Link>: 두 시계와 판단식 한 줄</li>
         <li><Link className="underline" href="/ops?s=PRESET-SUWON">운영자 화면</Link>: 「모의 정전 발생」 → 표에서 가구 선택 → 승인은 직접 누르세요 → 아래 「보호자 알림」에서 「AI로 쉬운 글 쓰기」·「소리로 듣기」</li>
@@ -79,7 +80,7 @@ function NoticeLedger() {
   const ci = (x: { k: number; n: number; lo: number | null; hi: number | null }) => `${x.k}/${x.n}(95% ${((x.lo ?? 0) * 100).toFixed(1)}~${((x.hi ?? 0) * 100).toFixed(1)}%)`;
   return (
     <>
-      <h2 className="mt-6 text-[18px] font-bold">AI가 하는 일 ②: 보호자 알림(생성 Claude Sonnet, 검사 Claude Opus)</h2>
+      <h2 className="mt-10 border-t border-line pt-6 text-[22px] font-extrabold text-brand-strong">AI가 하는 일 ②: 보호자 알림(생성 Claude Sonnet, 검사 Claude Opus)</h2>
       {n ? (
         <div className="mt-1 text-[14px]">
           <p>규칙이 정한 시각·할 일과 담당자가 승인한 수단을 AI가 쉬운 글로 쓰고, 규칙 검사와 다른 AI의 역추출 대조를 통과해야 담당자 확인 후보가 됩니다. 아니면 고정 문안입니다. 시연용·담당자 확인 뒤 발송이며 실제 발송 기능은 없습니다.</p>

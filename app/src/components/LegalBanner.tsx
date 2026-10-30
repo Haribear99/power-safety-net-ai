@@ -8,7 +8,7 @@ export const LEGAL_BANNER_SHORT = "AI 기반 운용(판독·알림) · 계산은
 export function LegalBanner() {
   return (
     <div role="note" aria-label="법정 고지" data-testid="legal-banner"
-      className="sticky top-0 z-50 border-b border-line bg-ink px-4 py-1 text-center text-[12px] leading-5 text-white">
+      className="sticky top-0 z-50 border-b border-brand-strong bg-brand-strong px-4 py-1 text-center text-[12px] leading-5 text-white">
       <span className="hidden sm:inline">{LEGAL_BANNER_TEXT}</span>
       <span className="sm:hidden">{LEGAL_BANNER_SHORT}</span>
       <BannerHeightSync />

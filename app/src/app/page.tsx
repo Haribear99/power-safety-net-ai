@@ -51,49 +51,76 @@ export default function Home() {
   const n = sweepN();
   const apt = aptCalib();
   return (
-    <main className="mx-auto max-w-xl px-4 pb-12">
-      <section className="pt-4" aria-labelledby="h1">
-        <h1 id="h1" className="text-[28px] font-extrabold leading-9 tracking-tight">배터리가 먼저 끝날까, 전기가 먼저 올까</h1>
-        <div className="mt-3"><TwoClocks /></div>
-        <p className="mt-3 text-[16px] leading-7" data-testid="avg-line">
-          {apt
-            ? <>한국 정전은 한 집당 1년 9분입니다. 그러나 최근 {apt.years}년 아파트 정전 {apt.n}건 중 {apt.gt12h}건, {Math.round(apt.n / apt.gt12h)}건에 1건꼴로 12시간을 넘겼습니다(기후에너지환경부 집계).</>
-            : <>한국 정전은 한 집당 1년 9분입니다. 그러나 2026년 8월 인천 계양 아파트는 11시간, 충남 서산 아파트는 14시간 동안 전기가 끊겼습니다(보도).</>}
-        </p>
-        <div className="mt-4 grid gap-2">
-          <Link href="/ops?s=PRESET-SUWON" data-testid="cta-ops"
-            className="block rounded-xl bg-ink px-4 py-3 text-center text-[17px] font-bold text-white">
-            운영자 화면 체험 (수원형 야간 변압기)
-          </Link>
-          <Link href="/lab" data-testid="cta-lab"
-            className="block rounded-xl border border-ink px-4 py-3 text-center text-[16px] font-semibold">
-            {n != null ? `합성 정전 ${n.toLocaleString("ko-KR")}건, 정책만 바꿔 돌린 결과` : "같은 정전을 다시 돌린 결과 보기"}
-          </Link>
+    <main className="pb-4">
+      {/* 첫 화면(390×844: 배너·H1·두 시계·CTA). 데스크톱은 왼쪽 글·오른쪽 두 시계, 모바일은 H1 → 시계 → 문장 → CTA 순서 그대로 */}
+      <section className="border-b border-line bg-white" aria-labelledby="h1">
+        <div className="mx-auto grid max-w-6xl gap-x-12 px-4 pb-8 pt-4 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pb-14 lg:pt-12 lg:[grid-template-areas:'h_c'_'a_c'_'b_c']">
+          <h1 id="h1" className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[44px] lg:leading-[1.15] lg:[grid-area:h]">배터리가 먼저 끝날까, 전기가 먼저 올까</h1>
+          <div className="mt-3 lg:mt-0 lg:[grid-area:c]"><TwoClocks /></div>
+          <p className="mt-3 max-w-[60ch] text-[16px] leading-7 text-ink lg:mt-5 lg:text-[18px] lg:leading-8 lg:[grid-area:a]" data-testid="avg-line">
+            {apt
+              ? <>한국 정전은 한 집당 1년 9분입니다. 그러나 최근 {apt.years}년 아파트 정전 {apt.n}건 중 {apt.gt12h}건, {Math.round(apt.n / apt.gt12h)}건에 1건꼴로 12시간을 넘겼습니다(기후에너지환경부 집계).</>
+              : <>한국 정전은 한 집당 1년 9분입니다. 그러나 2026년 8월 인천 계양 아파트는 11시간, 충남 서산 아파트는 14시간 동안 전기가 끊겼습니다(보도).</>}
+          </p>
+          <div className="mt-4 grid gap-2 lg:mt-7 lg:flex lg:flex-wrap lg:gap-3 lg:[grid-area:b]">
+            <Link href="/ops?s=PRESET-SUWON" data-testid="cta-ops"
+              className="press block rounded-xl bg-brand px-5 py-3 text-center text-[17px] font-bold text-white shadow-[var(--shadow-raised)] hover:bg-brand-strong lg:whitespace-nowrap">
+              운영자 화면 체험 (수원형 야간 변압기)
+            </Link>
+            <Link href="/lab" data-testid="cta-lab"
+              className="press block rounded-xl border border-brand-line bg-white px-5 py-3 text-center text-[16px] font-semibold text-brand hover:bg-brand-soft lg:whitespace-nowrap">
+              {n != null ? `합성 정전 ${n.toLocaleString("ko-KR")}건, 정책만 바꿔 돌린 결과` : "같은 정전을 다시 돌린 결과 보기"}
+            </Link>
+          </div>
         </div>
       </section>
 
-      <div className="mt-8"><GapWidget devices={widgetDevices()} causes={widgetCauses()} /></div>
-
-      <section className="mt-8" aria-labelledby="how">
-        <h2 id="how" className="text-[18px] font-bold">이 도구가 하는 일</h2>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[16px] leading-7">
-          <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>(계산값)을 검증 가능한 규칙으로 계산합니다.{(() => { const k = kpiOverPredict(); return k ? ` 모의에서는 이 하한이 실제보다 긴 경우가 ${((100 * k.rule.k) / k.rule.n).toFixed(1)}%였습니다(원안 목표 0건 미달, 사후 집계, ` : ""; })()}{kpiOverPredict() && <><Link className="underline" href="/lab#prereg">랩 ⑥</Link>). </>} <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
-          <li>하한을 <strong>복구 가정 범위</strong>와 <strong>비상전원 도착 시각</strong>에 비교해 처리 순서와 추천을 냅니다.</li>
-          <li><strong>담당자가 승인</strong>해야 배정되고, 119에는 위치·기기·예상 안전시간 세 가지만 넘어갑니다.</li>
-          <NoticeItem />
-        </ol>
+      {/* 문제: 정전이 길어지면 먼저 꺼지는 집 */}
+      <section className="mx-auto mt-12 grid max-w-6xl items-center gap-8 px-4 md:grid-cols-2 lg:mt-16" aria-labelledby="problem">
+        <figure>
+          <div role="img" aria-label="밤에 정전된 아파트 단지. 한 집 창문에만 의료기기 불빛이 켜져 있다" className="illust illust-reveal aspect-[3/2] w-full bg-[url('/illustrations/outage-apartment.webp')]" />
+          <figcaption className="mt-2 text-[13px] text-muted">일러스트: AI 생성(실제 장소 아님)</figcaption>
+        </figure>
+        <div>
+          <h2 id="problem" className="text-[24px] font-extrabold leading-8 tracking-tight text-brand-strong lg:text-[30px] lg:leading-10">정전이 길어지면, 배터리가 먼저 끝나는 집이 생깁니다</h2>
+          <p className="mt-3 max-w-[60ch] text-[16px] leading-7">인공호흡기·산소발생기를 쓰는 집은 정전과 동시에 기기 배터리 시간이 줄어듭니다. 공개된 복구·순환단전 절차에는 어느 집이 먼저 꺼지는지 계산하는 단계가 없습니다.</p>
+          <p className="mt-2 max-w-[60ch] text-[16px] leading-7">전력안심망은 집마다 배터리가 버티는 시간과 전기가 돌아올 시각을 나란히 놓고, 담당자가 먼저 챙길 집을 고르게 돕습니다.</p>
+        </div>
       </section>
 
-      <div className="mt-8"><ClosingCard /></div>
+      <div className="mx-auto mt-12 max-w-3xl px-4 lg:mt-16"><GapWidget devices={widgetDevices()} causes={widgetCauses()} /></div>
 
-      <footer className="mt-6 text-[14px] leading-6 text-muted">
-        <p>2026 AI 라이프 아이디어 챌린지 12번 후보작 「전력안심망 AI」 구현</p>
-        <nav className="mt-1 flex flex-wrap gap-x-4" aria-label="심사 자료">
-          <Link className="underline" href="/ledger#judge">심사위원 경로</Link>
-          <Link className="underline" href="/ledger">AI 사용 장부</Link>
-          <Link className="underline" href="/about">법·윤리</Link>
-        </nav>
-      </footer>
+      {/* 이 도구가 하는 일: 세로 4단계 흐름 */}
+      <section className="mx-auto mt-12 max-w-6xl px-4 lg:mt-16" aria-labelledby="how">
+        <h2 id="how" className="text-[24px] font-extrabold leading-8 tracking-tight text-brand-strong lg:text-[30px] lg:leading-10">이 도구가 하는 일</h2>
+        <div className="mt-5 grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-start">
+          <ol className="step-list text-[16px] leading-7">
+            <li>기기 라벨을 읽어(AI) 제조사 사양과 맞춰 집마다 <strong>배터리 하한</strong>(계산값)을 검증 가능한 규칙으로 계산합니다.{(() => { const k = kpiOverPredict(); return k ? ` 모의에서는 이 하한이 실제보다 긴 경우가 ${((100 * k.rule.k) / k.rule.n).toFixed(1)}%였습니다(원안 목표 0건 미달, 사후 집계, ` : ""; })()}{kpiOverPredict() && <><Link className="underline" href="/lab#prereg">랩 ⑥</Link>). </>} <Link className="underline" href="/household">라벨 판독 해 보기</Link></li>
+            <li>하한을 <strong>복구 가정 범위</strong>와 <strong>비상전원 도착 시각</strong>에 비교해 처리 순서와 추천을 냅니다.</li>
+            <li><strong>담당자가 승인</strong>해야 배정되고, 119에는 위치·기기·예상 안전시간 세 가지만 넘어갑니다.</li>
+            <NoticeItem />
+          </ol>
+          <figure className="lg:sticky lg:top-[calc(var(--banner-h,29px)+16px)]">
+            <div role="img" aria-label="처리 순서 화면에서 한 집을 고르고, 사람이 버튼을 눌러 승인하면 구급차로 이어지는 흐름" className="illust illust-reveal aspect-[3/1] w-full bg-[url('/illustrations/approve-flow.webp')] bg-contain bg-white" />
+            <figcaption className="mt-2 text-[13px] text-muted">처리 순서 → 담당자 승인 → 119 연계. 일러스트: AI 생성</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      {/* 정전 전에 할 수 있는 일(E7 자세한 수치는 랩 ⑩) */}
+      <section className="mx-auto mt-12 grid max-w-6xl items-center gap-8 px-4 md:grid-cols-[1fr_1.2fr] lg:mt-16" aria-labelledby="prepare">
+        <div className="md:order-2">
+          <h2 id="prepare" className="text-[24px] font-extrabold leading-8 tracking-tight text-brand-strong lg:text-[30px] lg:leading-10">정전 전에 준비해 두면 달라집니다</h2>
+          <p className="mt-3 max-w-[60ch] text-[16px] leading-7">배터리가 없는 산소발생기 집에는 예비 산소통을, 배터리는 인공호흡기 집에 먼저 두는 평시 대비를 같은 조건에서 비교했습니다. 이 결과는 AI가 아니라 평시 정책에서 나온 모의 결과입니다.</p>
+          <p className="mt-2 text-[16px]"><Link className="font-semibold text-brand underline underline-offset-4" href="/lab#premortem">가정과 수치 보기(리허설 랩 ⑩)</Link></p>
+        </div>
+        <figure className="md:order-1">
+          <div role="img" aria-label="산소통과 휴대용 배터리를 콘센트 옆에 미리 준비해 둔 모습" className="illust illust-reveal aspect-[3/2] w-full bg-[url('/illustrations/prepare-kit.webp')]" />
+          <figcaption className="mt-2 text-[13px] text-muted">일러스트: AI 생성</figcaption>
+        </figure>
+      </section>
+
+      <div className="mx-auto mt-12 max-w-3xl px-4 lg:mt-16"><ClosingCard /></div>
     </main>
   );
 }
@@ -105,8 +132,13 @@ function NoticeItem() {
   return (
     <li>
       승인 뒤 보호자에게 보낼 <strong>쉬운 글·음성 안내</strong>를 AI가 쓰고, 규칙 검사와 다른 AI의 역추출 대조(검사 범위: 시각·수단·경고·할 일·금지 표현)를 통과해야 담당자 확인 후보가 됩니다(시연용·담당자 확인 뒤 발송, 실제 발송 기능 없음).
-      {n ? ` 봉인 측정(봉인 당시 검사 기준): AI 글 통과 ${ci(n.aiSent)}${n.judgeSplit ? `(나간 글 60건 중 봉인 뒤 결함 판정 ${n.sentDefects ?? "—"}건: 같은 시각 경고 모순 ${n.judgeSplit.aiSameTime.n}·모순 고정 문안 ${n.judgeSplit.sentContradiction}·외장 합산 미표기 ${n.extUndisclosed?.k ?? "—"}·경고 여유 미달 ${n.marginMissed?.length ?? "—"}·없는 약속 ${n.unsupportedPromise?.length ?? "—"}, '적어도'만 있는 글 ${n.atLeastOnly?.length ?? "—"}건은 기준 변경이라 제외(합치면 ${(n.sentDefects ?? 0) + (n.atLeastOnly?.length ?? 0)}건), 고침·고친 검사는 미측정)` : ""}, 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 ${ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 ${ci(n.goodFalseReject)}.` : ""}{" "}
-      <Link className="underline" href="/lab#notice">자세히</Link>
+      {n ? (
+        <ul className="mt-2 space-y-1.5 rounded-xl border border-line bg-paper p-3 text-[16px] leading-7">
+          <li>봉인 측정(봉인 당시 검사 기준): AI 글 통과 {ci(n.aiSent)}</li>
+          {n.judgeSplit ? <li>봉인 측정의 나간 글 60건 중 봉인 뒤 결함 판정 {n.sentDefects ?? "—"}건: 같은 시각 경고 모순 {n.judgeSplit.aiSameTime.n}·모순 고정 문안 {n.judgeSplit.sentContradiction}·외장 합산 미표기 {n.extUndisclosed?.k ?? "—"}·경고 여유 미달 {n.marginMissed?.length ?? "—"}·없는 약속 {n.unsupportedPromise?.length ?? "—"}. &lsquo;적어도&rsquo;만 있는 글 {n.atLeastOnly?.length ?? "—"}건은 기준 변경이라 제외(합치면 {(n.sentDefects ?? 0) + (n.atLeastOnly?.length ?? 0)}건), 고침·고친 검사는 미측정.</li> : null}
+          <li>봉인 측정에서 개발 세션이 띄운 Claude Opus 에이전트(검사기와 같은 모델)가 쓴 틀린 글 통과 {ci(n.badMissed)}(예측 틀림: 경고 대상·수단 덧붙임·기기 이름·구급대 연결), 맞는 글 잘못 막음 {ci(n.goodFalseReject)}. <Link className="underline" href="/lab#notice">자세히</Link></li>
+        </ul>
+      ) : <>{" "}<Link className="underline" href="/lab#notice">자세히</Link></>}
     </li>
   );
 }

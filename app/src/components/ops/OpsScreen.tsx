@@ -47,33 +47,33 @@ function TopBar() {
   const [eta, setEta] = useState("");
   const [sigma, setSigma] = useState("0.3");
   return (
-    <header className="sticky top-[var(--banner-h,29px)] z-40 -mx-4 border-b border-line bg-white/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-[var(--banner-h,29px)] z-40 -mx-4 border-b border-line bg-white px-4 py-3 shadow-[var(--shadow-card)]">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <h1 className="text-[20px] font-extrabold">운영자 화면</h1>
+        <h1 className="text-[22px] font-extrabold text-brand-strong">운영자 화면</h1>
         <label className="flex items-center gap-2 text-[15px]">
           <span className="text-muted">시나리오</span>
-          <select className="rounded border border-line px-2 py-1" value={s.preset.meta.scenarioId}
+          <select className="rounded-xl border border-line bg-white px-3 py-1.5" value={s.preset.meta.scenarioId}
             onChange={(e) => router.replace(`/ops?s=${e.target.value}`)}>
             {PRESETS.map((p) => <option key={p.meta.scenarioId} value={p.meta.scenarioId}>{p.meta.name}</option>)}
           </select>
         </label>
         {!s.started ? (
           <button type="button" onClick={startOutage} data-testid="start-outage"
-            className="rounded-lg bg-gap px-4 py-2 text-[16px] font-bold text-white">모의 정전 발생</button>
+            className="press rounded-xl bg-gap px-5 py-2 text-[16px] font-bold text-white shadow-[var(--shadow-raised)]">모의 정전 발생</button>
         ) : (
-          <span className="rounded bg-gap-soft px-2 py-1 text-[14px] font-semibold text-gap">정전 중 · 경과 {h2(elapsed)}h</span>
+          <span className="rounded-full bg-gap-soft px-3 py-1 text-[14px] font-semibold text-gap">정전 중 · 경과 {h2(elapsed)}h</span>
         )}
         <div className="flex items-center gap-1 text-[14px]" role="group" aria-label="모의 시계 배속">
           <span className="text-muted">모의시각 <strong className="text-ink" data-testid="mock-clock">{clock(s)}</strong></span>
           {SPEEDS.map((v) => (
             <button key={v} type="button" disabled={!s.started} aria-pressed={speed === v} onClick={() => setSpeed(v)} data-testid={`speed-${v}`}
-              className={`rounded border px-2 py-0.5 ${speed === v ? "border-ink bg-ink text-white" : "border-line"} disabled:opacity-40`}>
+              className={`rounded-full border px-2.5 py-0.5 ${speed === v ? "border-brand bg-brand text-white" : "border-line bg-white"} disabled:opacity-40`}>
               {v === 0 ? "정지" : `×${v}`}
             </button>
           ))}
         </div>
         <span className="text-[14px] text-muted" data-testid="latency">정전→순위 표시 지연 {latencyMs != null ? `${latencyMs}ms` : "—"}(실측)</span>
-        <Link href="/ops/119" className="ml-auto rounded border border-restore px-3 py-1 text-[15px] font-semibold text-restore" data-testid="link-119">119 화면 →</Link>
+        <Link href="/ops/119" className="press ml-auto rounded-xl border border-restore bg-white px-3 py-1.5 text-[15px] font-semibold text-restore" data-testid="link-119">119 화면 →</Link>
       </div>
       {s.started && (
         <form className="mt-2 flex flex-wrap items-center gap-2 text-[14px]" onSubmit={(e) => {
@@ -99,7 +99,7 @@ function AbStrip({ scenarioId }: { scenarioId: string }) {
   const ab = presetAb(scenarioId);
   const r = ab?.policies.RULE, b1 = ab?.policies.B1_SHORTEST, b2 = ab?.policies.B2_NEAREST, kr = ab?.policies.KR_BASELINE;
   return (
-    <section className="mt-3 rounded-lg border border-line bg-paper px-3 py-2 text-[15px]" data-testid="ab-strip"
+    <section className="mt-4 rounded-2xl border border-brand-line bg-brand-soft px-4 py-3 text-[15px]" data-testid="ab-strip"
       title="프리셋 시드는 결과를 보기 전에 봉인 · 규칙은 그 뒤 화면 점검으로 고침(개발 기록) · 이 시나리오 1건의 결과일 뿐 · 27개 조건 비교는 /lab">
       {r && b1 && b2 ? (
         <p>
@@ -120,8 +120,8 @@ function BeforeOutage() {
   const s = session!;
   const pl = s.preset.planner;
   return (
-    <section className="mt-6 max-w-2xl text-[16px] leading-7">
-      <h2 className="text-[18px] font-bold">{s.preset.meta.name}</h2>
+    <section className="card mt-6 max-w-2xl p-6 text-[16px] leading-7">
+      <h2 className="text-[20px] font-extrabold text-brand-strong">{s.preset.meta.name}</h2>
       <p className="mt-1">{s.preset.meta.description}</p>
       <p className="mt-2">등록 가구 {pl.households.length}곳, 비상전원 자원 {pl.resources.length}개(모의 값), 119 시간당 {pl.lanes.k119PerH}건, 쉼터 {pl.lanes.shelter.seats}석. 가구·자원은 모두 합성 데이터입니다.</p>
       <p className="mt-2">「모의 정전 발생」을 누르면 신고가 들어온 가구마다 배터리 하한을 계산하고 처리 순서와 추천을 냅니다. 확정은 담당자 승인으로만 됩니다.</p>
@@ -189,10 +189,10 @@ function Board() {
   const now = sToH(s.nowS);
   const R = s.restoration?.view;
   return (
-    <div className="mt-3 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
       <section aria-labelledby="tbl-title" className="min-w-0">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 id="tbl-title" className="text-[18px] font-bold">처리 순서</h2>
+          <h2 id="tbl-title" className="text-[20px] font-extrabold text-brand-strong">처리 순서</h2>
           {R && (
             <span className="text-[14px]" data-testid="restoration-line">
               복구 {R.status === "CONFIRMED" ? "통보 범위" : "가정 범위"} P10~P90 <strong>{h2(Math.max(0, R.p10 - now))}~{h2(Math.max(0, R.p90 - now))}h 뒤</strong>
@@ -203,7 +203,7 @@ function Board() {
             <input type="checkbox" checked={group} onChange={(e) => setGroup(e.target.checked)} /> 레인별 묶어 보기
           </label>
         </div>
-        <div className="mt-2 overflow-x-auto rounded-lg border border-line">
+        <div className="mt-2 overflow-x-auto rounded-2xl border border-line bg-white shadow-[var(--shadow-card)]">
           <table className="w-full min-w-[980px] border-collapse text-[14px]" data-testid="lane-table">
             <thead className="bg-paper text-left text-[13px] text-muted">
               <tr>
@@ -269,9 +269,10 @@ function Board() {
         <OmissionAudit />
         <AuditLog />
       </section>
-      <aside className="space-y-4">
+      {/* 좁은 화면: 가구를 고르면 서랍이 표 위로(표 아래에 열려 보이지 않던 문제, 10/30 디자인 개편). 서랍 파일은 그대로 */}
+      <aside className={`space-y-4 ${sel ? "order-first lg:order-none" : ""}`}>
         {sel ? <ApproveDrawer householdId={sel} onClose={() => setSel(null)} /> : (
-          <p className="rounded-lg border border-dashed border-line p-3 text-[14px] text-muted">표에서 가구를 고르면 승인 서랍이 열립니다.</p>
+          <p className="rounded-2xl border border-dashed border-brand-line bg-white p-4 text-[14px] text-muted">표에서 가구를 고르면 승인 서랍이 열립니다.</p>
         )}
         <ResourcePanel />
       </aside>

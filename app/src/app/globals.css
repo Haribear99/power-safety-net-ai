@@ -1,11 +1,19 @@
+@import "./pretendard.css";
 @import "tailwindcss";
 
+/* 10/30 디자인 개편: 공공 서비스 신뢰형. 강조 색은 남색 하나(brand), 의미 색(gap/restore/batt/warn)은 이름 유지.
+   모서리 규칙: 카드 16px(rounded-2xl), 버튼·입력 12px(rounded-xl), 칩·배지 full. 그림자는 남색 기운 2단계만. 라이트 테마만 */
 @theme {
-  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-sans: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
   --color-ink: #16202a;
   --color-muted: #4b5866;
   --color-line: #d5dbe1;
   --color-paper: #f7f8f9;
+  --color-canvas: #f3f6f9;
+  --color-brand: #1d3a5f;
+  --color-brand-strong: #142a45;
+  --color-brand-soft: #e5ecf4;
+  --color-brand-line: #c3d1e0;
   --color-gap: #b42318;
   --color-gap-soft: #fde4e1;
   --color-restore: #1d5fa8;
@@ -16,6 +24,8 @@
   --color-batt-strong: #1a6b43;
   --color-warn: #8a5a00;
   --color-warn-soft: #fff1cc;
+  --shadow-card: 0 1px 2px rgb(29 58 95 / 0.06), 0 10px 28px -16px rgb(29 58 95 / 0.22);
+  --shadow-raised: 0 2px 4px rgb(29 58 95 / 0.08), 0 18px 40px -20px rgb(29 58 95 / 0.32);
 }
 
 :root {
@@ -23,9 +33,39 @@
 }
 
 body {
-  background: #ffffff;
+  background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-feature-settings: "tnum" 0;
+  text-rendering: optimizeLegibility;
+}
+
+/* 한글 제목은 어절 단위로 줄바꿈(본문·표는 기존대로: 긴 토큰의 가로 넘침 방지) */
+h1, h2, h3 { word-break: keep-all; text-wrap: balance; }
+
+/* 키보드 초점: 모든 화면 같은 링 */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #2f6db3;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 눌림 피드백(버튼·주요 링크) */
+.press { transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 160ms ease; }
+.press:active { transform: translateY(1px); }
+
+/* 카드 표면 */
+.card { background: #ffffff; border: 1px solid var(--color-line); border-radius: 16px; box-shadow: var(--shadow-card); }
+
+/* AI 생성 일러스트 칸: 글자와 겹치지 않는 별도 칸(배경 이미지는 글자 위에 두지 않는다 — expectReadable 덮개 검사) */
+.illust { background-position: center; background-size: cover; background-repeat: no-repeat; border-radius: 16px; background-color: var(--color-brand-soft); }
+
+/* 일러스트 등장(글자 없는 칸에만, 동작 줄이기면 없음) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .illust-reveal { animation: illust-in linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+    @keyframes illust-in { from { opacity: 0.55; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  }
 }
 
 /* ---- 두 시계 (1.3절: CSS만, prefers-reduced-motion이면 정지 그림) ---- */
@@ -82,3 +122,14 @@ body {
 .lab-conditional { background: radial-gradient(circle, #e8c76a 1.2px, transparent 1.6px) 0 0 / 7px 7px, var(--color-warn-soft); color: var(--color-warn); }
 .lab-fragile { background: #ffffff; color: var(--color-muted); }
 .lab-borderline { background: repeating-linear-gradient(45deg, #eef1f4 0 4px, #ffffff 4px 8px); color: var(--color-ink); }
+
+/* 랜딩 「이 도구가 하는 일」: 번호 원 + 세로 연결선(목록 의미는 ol 그대로) */
+.step-list { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+.step-list > li { counter-increment: step; position: relative; padding: 0 0 1.5rem 3.25rem; }
+.step-list > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0; width: 2.25rem; height: 2.25rem; border-radius: 9999px;
+  display: grid; place-items: center; background: var(--color-brand); color: #fff; font-weight: 800; font-size: 16px;
+}
+.step-list > li:not(:last-child)::after {
+  content: ""; position: absolute; left: calc(1.125rem - 1px); top: 2.5rem; bottom: 0.25rem; width: 2px; background: var(--color-brand-line);
+}

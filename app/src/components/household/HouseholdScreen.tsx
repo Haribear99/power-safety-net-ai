@@ -61,13 +61,26 @@ export function HouseholdScreen() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6 text-[16px] leading-7">
-      <h1 className="text-[22px] font-extrabold">보호자 등록: 기기 라벨 읽기</h1>
-      <p className="mt-1 text-[15px]">AI는 라벨의 글자를 옮겨 적기만 합니다. 어떤 기종인지 정하고 배터리 하한을 계산하는 것은 코드이고, 기종 확인은 담당자가 합니다.</p>
-      <div className="mt-3 flex gap-2" role="tablist">
+    <main className="mx-auto max-w-5xl px-4 py-6 text-[16px] leading-7 lg:py-10">
+      <div className="grid items-center gap-6 md:grid-cols-[1.3fr_1fr]">
+        <div>
+          <h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[36px] lg:leading-[1.2]">보호자 등록: 기기 라벨 읽기</h1>
+          <p className="mt-2 text-[16px]">AI는 라벨의 글자를 옮겨 적기만 합니다. 어떤 기종인지 정하고 배터리 하한을 계산하는 것은 코드이고, 기종 확인은 담당자가 합니다.</p>
+          <ol className="mt-4 grid grid-cols-2 gap-2 text-[14px] sm:grid-cols-4" aria-label="등록 단계">
+            {["라벨 사진", "글자 옮기기(AI)", "기종 확인(사람)", "배터리 하한(규칙)"].map((t, i) => (
+              <li key={t} className="rounded-xl border border-brand-line bg-white px-3 py-2 font-semibold text-brand"><span className="mr-1 text-muted">{i + 1}</span>{t}</li>
+            ))}
+          </ol>
+        </div>
+        <figure className="hidden md:block">
+          <div role="img" aria-label="휴대폰으로 기기 뒷면 라벨을 찍는 모습" className="illust aspect-[3/2] w-full bg-[url('/illustrations/label-photo.webp')]" />
+          <figcaption className="mt-1 text-[13px] text-muted">일러스트: AI 생성(상표 없는 기기)</figcaption>
+        </figure>
+      </div>
+      <div className="mt-6 flex gap-2" role="tablist">
         {(["sample", "upload"] as const).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => { setTab(t); setRes(null); setImg(null); setMsg(null); }}
-            className={`rounded-lg border px-3 py-1 text-[15px] ${tab === t ? "border-ink bg-ink text-white" : "border-line"}`}>
+            className={`press rounded-full border px-4 py-1.5 text-[15px] font-semibold ${tab === t ? "border-brand bg-brand text-white" : "border-brand-line bg-white text-brand"}`}>
             {t === "sample" ? "샘플 라벨(기본)" : "사진 올리기"}
           </button>
         ))}
@@ -77,21 +90,21 @@ export function HouseholdScreen() {
       {tab === "sample" ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="samples">
           {SAMPLES.map((s) => (
-            <button key={s.key} className="rounded-lg border border-line p-1 text-left text-[13px] hover:border-ink"
+            <button key={s.key} className="press rounded-2xl border border-line bg-white p-2 text-left text-[13px] shadow-[var(--shadow-card)] hover:border-brand"
               onClick={() => { setImg(s.src); setRes({ label: s.label, match: matchLabel(s.label), source: `${s.recorded} 재생 · ${(s.latencyMs / 1000).toFixed(1)}초` }); setSeq((n) => n + 1); }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.src} alt={`샘플 라벨: ${s.title}`} className="aspect-[9/6] w-full rounded object-cover" />
+              <img src={s.src} alt={`샘플 라벨: ${s.title}`} className="aspect-[9/6] w-full rounded-xl object-cover" />
               <span className="mt-1 block">{s.title}</span>
             </button>
           ))}
         </div>
       ) : (
-        <section className="mt-3 rounded-lg border border-line p-3 text-[14px]" data-testid="upload">
-          <p className="text-gap">이 서비스는 이미지를 저장하지 않습니다. 판독을 위해 국외 AI 사업자(Anthropic, 미국) API로 전송되며, 해당 사업자 정책에 따라 최대 30일(정책 위반으로 분류되면 최대 2년) 보관될 수 있습니다(<a className="underline" href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" target="_blank" rel="noreferrer">정책</a>). 실제 환자 라벨·성명·시리얼은 올리지 마세요.</p>
+        <section className="card mt-3 p-5 text-[14px]" data-testid="upload">
+          <p className="rounded-xl bg-gap-soft p-3 text-gap">이 서비스는 이미지를 저장하지 않습니다. 판독을 위해 국외 AI 사업자(Anthropic, 미국) API로 전송되며, 해당 사업자 정책에 따라 최대 30일(정책 위반으로 분류되면 최대 2년) 보관될 수 있습니다(<a className="underline" href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" target="_blank" rel="noreferrer">정책</a>). 실제 환자 라벨·성명·시리얼은 올리지 마세요.</p>
           <label className="mt-2 flex gap-2"><input type="checkbox" checked={ok1} onChange={(e) => setOk1(e.target.checked)} />합성 라벨이거나 환자가 쓰지 않는 기기의 라벨입니다</label>
           <label className="mt-1 flex gap-2"><input type="checkbox" checked={ok2} onChange={(e) => setOk2(e.target.checked)} />국외 전송에 동의합니다</label>
-          <label className="mt-2 block">심사용 접근 코드(선택) <input type="password" className="ml-1 w-56 rounded border border-line px-1" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" /></label>
-          <input className="mt-2 block" type="file" accept="image/jpeg,image/png,image/webp" disabled={!ok1 || !ok2 || busy} data-testid="upload-input"
+          <label className="mt-2 block">심사용 접근 코드(선택) <input type="password" className="ml-1 w-56 rounded-xl border border-line px-2 py-1" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" /></label>
+          <input className="mt-3 block text-[14px] file:mr-3 file:rounded-xl file:border-0 file:bg-brand file:px-4 file:py-2 file:font-semibold file:text-white disabled:opacity-50" type="file" accept="image/jpeg,image/png,image/webp" disabled={!ok1 || !ok2 || busy} data-testid="upload-input"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }} />
           {busy ? <p className="mt-1">판독 중…</p> : null}
         </section>
