@@ -30,8 +30,8 @@ const VERDICT_KO: Record<string, string> = { SUPERIOR: "우세", INFERIOR: "열�
 
 function Section({ id, n, title, children }: { id: string; n: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-h`} className="mt-10 scroll-mt-16">
-      <h2 id={`${id}-h`} className="text-[20px] font-extrabold"><span className="text-muted">{n}</span> {title}</h2>
+    <section id={id} aria-labelledby={`${id}-h`} className="card mt-8 scroll-mt-28 p-5 lg:p-7">
+      <h2 id={`${id}-h`} className="flex items-baseline gap-2 text-[22px] font-extrabold leading-8 text-brand-strong"><span className="text-brand">{n}</span> {title}</h2>
       {children}
     </section>
   );
@@ -45,9 +45,9 @@ function Hero({ d }: { d: LabDoc }) {
   const p0 = d.e2!.cells.filter((c) => c.pClass === "P0").length;
   const robustRule = d.e1!.cells.filter((c) => c.pol === "RULE" && c.label === "ROBUST" && !c.zero);
   return (
-    <div className="mt-4 rounded-xl border border-line bg-paper p-4" data-testid="lab-hero">
+    <div className="card mt-6 border-brand-line p-5 lg:p-7" data-testid="lab-hero">
       <p className="text-[15px] text-muted">합성 정전 {d.e2!.n.toLocaleString("ko-KR")}건을 같은 난수로 정책만 바꿔 다시 돌린 결과(모의정전). 비상전원이 가구 {hpr.lo}~{hpr.hi}곳당 1대 있다고 가정하고, 현행 절차에는 그 전원을 가구와 잇는 단계가 없습니다.</p>
-      <p className="mt-1 text-[26px] font-extrabold leading-9">
+      <p className="mt-2 text-[28px] font-extrabold leading-9 text-brand-strong lg:text-[32px] lg:leading-10">
         현행 절차보다 공백 가구·시간 <span className="text-batt">{pct1(kr.rel)} 감소</span>
       </p>
       <p className="text-[15px]">
@@ -81,7 +81,7 @@ function Hero({ d }: { d: LabDoc }) {
 function GapGrid({ d, pol }: { d: LabDoc; pol: "KR_BASELINE" | "RULE" }) {
   const cells = d.e1!.cells.filter((c) => c.pol === pol);
   return (
-    <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+    <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label={`빈틈 지도: ${POLICY_KO[pol]}`}>
       <table className="w-full min-w-[760px] border-collapse text-[12px]" data-testid={`gapmap-${pol}`}>
         <caption className="px-2 py-1 text-left text-[14px] font-bold">{POLICY_KO[pol]}</caption>
         <thead>
@@ -148,7 +148,7 @@ function Decomposition({ d }: { d: LabDoc }) {
 
 function CellTable({ d }: { d: LabDoc }) {
   return (
-    <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+    <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="정책 비교 표">
       <table className="w-full min-w-[760px] text-[12px]" data-testid="e2-table">
         <thead className="bg-paper text-left text-muted">
           <tr>
@@ -179,7 +179,7 @@ const BINS: [number, number][] = [[0, 2], [2, 4], [4, 8], [8, 12], [12, 24], [24
 
 function BreakEven({ d }: { d: LabDoc }) {
   return (
-    <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+    <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="손익분기 표">
       <table className="w-full min-w-[640px] text-[12px]" data-testid="breakeven">
         <thead className="bg-paper text-muted">
           <tr>
@@ -256,7 +256,7 @@ function Patches({ d }: { d: LabDoc }) {
         같은 정전(보류 시드 {e.n.toLocaleString("ko-KR")}회)에 해외 절차 4개를 한국 행위자로 옮겨 얹고 다시 돌렸습니다. 보급률·고장률·계획 작성률은 가정 범위로 흔들고,
         &lsquo;실효 보급&rsquo;(보급 × (1 − 고장)) 하위 10%와 상위 10% 시나리오의 감소율을 함께 보입니다. 도구는 집에 둔 배터리를 모른다고 두었습니다(효과를 부풀리지 않는 쪽).
       </p>
-      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="해외 절차 보완안 표">
         <table className="w-full min-w-[760px] text-[12px]" data-testid="patch-table">
           <thead className="bg-paper text-left text-muted">
             <tr><th className="px-2 py-1">바탕</th><th className="px-2 py-1">보완안(한국 행위자)</th><th className="px-2 py-1">공백 가구·시간 감소 [95% CI]</th><th className="px-2 py-1">실효 보급 하위~상위 10%</th><th className="px-2 py-1">고위험 공백 승/무/패</th><th className="px-2 py-1">견고한 빈틈</th></tr>
@@ -333,7 +333,7 @@ function Empirical() {
           </div>
         ))}
       </div>
-      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="공백 가구 비율 표">
         <table className="w-full min-w-[420px] border-collapse text-[13px]">
           <caption className="px-2 py-1 text-left text-[14px] font-bold">전원 공백이 생긴 가구 비율(모의)</caption>
           <thead><tr className="text-muted"><th className="px-2 py-1 text-left font-normal">기기</th><th className="px-2 py-1 text-right font-normal">현행 절차</th><th className="px-2 py-1 text-right font-normal">도구</th><th className="px-2 py-1 text-right font-normal">도구 + 휴대용 배터리 사전 배치</th></tr></thead>
@@ -385,7 +385,7 @@ function AiAndTarget() {
         무작위보다 공백 가구·시간이 {ci(g.preVsRand)}{sig(g.preVsRand) && g.preVsRand.rel! > 0 ? " 더 줄었습니다" : " 달라졌습니다(유의하지 않음)"}.
         정전 중 신고 시각·충전량까지 알고 고르면(낙관 상한, E5 방식) {ci(g.outVsRand)}입니다.
       </p>
-      <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+      <div className="mt-3 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="사전 배치 공백 가구 비율 표">
         <table className="w-full min-w-[420px] border-collapse text-[13px]">
           <caption className="px-2 py-1 text-left text-[14px] font-bold">전원 공백이 생긴 가구 비율(모의, 도구 + 사전 배치)</caption>
           <thead><tr className="text-muted"><th className="px-2 py-1 text-left font-normal">기기</th><th className="px-2 py-1 text-right font-normal">무작위 배치</th><th className="px-2 py-1 text-right font-normal">평시 기록 기반 표적</th></tr></thead>
@@ -518,19 +518,27 @@ function heatStyle(pk: number): { background: string; color?: string } {
 export default function LabPage() {
   const d = lab();
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 text-[16px] leading-7">
-      <h1 className="text-[24px] font-extrabold">리허설 랩</h1>
-      <p className="mt-1">같은 정전을 같은 난수로 정책만 바꿔 다시 돌려, 현행 절차의 빈틈과 도구가 닫는 빈틈·닫지 못하는 빈틈을 가릅니다. 모든 값은 합성 가구·가정 분포 위의 모의 결과입니다.</p>
-      <nav aria-label="랩 탭" className="sticky top-[calc(var(--banner-h,29px)+3px)] z-10 mt-3 flex flex-wrap gap-2 bg-white/95 py-2 text-[14px]">
-        <a className="rounded border border-line px-2 py-0.5" href="#map">② 빈틈 지도</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#compare">③ 도구 대 현행</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#breakeven">① 손익분기</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#patches">④ 보완안</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#empirical">⑦ 실측 분포</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#ai-target">⑧ AI 판독·표적 배치</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#notice">⑨ 보호자 알림</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#premortem">⑩ 실패 가정 점검</a>
-        <a className="rounded border border-line px-2 py-0.5" href="#prereg">⑥ 사전등록 대조</a>
+    <main className="mx-auto max-w-6xl px-4 py-6 text-[16px] leading-7 lg:py-10">
+      <div className="grid items-center gap-6 md:grid-cols-[1.3fr_1fr]">
+        <div>
+          <h1 className="text-[30px] font-extrabold leading-10 tracking-tight text-brand-strong lg:text-[40px] lg:leading-[1.2]">리허설 랩</h1>
+          <p className="mt-2 max-w-[62ch]">같은 정전을 같은 난수로 정책만 바꿔 다시 돌려, 현행 절차의 빈틈과 도구가 닫는 빈틈·닫지 못하는 빈틈을 가릅니다. 모든 값은 합성 가구·가정 분포 위의 모의 결과입니다.</p>
+        </div>
+        <figure className="hidden md:block">
+          <div role="img" aria-label="막대그래프를 비교하는 분석 책상" className="illust aspect-[3/2] w-full bg-[url('/illustrations/lab-analysis.webp')]" />
+          <figcaption className="mt-1 text-[13px] text-muted">일러스트: AI 생성</figcaption>
+        </figure>
+      </div>
+      <nav aria-label="랩 탭" className="lab-tabs sticky top-[calc(var(--banner-h,29px)+3px)] z-10 mt-5 -mx-4 flex gap-2 overflow-x-auto bg-canvas px-4 py-2 text-[14px]">
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#map">② 빈틈 지도</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#compare">③ 도구 대 현행</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#breakeven">① 손익분기</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#patches">④ 보완안</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#empirical">⑦ 실측 분포</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#ai-target">⑧ AI 판독·표적 배치</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#notice">⑨ 보호자 알림</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#premortem">⑩ 실패 가정 점검</a>
+        <a className="press shrink-0 whitespace-nowrap rounded-full border border-brand-line bg-white px-3 py-1 font-semibold text-brand hover:bg-brand-soft" href="#prereg">⑥ 사전등록 대조</a>
       </nav>
       {!d ? (
         <p id="dominance" className="mt-4 rounded-lg border border-line p-3">봉인 실행 결과: <strong>{BEFORE_MEASURE}</strong></p>

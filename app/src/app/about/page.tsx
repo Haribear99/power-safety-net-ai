@@ -5,9 +5,10 @@ export const metadata = { title: "법·윤리와 한계 · 전력안심망 AI" }
 // 법·윤리 고지, 의료기기 비해당 근거, 착안 공개(공고 5항·참가신청서 유의사항 대응).
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-6 text-[16px] leading-7">
-      <h1 className="text-[22px] font-extrabold">법·윤리와 한계</h1>
-      <ul className="mt-3 list-disc space-y-1 pl-5">
+    <main className="mx-auto max-w-3xl px-4 py-6 text-[16px] leading-7 lg:py-10">
+      <h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-brand-strong lg:text-[36px] lg:leading-[1.2]">법·윤리와 한계</h1>
+      <p className="mt-2 text-muted">합성 데이터, 의료기기 비해당, AI와 사람의 역할, 국외 전송, 봉인과 착안을 한곳에 모았습니다.</p>
+      <ul className="card mt-5 list-disc space-y-3 p-6 pl-10">
         <li>모든 가구·자원은 시연용 합성 데이터입니다. 실제 위치·실시간 정보는 쓰지 않습니다.</li>
         <li>이 도구는 의료기기가 아닙니다. 질병의 진단·치료·예방 목적이 없고, 기기를 제어하거나 생체신호를 읽지 않으며, 제조사 사양의 배터리 시간과 정전 복구 범위를 비교해 비상전원 물류를 돕습니다. 배정은 담당자 승인으로만 확정됩니다.</li>
         <li>복구 시간은 가정 시나리오 범위이며 한전 실시간 예측이 아닙니다.</li>
@@ -16,7 +17,7 @@ export default function AboutPage() {
         <li>라벨 사진을 올리면 판독을 위해 국외 AI 사업자(Anthropic, 미국)로 전송됩니다. 이 서비스는 이미지를 저장하지 않으며, 사업자 정책상 최대 30일(정책 위반 분류 시 최대 2년) 보관될 수 있습니다. 업로드는 동의 2개를 해야 열리고, 기본은 기록된 판독 재생입니다. 보호자 알림을 AI로 쓸 때는 기기 종류·시각·수단으로 만든 사실표와 그 글만 같은 사업자로 전송되며, 이름·주소·가명은 보내지 않습니다. 음성은 브라우저가 읽습니다.</li>
         <li>시뮬레이션 수치는 공개 통계·보도에 맞춘 가정 분포 위의 모의 결과입니다. 결과를 보기 전에 예측과 판정 기준을 봉인했고, 틀린 예측도 공개합니다(<Link className="underline" href="/lab#prereg">사전등록 대조</Link>).</li>
       </ul>
-      <h2 id="inspiration" className="mt-6 text-[18px] font-bold">착안과 차이</h2>
+      <h2 id="inspiration" className="mt-10 scroll-mt-28 text-[22px] font-extrabold text-brand-strong">착안과 차이</h2>
       <p className="mt-1">이 작품의 리허설 랩은 OpenAI DevDay Exchange Community Hackathon: Seoul(2026-10-09) 출품작 「전조(JEONJO)」(공개 저장소 github.com/Hariuncle/JEONJO, 본 작품 출품자와 관계 없음)에서 착안했습니다. 그 작품은 행사장 안전을 주제로, 같은 조건의 가상 세계 여러 개에서 현행 매뉴얼과 개선 매뉴얼을 비교해 빈틈을 찾습니다. 이 실험 틀을 정전·전력의존 가구에 옮겨 왔고, 그 작품의 코드·자산·화면은 쓰지 않았습니다.</p>
       <table className="mt-2 w-full border-collapse text-[14px]">
         <thead><tr className="border-b border-line text-left"><th className="py-1 pr-2">가져온 것</th><th className="py-1">이 작품에서 새로 한 것</th></tr></thead>
