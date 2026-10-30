@@ -87,10 +87,12 @@ function interaction(prefix: string) {
   };
   const rng = rngFor("E7-BOOT", `interaction|${prefix}`, "BOOT");
   const xs: number[] = [];
-  for (let k = 0; k < E2_BOOT; k++) xs.push(val(rows.map(() => rows[Math.floor(rng.uniform() * rows.length)])));
+  let nan = 0;
+  for (let k = 0; k < E2_BOOT; k++) { const x = val(rows.map(() => rows[Math.floor(rng.uniform() * rows.length)])); if (Number.isFinite(x)) xs.push(x); else nan++; }
+  if (nan) console.warn(`산소통 몫 부트스트랩 ${prefix || "층화"}: 줄어든 시간 ≤ 0인 재표본 ${nan}개 제외`);
   xs.sort((p, q) => p - q);
   const q = (u: number) => xs[Math.min(xs.length - 1, Math.floor(u * xs.length))];
-  return { rel: r4(val(rows)), lo: r4(q(0.025)), hi: r4(q(0.975)) };
+  return { rel: r4(val(rows)), lo: r4(q(0.025)), hi: r4(q(0.975)), nanExcluded: nan };
 }
 const cylShare = { strat: interaction(""), unstrat: interaction("U:") };
 const hh = hhRates();
