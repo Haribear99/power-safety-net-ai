@@ -1,0 +1,27 @@
+// /ops 동선 탐색(녹화 전 확인용)
+import { chromium } from "playwright";
+const base = process.argv[2] ?? "http://localhost:3100";
+const out = process.argv[3] ?? ".";
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1536, height: 864 }, deviceScaleFactor: 1.25 });
+await p.goto(base + "/ops?s=PRESET-SUWON");
+await p.getByTestId("start-outage").click();
+await p.getByTestId("lane-table").waitFor();
+const rows = await p.locator('[data-testid="lane-table"] [data-lane][data-testid^="row-"]').evaluateAll((rs) => rs.map((r) => `${r.getAttribute("data-lane")} | ${r.getAttribute("data-testid")} | ${(r.textContent ?? "").replace(/\s+/g, " ").slice(0, 110)}`));
+console.log(rows.join("\n"));
+await p.screenshot({ path: `${out}/ops-table.png` });
+const id119 = rows.find((r) => r.startsWith("FALLBACK_119"))?.split(" | ")[1].replace("row-", "");
+console.log("pick", id119);
+await p.getByTestId(`open-${id119}`).click();
+await p.getByTestId("approve-drawer").waitFor();
+console.log("DRAWER:", (await p.getByTestId("approve-drawer").innerText()).slice(0, 900));
+await p.screenshot({ path: `${out}/ops-drawer.png` });
+await p.getByTestId("approve").click();
+await p.waitForTimeout(500);
+console.log("AFTER:", (await p.getByTestId("approve-drawer").innerText()).slice(0, 1500));
+await p.screenshot({ path: `${out}/ops-approved.png`, fullPage: false });
+await p.getByTestId("link-119").click();
+await p.waitForURL(/ops\/119/);
+console.log("119:", (await p.locator("main").innerText()).slice(0, 800));
+await p.screenshot({ path: `${out}/ops-119.png` });
+await b.close();

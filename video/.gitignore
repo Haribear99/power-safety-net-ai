@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# 녹화 클립·렌더 결과는 record/record.mts와 remotion render로 다시 만든다(용량 큼)
+public/clips/

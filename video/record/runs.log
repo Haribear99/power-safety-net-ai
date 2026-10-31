@@ -1,0 +1,11 @@
+## 2026-10-31 (이 파일 도입 전 기록을 옮김) 운영 URL 전체 8구간 녹화에서 배너 9곳 ✓, 아래는 그 뒤 landing-top·ops 재녹화 결과
+base https://power-safety-net-ai.vercel.app
+✓ 배너 landing-top
+landing-top: 30.83s, 프레임 417(평균 13.5fps) → public\clips\landing-top.mp4
+✓ 배너 ops
+✓ 배너 ops-119
+ops: 26.86s, 프레임 629(평균 23.4fps) → public\clips\ops.mp4## 2026-10-31T01:55:42.085Z base https://power-safety-net-ai.vercel.app 구간 ledger,landing-next
+✓ 배너 ledger
+ledger: 8.96s, 프레임 56(평균 6.3fps) → public\clips\ledger.mp4
+✓ 배너 landing-next
+landing-next: 23.60s, 프레임 100(평균 4.2fps) → public\clips\landing-next.mp4
